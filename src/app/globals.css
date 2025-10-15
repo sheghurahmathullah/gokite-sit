@@ -1,39 +1,127 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
+/* GoKite Travel Design System - All colors MUST be HSL */
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    /* Base colors */
+    --background: 0 0% 100%;
+    --foreground: 220 15% 15%;
+
+    /* Hero gradient */
+    --hero-gradient-start: 198 74% 95%;
+    --hero-gradient-end: 196 32% 95%;
+
+    /* Brand colors */
+    --brand-cyan: 195 84% 48%;
+    --accent-orange: 22 100% 54%;
+    --btn-black: 240 8% 10%;
+
+    /* Card & surface */
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 15%;
+    --card-border: 220 13% 91%;
+
+    /* Text variations */
+    --text-muted: 220 9% 46%;
+    --text-body: 220 15% 20%;
+
+    /* Input & interactive */
+    --input: 220 13% 91%;
+    --input-foreground: 220 15% 20%;
+    --border: 220 13% 91%;
+    --ring: 195 84% 48%;
+
+    /* Primary (black buttons) */
+    --primary: 240 8% 10%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary (orange) */
+    --secondary: 22 100% 54%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted */
+    --muted: 220 40% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    /* Accent */
+    --accent: 22 100% 54%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+
+    /* Footer */
+    --footer-bg: 192 42% 89%;
+
+    /* Apply Visa Page specific colors */
+    --visa-hero-bg: 198 74% 95%;
+    --visa-accent: 195 100% 45%;
+    --visa-card-bg: 0 0% 100%;
+    --visa-border: 220 13% 91%;
+    --visa-muted: 220 11% 52%;
+    --visa-badge: 35 100% 51%;
+
+    /* Radius */
+    --radius: 0.75rem;
+    --radius-lg: 1.25rem;
+    --radius-xl: 1.75rem;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-  font-family: var(--font-monda), var(--font-outfit), system-ui, -apple-system,
-    sans-serif;
+@layer base {
+  * {
+    @apply border-[hsl(var(--border))];
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: "Inter", "Poppins", system-ui, -apple-system, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Poppins", "Inter", system-ui, -apple-system, sans-serif;
+    font-weight: 600;
+  }
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-outfit), var(--font-monda), system-ui, -apple-system,
-    sans-serif;
+@layer utilities {
+  .hero-gradient {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--hero-gradient-start)) 0%,
+      hsl(var(--hero-gradient-end)) 100%
+    );
+  }
+
+  .card-shadow {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .card-shadow-hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }

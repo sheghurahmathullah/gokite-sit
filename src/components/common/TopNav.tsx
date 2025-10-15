@@ -10,7 +10,7 @@ const TopNav = () => {
       <Button
         variant="default"
         size="sm"
-        className="rounded-full px-6 bg-primary text-primary-foreground hover:bg-primary/90"
+        className="rounded-full px-6 bg-black text-primary-foreground"
       >
         Hi, Usman
       </Button>
