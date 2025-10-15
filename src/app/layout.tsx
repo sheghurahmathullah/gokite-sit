@@ -3,6 +3,8 @@ import { GeistSans } from "geist/font";
 import { GeistMono } from "geist/font";
 import "./globals.css";
 import { Monda, Outfit } from "next/font/google";
+import { PageProvider } from "@/components/common/PageContext";
+import { Toaster } from "@/components/ui/toaster";
 
 const monda = Monda({
   weight: ["400", "700"],
@@ -30,7 +32,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${monda.variable} ${outfit.variable}`}>
-      <body>{children}</body>
+      <body>
+        <PageProvider>
+          {children}
+          <Toaster />
+        </PageProvider>
+      </body>
     </html>
   );
 }

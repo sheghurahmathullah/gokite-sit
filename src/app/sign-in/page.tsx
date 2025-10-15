@@ -83,15 +83,40 @@ export default function GoKiteSignup() {
     e.preventDefault();
     setSubmitting(true);
 
-    // Fake "login" delay to simulate loading
-    setTimeout(() => {
-      toast({
-        title: "Sign In Successful",
-        description: "Welcome to GoKite! (Demo only)",
+    try {
+      const response = await fetch("/api/auth/guest-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userName: email }),
       });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast({
+          title: "Sign In Successful",
+          description: "Welcome to GoKite!",
+        });
+        router.push("/");
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Sign In Failed",
+          description:
+            errorData.message || "Unable to sign in. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("Network error", err);
+      toast({
+        title: "Network Error",
+        description:
+          "Unable to connect to the server. Please check your connection.",
+        variant: "destructive",
+      });
+    } finally {
       setSubmitting(false);
-      router.push("/"); // Redirect to home page using Next.js router
-    }, 1500);
+    }
   };
 
   return (
