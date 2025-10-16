@@ -1,38 +1,208 @@
+"use client";
+import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+interface SearchSuggestion {
+  id: string;
+  label: string;
+  value: string;
+}
+
 const HolidayBookingCard = () => {
+  const router = useRouter();
+  const [searchType, setSearchType] = useState<"city" | "country">("city");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Handle search input change with autocomplete
+  const handleSearchInputChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+
+    // Clear previous timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    if (value.trim().length < 2) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    // Show loading immediately
+    setIsLoading(true);
+    setShowDropdown(true);
+
+    // Debounce API call
+    debounceTimer.current = setTimeout(async () => {
+      try {
+        const endpoint =
+          searchType === "city"
+            ? "/api/holiday-city-autocomplete"
+            : "/api/holiday-country-autocomplete";
+        const params = new URLSearchParams({ query: value });
+
+        const response = await fetch(`${endpoint}?${params}`);
+        const data = await response.json();
+
+        if (data.success && data.data) {
+          setSuggestions(data.data);
+          setShowDropdown(true);
+        } else {
+          setSuggestions([]);
+        }
+      } catch (error) {
+        console.error("Error fetching suggestions:", error);
+        setSuggestions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 200);
+  };
+
+  // Handle suggestion selection
+  const handleSelectSuggestion = (item: SearchSuggestion) => {
+    setSearchQuery(item.label);
+    setSelectedCountry(item.value);
+    setShowDropdown(false);
+
+    // Store in session storage
+    try {
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("selectedHolidayDestination", item.label);
+        window.sessionStorage.setItem(
+          "selectedHolidayDestinationType",
+          searchType
+        );
+      }
+    } catch (_) {}
+  };
+
+  // Handle search button click
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push("/holiday-grid");
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6">
       <h2 className="text-xl font-bold mb-4 text-left">Book Holiday</h2>
 
       <div className="bg-gray-50 rounded-lg p-4 flex flex-col lg:flex-row items-center gap-4">
-        {/* Left side - Input */}
-        <div className="flex-1 flex flex-col">
+        {/* Left side - Search Input with Autocomplete */}
+        <div className="flex-1 flex flex-col relative w-full" ref={dropdownRef}>
           <label className="text-xs text-muted-foreground text-left mb-1">
-            Where are you Staying?
+            Where are you {searchType === "city" ? "Staying" : "Going"}?
           </label>
           <input
             type="text"
-            placeholder="Select Destination / Hotel"
+            placeholder={
+              searchType === "city"
+                ? "Select City / Hotel"
+                : "Select Country / Destination"
+            }
+            value={searchQuery}
+            onChange={handleSearchInputChange}
+            onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
             className="text-sm text-foreground outline-none bg-transparent border-none"
           />
+
+          {/* Autocomplete Dropdown */}
+          {showDropdown && (
+            <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+              {isLoading ? (
+                <div className="p-4 text-sm text-gray-500 text-center">
+                  Loading...
+                </div>
+              ) : suggestions.length > 0 ? (
+                suggestions.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => handleSelectSuggestion(item)}
+                    className="p-3 hover:bg-gray-100 cursor-pointer transition-colors"
+                  >
+                    <span className="text-sm text-gray-900">{item.label}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-sm text-gray-500 text-center">
+                  No results found
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Center - Country chip */}
-        <div className="flex items-center justify-center px-6 py-3 ">
-          <span className="text-xl font-bold tracking-wider text-black">
-            SINGAPORE
-          </span>
+        {/* Center - Search Type Toggle */}
+        <div className="flex items-center justify-center px-4 py-2">
+          <div className="flex bg-gray-200 rounded-lg p-1 gap-1">
+            <button
+              onClick={() => {
+                setSearchType("city");
+                setSearchQuery("");
+                setSuggestions([]);
+                setShowDropdown(false);
+              }}
+              className={`px-4 py-2 text-sm font-bold tracking-wider rounded-md transition-all ${
+                searchType === "city"
+                  ? "bg-black text-white shadow-sm"
+                  : "bg-transparent text-gray-600 hover:text-black"
+              }`}
+            >
+              CITY
+            </button>
+            <button
+              onClick={() => {
+                setSearchType("country");
+                setSearchQuery("");
+                setSuggestions([]);
+                setShowDropdown(false);
+              }}
+              className={`px-4 py-2 text-sm font-bold tracking-wider rounded-md transition-all ${
+                searchType === "country"
+                  ? "bg-black text-white shadow-sm"
+                  : "bg-transparent text-gray-600 hover:text-black"
+              }`}
+            >
+              COUNTRY
+            </button>
+          </div>
         </div>
 
-        {/* Right side - Button */}
+        {/* Right side - Search Button */}
         <Button
           size="lg"
+          onClick={handleSearch}
           className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 text-base font-semibold rounded-lg"
         >
           <Search className="w-5 h-5 mr-2" />
-          Hotel
+          {searchType === "city" ? "Hotel" : "Destination"}
         </Button>
       </div>
 
