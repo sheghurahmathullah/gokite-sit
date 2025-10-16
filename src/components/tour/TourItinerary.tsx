@@ -72,7 +72,8 @@ const TourItinerary = ({ itinerary }: TourItineraryProps) => {
                   <div className="flex items-center justify-between p-4 border-b border-border hover:bg-muted/20 transition-colors">
                     <div>
                       <span className="font-semibold text-foreground">
-                        {item.day} ({item.time})
+                        {item.day}
+                        {item.time ? ` ${item.time}` : ""}
                       </span>
                       <span className="text-foreground/70 ml-2">
                         - {item.title}

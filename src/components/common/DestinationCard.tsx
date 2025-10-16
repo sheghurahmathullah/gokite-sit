@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Heart, Star, Plane, Building2, Car, User } from "lucide-react";
 
 interface Destination {
+  id?: string;
   name: string;
   image: string;
   rating: number;
@@ -23,9 +25,29 @@ interface DestinationCardProps {
 
 const DestinationCard = ({ destination }: DestinationCardProps) => {
   const [isFavorite, setIsFavorite] = useState(false);
+  const router = useRouter();
+
+  const handleCardClick = () => {
+    // Store holidayId in sessionStorage
+    if (destination.id && typeof window !== "undefined") {
+      try {
+        window.sessionStorage.setItem("holidayId", destination.id);
+      } catch (e) {
+        console.error("Failed to store holidayId:", e);
+      }
+    }
+
+    // Navigate to tour details page with slug
+    const slug =
+      destination.id || destination.name.toLowerCase().replace(/\s+/g, "-");
+    router.push(`/tour-details/${slug}`);
+  };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group p-4">
+    <div
+      className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group p-4 cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Image */}
       <div className="relative h-48 overflow-hidden rounded-sm mb-4">
         <img
@@ -35,7 +57,10 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
         />
         {/* Heart overlay - white heart icon */}
         <button
-          onClick={() => setIsFavorite(!isFavorite)}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent card click
+            setIsFavorite(!isFavorite);
+          }}
           className="absolute top-4 right-4 w-8 h-8 rounded-full bg-transparent flex items-center justify-center hover:bg-white/20 transition-all"
           aria-label="Add to wishlist"
         >
