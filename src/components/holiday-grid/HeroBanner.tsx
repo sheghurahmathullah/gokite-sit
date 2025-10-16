@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Umbrella,
   Mountain,
@@ -21,8 +21,19 @@ const categories = [
   { id: "wildlife", label: "Wildlife", icon: Dog },
 ];
 
-const HeroBanner = () => {
+interface HeroBannerProps {
+  onCategorySelect?: (category: string) => void;
+}
+
+const HeroBanner = ({ onCategorySelect }: HeroBannerProps) => {
   const [activeCategory, setActiveCategory] = useState("beaches");
+
+  // Notify parent on initial mount
+  useEffect(() => {
+    if (onCategorySelect) {
+      onCategorySelect("Beaches");
+    }
+  }, []);
 
   return (
     <div
@@ -69,7 +80,12 @@ const HeroBanner = () => {
               return (
                 <button
                   key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
+                  onClick={() => {
+                    setActiveCategory(category.id);
+                    if (onCategorySelect) {
+                      onCategorySelect(category.label);
+                    }
+                  }}
                   className={`flex flex-col items-center gap-1 sm:gap-2 min-w-fit transition-all ${
                     isActive ? "opacity-100" : "opacity-70 hover:opacity-90"
                   }`}
