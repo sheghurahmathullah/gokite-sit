@@ -14,6 +14,7 @@ const ApplyVisaPage: React.FC = () => {
   const [visaDetails, setVisaDetails] = useState<any>(null);
   const [visaError, setVisaError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [noVisaAvailable, setNoVisaAvailable] = useState(false);
 
   // Get authorization headers
   const getCookie = (name: string) => {
@@ -51,9 +52,9 @@ const ApplyVisaPage: React.FC = () => {
       }
 
       // If no country selected, use default (UAE/AE)
-      if (!countryCode) {
-        countryCode = "AE";
-      }
+      // if (!countryCode) {
+      //   countryCode = "AE";
+      // }
 
       try {
         setLoading(true);
@@ -66,11 +67,19 @@ const ApplyVisaPage: React.FC = () => {
         if (!res.ok) throw new Error("Failed to fetch visa details");
 
         const json = await res.json();
-        const details = json?.data?.[0] || null;
+        const items = Array.isArray(json?.data) ? json.data : [];
+        if (items.length === 0) {
+          setNoVisaAvailable(true);
+          setVisaDetails(null);
+          setVisaError(null);
+          return;
+        }
+        const details = items[0] || null;
 
         console.log("Fetched visa details:", details);
         setVisaDetails(details);
         setVisaError(null);
+        setNoVisaAvailable(false);
 
         // Cache the details
         try {
@@ -86,6 +95,7 @@ const ApplyVisaPage: React.FC = () => {
       } catch (e) {
         console.error("Error fetching visa details:", e);
         setVisaError("Failed to load visa details");
+        setNoVisaAvailable(false);
       } finally {
         setLoading(false);
       }
@@ -117,6 +127,10 @@ const ApplyVisaPage: React.FC = () => {
         {loading ? (
           <div className="flex items-center justify-center min-h-[400px]">
             <p className="text-lg text-gray-600">Loading visa details...</p>
+          </div>
+        ) : noVisaAvailable ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <p className="text-xl font-semibold text-gray-800">No VISA Available</p>
           </div>
         ) : visaError ? (
           <div className="flex flex-col items-center justify-center min-h-[400px] px-4">
