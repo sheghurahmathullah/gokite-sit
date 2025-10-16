@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import * as Flags from "country-flag-icons/react/3x2";
+import { usePageContext } from "../common/PageContext";
 
 export interface VisaCountry {
   id: string;
@@ -14,6 +15,8 @@ export interface VisaCountry {
   perAdult?: boolean;
   offer?: string;
   eVisa?: boolean;
+  flagImageUrl?: string;
+  subtitle?: string;
 }
 
 interface VisaCardProps {
@@ -43,7 +46,26 @@ const VisaCard = ({
               : "mb-1"
           }
         >
-          {FlagComponent && <FlagComponent className="w-12 h-12 rounded" />}
+          {visa.flagImageUrl ? (
+            <img
+              src={visa.flagImageUrl}
+              alt={`${visa.country} flag`}
+              className="w-12 h-12 rounded object-cover"
+              onError={(e) => {
+                // Fallback to component flag on error
+                e.currentTarget.style.display = "none";
+                const nextSibling = e.currentTarget
+                  .nextElementSibling as HTMLElement;
+                if (nextSibling) nextSibling.style.display = "block";
+              }}
+            />
+          ) : null}
+          {FlagComponent && (
+            <FlagComponent
+              className="w-12 h-12 rounded"
+              style={{ display: visa.flagImageUrl ? "none" : "block" }}
+            />
+          )}
           {hasVisaTag && (
             <img
               src="/visa/visa-icon.png"
@@ -81,16 +103,183 @@ const VisaCard = ({
 
 interface CountrySliderProps {
   title: string;
-  countries: VisaCountry[];
   type?: "popular" | "trending";
+  sectionTitle: string; // New prop to identify section
 }
+
+// Helper function to get flag component
+const getFlagComponent = (countryCode: string) => {
+  try {
+    return Flags[countryCode.toUpperCase() as keyof typeof Flags];
+  } catch {
+    return Flags.US; // Fallback to US flag
+  }
+};
 
 const CountrySlider = ({
   title,
-  countries,
   type = "popular",
+  sectionTitle,
 }: CountrySliderProps) => {
+  const [countries, setCountries] = useState<VisaCountry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
+
+  // Read cookie helper
+  const getCookie = (name: string) => {
+    if (typeof document === "undefined") return "";
+    const match = document.cookie
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith(`${name}=`));
+    return match ? decodeURIComponent(match.split("=")[1]) : "";
+  };
+
+  const getAuthHeaders = () => {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    const token = getCookie("accesstoken");
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    return headers;
+  };
+
+  // Fetch flag image URL
+  const getFlagImageUrl = (imageName: string) => {
+    if (!imageName) return null;
+    return `/api/cms/file-download?image=${encodeURIComponent(imageName)}`;
+  };
+
+  // Fetch sections data
+  const fetchSectionsData = async () => {
+    const PAGE_ID = getPageIdWithFallback("visa-landing-page");
+
+    try {
+      const sectionsResponse = await fetch("/api/cms/pages-sections", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ pageId: PAGE_ID }),
+      });
+
+      if (!sectionsResponse.ok) {
+        throw new Error("Failed to fetch sections data");
+      }
+
+      const sectionsData = await sectionsResponse.json();
+      return sectionsData.data || [];
+    } catch (err: any) {
+      console.error("Error fetching sections:", err);
+      throw err;
+    }
+  };
+
+  // Fetch visa cards data
+  const fetchVisaCardsData = async (sectionId: string) => {
+    try {
+      const response = await fetch("/api/cms/sections-visa-cards", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ pageSectionId: sectionId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch visa cards data");
+      }
+
+      const data = await response.json();
+      return Array.isArray(data?.data) ? data.data : [];
+    } catch (err: any) {
+      console.error("Error fetching visa cards:", err);
+      throw err;
+    }
+  };
+
+  // Transform API data to component format
+  const transformVisaData = (apiData: any[]): VisaCountry[] => {
+    return apiData.map((item) => {
+      // Try to get country code from multiple possible sources
+      const countryCode =
+        item.visaCardJson?.countryCode ||
+        item.visaCardCountryId ||
+        item.countryCode ||
+        "US";
+
+      console.log(`Country: ${item.visaCardTitle}, Code: ${countryCode}`, item);
+
+      return {
+        id: item.visaCardCountryId || item.id,
+        country: item.visaCardTitle || item.country,
+        countryCode: countryCode,
+        price: parseFloat(item.newPrice || item.price || "0"),
+        currency: item.currency || "₹",
+        visaType: item.visaCardJson?.subTitle || "Tourist Visa",
+        visaTime: item.visaCardJson?.visaTime || "",
+        image: item.visaCardJson?.image || "",
+        perAdult: item.visaCardJson?.perAdult || true,
+        eVisa: item.visaCardJson?.eVisa || false,
+        flagImageUrl:
+          getFlagImageUrl(item.visaCardJson?.flagImage) || undefined,
+        subtitle: item.subtitle || "Get your Visa by 24 hours",
+      };
+    });
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    if (pageLoading) return;
+
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch sections
+        const sections = await fetchSectionsData();
+
+        // Find section based on title and type
+        const section = sections.find(
+          (s: any) => s.title === sectionTitle && s.contentType === "VISA"
+        );
+
+        if (!section) {
+          throw new Error(`Section not found: ${sectionTitle}`);
+        }
+
+        // Fetch visa cards for this section
+        const visaCardsData = await fetchVisaCardsData(section.pageSectionId);
+
+        // Transform data
+        const transformedData = transformVisaData(visaCardsData);
+
+        setCountries(transformedData);
+      } catch (err: any) {
+        console.error("Error loading data:", err);
+        setError(err.message);
+
+        // Fallback data
+        setCountries([
+          {
+            id: "US",
+            country: "United States",
+            countryCode: "US",
+            price: 160500,
+            currency: "₹",
+            visaType: "Tourist Visa",
+            visaTime: "30 days",
+            image: "",
+            perAdult: true,
+            eVisa: false,
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [pageLoading, sectionTitle]);
 
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
@@ -104,6 +293,24 @@ const CountrySlider = ({
       });
     }
   };
+
+  if (loading) {
+    return (
+      <section className="w-full px-6 py-6">
+        <div>Loading {title}...</div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="w-full px-6 py-6">
+        <div>
+          Error loading {title}: {error}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="w-full px-6 py-6">
@@ -152,12 +359,12 @@ const CountrySlider = ({
             />
           ))}
         </div>
+        <style>{`
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
       </div>
-      <style>{`
-        div::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </section>
   );
 };

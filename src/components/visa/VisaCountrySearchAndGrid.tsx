@@ -1,11 +1,13 @@
-import { Plane, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, lazy, Suspense, useRef } from "react";
+"use client";
+import { Plane, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface VisaCountry {
   id: string;
   country: string;
   countryCode: string;
-  price: number;
+  price: string;
   currency: string;
   visaType: string;
   visaTime: string;
@@ -13,6 +15,9 @@ interface VisaCountry {
   perAdult?: boolean;
   offer?: string;
   eVisa?: boolean;
+  tagNames?: string[];
+  processingDays?: string;
+  additionalFee?: string;
 }
 
 const filters = [
@@ -24,100 +29,14 @@ const filters = [
   "Visa Free",
 ];
 
-const allVisaCountries: VisaCountry[] = [
-  {
-    id: "uae-1",
-    country: "United Arab Emirates",
-    countryCode: "AE",
-    price: 6500,
-    currency: "₹",
-    visaType: "Tourist Visa",
-    visaTime: "3 Days",
-    image:
-      "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80",
-  },
-  {
-    id: "singapore-3",
-    country: "Singapore",
-    countryCode: "SG",
-    price: 6500,
-    currency: "₹",
-    visaType: "Tourist Visa",
-    visaTime: "5 Days",
-    image:
-      "https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80",
-  },
-  {
-    id: "japan-1",
-    country: "Japan",
-    countryCode: "JP",
-    price: 6500,
-    currency: "₹",
-    visaType: "Tourist Visa",
-    visaTime: "5 Days",
-    image:
-      "https://images.unsplash.com/photo-1480796927426-f609979314bd?w=800&q=80",
-  },
-  {
-    id: "sri-lanka-2",
-    country: "Srilanka",
-    countryCode: "LK",
-    price: 6500,
-    currency: "₹",
-    visaType: "e-Visa",
-    visaTime: "5 Days",
-    image:
-      "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80",
-  },
-  {
-    id: "africa-1",
-    country: "Africa",
-    countryCode: "ZA",
-    price: 6500,
-    currency: "₹",
-    visaType: "Tourist Visa",
-    visaTime: "5 Days",
-    image:
-      "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80",
-  },
-  {
-    id: "australia-2",
-    country: "Australia",
-    countryCode: "AU",
-    price: 6500,
-    currency: "₹",
-    visaType: "e-Visa",
-    visaTime: "5 Days",
-    image:
-      "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=800&q=80",
-  },
-  {
-    id: "thailand-1",
-    country: "Thailand",
-    countryCode: "TH",
-    price: 6500,
-    currency: "₹",
-    visaType: "Visa on Arrival",
-    visaTime: "5 Days",
-    image:
-      "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&q=80",
-  },
-  {
-    id: "russia-1",
-    country: "Russia",
-    countryCode: "RU",
-    price: 6500,
-    currency: "₹",
-    visaType: "Tourist Visa",
-    visaTime: "5 Days",
-    image:
-      "https://images.unsplash.com/photo-1513326738677-b964603b136d?w=800&q=80",
-  },
-];
-
 const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
+  const router = useRouter();
+
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer border border-gray-100">
+    <div
+      className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer border border-gray-100"
+      onClick={() => router.push("/apply-visa")}
+    >
       <div className="relative h-56 overflow-hidden">
         <img
           src={country.image}
@@ -125,18 +44,16 @@ const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
           className="w-full h-full object-cover"
         />
         {country.offer && (
-          <div className="absolute top-3 right-3 bg-yellow-400 px-2.5 py-1 rounded-md">
-            <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">
-              {country.offer.split("!")[0].includes("Hurry")
-                ? "OFFER"
-                : "OFFER"}
-            </span>
-          </div>
-        )}
-        {country.offer && (
-          <div className="absolute top-9 right-3 bg-yellow-400 px-2 py-0.5 rounded text-[9px] font-semibold text-gray-900">
-            {country.offer}
-          </div>
+          <>
+            <div className="absolute top-3 right-3 bg-yellow-400 px-2.5 py-1 rounded-md">
+              <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wide">
+                OFFER
+              </span>
+            </div>
+            <div className="absolute top-9 right-3 bg-yellow-400 px-2 py-0.5 rounded text-[9px] font-semibold text-gray-900">
+              {country.offer}
+            </div>
+          </>
         )}
       </div>
 
@@ -147,31 +64,119 @@ const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
           </h3>
           <div className="text-right text-[11px] text-gray-600">
             <div>Visa in</div>
-            <div className="font-semibold text-black">{country.visaTime}</div>
+            <div className="font-semibold text-black">
+              {country.processingDays || country.visaTime} Days
+            </div>
           </div>
         </div>
 
         <div className="flex items-baseline gap-1 mb-0.5">
-          <span className="text-xl font-bold text-black">
-            {country.currency}
-            {country.price.toLocaleString()}
-          </span>
+          <span className="text-xl font-bold text-black">{country.price}</span>
         </div>
 
-        <div className="text-[11px] text-gray-500">+ ₹6,500 (Fees + Tax)</div>
+        <div className="text-[11px] text-gray-500">
+          {country.additionalFee || "+ ₹8,500 (Fees + Tax)"}
+        </div>
       </div>
     </div>
   );
 };
 
-export default function VisaCardDesign() {
+export default function VisaCountrySearchAndGrid() {
   const [selectedFilter, setSelectedFilter] = useState("Popular");
   const [searchQuery, setSearchQuery] = useState("");
+  const [countriesData, setCountriesData] = useState<VisaCountry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const filterScrollRef = useRef<HTMLDivElement>(null);
 
-  const filteredCountries = allVisaCountries.filter((country) =>
-    country.country.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Fetch countries data from API
+  const fetchCountriesData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch("/api/cms/countries-dd");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+
+      // API returns { success, data: { success, data: [...] } }
+      if (result?.success && result?.data) {
+        const upstream = result.data;
+        const itemsArray = Array.isArray(upstream?.data) ? upstream.data : [];
+        const transformedData = transformCountriesData(itemsArray);
+        setCountriesData(transformedData);
+      } else {
+        throw new Error(result.message || "Failed to fetch countries data");
+      }
+    } catch (err: any) {
+      console.error("Error fetching countries data:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transform API data to component format
+  const transformCountriesData = (apiData: any[]): VisaCountry[] => {
+    return apiData.map((item, index) => {
+      const title = item?.visaCardJson?.title || item?.visaCardTitle || "";
+      const imageName = item?.visaCardJson?.image || "";
+      const tagNames = item?.visaCardJson?.tagNames || [];
+      const processingDays =
+        item?.visaCardJson?.processing_days ||
+        item?.visaCardJson?.processing_time ||
+        "5";
+
+      const formatPrice = (currency: string, amount: string) => {
+        if (!amount) return "";
+        const numeric = Number(amount);
+        if (Number.isNaN(numeric)) return `${currency || ""} ${amount}`.trim();
+        return `${currency || ""} ${numeric.toLocaleString("en-IN")}`.trim();
+      };
+
+      return {
+        id: item?.visaCardId || String(index),
+        country: title,
+        countryCode: item?.visaCardCountryId || item?.countryCode || "",
+        price: formatPrice(item?.currency, item?.newPrice),
+        currency: item?.currency || "₹",
+        visaType: item?.visaCardJson?.subTitle || "Tourist Visa",
+        visaTime: processingDays,
+        image: imageName
+          ? `/api/cms/file-download?image=${encodeURIComponent(imageName)}`
+          : "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80",
+        tagNames: tagNames,
+        processingDays: processingDays,
+        additionalFee: "+ ₹8,500 (Fees + Tax)",
+      };
+    });
+  };
+
+  // Fetch countries data on component mount
+  useEffect(() => {
+    fetchCountriesData();
+  }, []);
+
+  // Filter countries based on selected filter and search query
+  const filteredCountries = countriesData.filter((country) => {
+    // Check category filter
+    const matchesCategory =
+      !country.tagNames ||
+      country.tagNames.length === 0 ||
+      country.tagNames.some(
+        (tag) =>
+          tag.trim().toLowerCase() === selectedFilter.trim().toLowerCase()
+      );
+
+    // Check search query
+    const matchesSearch =
+      searchQuery.trim() === "" ||
+      country.country.toLowerCase().includes(searchQuery.toLowerCase().trim());
+
+    return matchesCategory && matchesSearch;
+  });
 
   const scroll = (direction: "left" | "right") => {
     if (filterScrollRef.current) {
@@ -185,6 +190,40 @@ export default function VisaCardDesign() {
       });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#e1effa]">
+        <div className="px-6 py-8">
+          <div className="max-w-[1400px] mx-auto text-center">
+            <p className="text-lg text-gray-600">Loading countries...</p>
+            <p className="text-sm text-gray-500 mt-2">
+              Please wait while we fetch the latest visa destinations
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#e1effa]">
+        <div className="px-6 py-8">
+          <div className="max-w-[1400px] mx-auto text-center">
+            <p className="text-lg text-red-600 mb-2">Error loading countries</p>
+            <p className="text-sm text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={fetchCountriesData}
+              className="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#e1effa]">
@@ -228,7 +267,7 @@ export default function VisaCardDesign() {
               ))}
             </div>
 
-            {/* chevron left and right button */}
+            {/* Chevron buttons */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => scroll("left")}
@@ -252,11 +291,25 @@ export default function VisaCardDesign() {
       {/* Country Grid */}
       <div className="px-6 py-8">
         <div className="max-w-[1400px] mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-            {filteredCountries.map((country) => (
-              <VisaCountryCard key={country.id} country={country} />
-            ))}
-          </div>
+          {filteredCountries.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+              {filteredCountries.map((country) => (
+                <VisaCountryCard key={country.id} country={country} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
+              <div className="text-5xl mb-4">✈️</div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                No Destinations Found
+              </h3>
+              <p className="text-gray-600">
+                {searchQuery.trim() !== ""
+                  ? `No visa destinations found matching "${searchQuery}" in "${selectedFilter}" category.`
+                  : `No visa destinations available for "${selectedFilter}" category.`}
+              </p>
+            </div>
+          )}
         </div>
       </div>
       <style>{`
