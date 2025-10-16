@@ -1,31 +1,233 @@
+"use client";
+import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { Search, Calendar } from "lucide-react";
+
+interface CountrySuggestion {
+  id: string;
+  label: string;
+  value: string;
+}
 
 const VisaBookingCard = () => {
+  const router = useRouter();
+  const [date, setDate] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<CountrySuggestion[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  // Format date for display
+  const month = date.toLocaleString("en-US", { month: "long" });
+  const day = date.getDate();
+  const year = date.getFullYear();
+  const weekday = date.toLocaleString("en-US", { weekday: "long" });
+
+  // Fetch and store selected country ID in sessionStorage
+  const fetchAndLogSelectedCountryId = async (countryLabel: string) => {
+    try {
+      const res = await fetch("/api/cms/countries-dd-proxy", {
+        cache: "no-store",
+      });
+      const payload = await res.json();
+
+      const rows = Array.isArray(payload?.data?.data) ? payload.data.data : [];
+
+      const norm = (v: any) =>
+        typeof v === "string" ? v.trim().toLowerCase() : "";
+      const match = rows.find(
+        (r: any) => norm(r?.label) === norm(countryLabel)
+      );
+
+      if (match?.id) {
+        console.log("Selected country id:", match.id);
+        try {
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem(
+              "applyVisaCountryId",
+              String(match.id)
+            );
+          }
+        } catch (_) {}
+      } else {
+        console.log("Country id not found for label:", countryLabel);
+      }
+    } catch (e) {
+      console.error("Failed to fetch country id:", e);
+    }
+  };
+
+  // Handle country search input change
+  const handleCountryInputChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+
+    // Clear previous timer
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    if (value.trim().length < 1) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    // Show loading immediately
+    setIsLoading(true);
+    setShowDropdown(true);
+
+    // Debounce API call
+    debounceTimer.current = setTimeout(async () => {
+      try {
+        const endpoint = "/api/holiday-country-autocomplete";
+        const params = new URLSearchParams({ query: value });
+
+        const response = await fetch(`${endpoint}?${params}`);
+        const data = await response.json();
+
+        if (data.success && data.data) {
+          setSuggestions(data.data);
+          setShowDropdown(true);
+        } else {
+          setSuggestions([]);
+        }
+      } catch (error) {
+        console.error("Error fetching country suggestions:", error);
+        setSuggestions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 150);
+  };
+
+  // Handle country suggestion selection
+  const handleSelectCountry = (item: CountrySuggestion) => {
+    setSearchQuery(item.label);
+    setSelectedCountry(item.value);
+    setShowDropdown(false);
+    fetchAndLogSelectedCountryId(item.label);
+  };
+
+  // Handle date change
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDate = new Date(e.target.value);
+    if (!isNaN(newDate.getTime())) {
+      setDate(newDate);
+    }
+  };
+
+  // Handle search button click
+  const handleSearch = () => {
+    router.push("/apply-visa");
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <div className="max-w-7xl mx-auto bg-white rounded-3xl p-6 lg:p-8 card-shadow">
       <h2 className="text-2xl font-semibold mb-4 text-foreground">Get Visa</h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
-        {/* Destination Input Field */}
-        <div className="lg:col-span-6 flex flex-col p-4 bg-white border border-gray-200 rounded-xl min-h-[60px]">
-          <div className="flex-1 flex flex-col justify-center">
-            <p className="text-sm text-gray-600 mb-1">Where are you going?</p>
-            <p className="text-sm text-gray-500">Select Destination</p>
+        {/* Destination Input Field with Autocomplete */}
+        <div className="lg:col-span-6 relative" ref={dropdownRef}>
+          <div className="flex flex-col p-4 bg-white border border-gray-200 rounded-xl min-h-[60px]">
+            <label className="text-sm text-gray-600 mb-1">
+              Where are you going?
+            </label>
+            <input
+              type="text"
+              placeholder="Select Destination"
+              value={searchQuery}
+              onChange={handleCountryInputChange}
+              onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
+              className="text-sm text-gray-900 outline-none bg-transparent"
+            />
           </div>
+
+          {/* Autocomplete Dropdown */}
+          {showDropdown && (
+            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+              {isLoading ? (
+                <div className="p-4 text-sm text-gray-500 text-center">
+                  Loading...
+                </div>
+              ) : suggestions.length > 0 ? (
+                suggestions.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => handleSelectCountry(item)}
+                    className="p-3 hover:bg-gray-100 cursor-pointer transition-colors"
+                  >
+                    <span className="text-sm text-gray-900">{item.label}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-sm text-gray-500 text-center">
+                  No results found
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Date Input Field */}
-        <div className="lg:col-span-4 flex flex-col p-4 bg-white border border-gray-200 rounded-xl min-h-[60px]">
-          <div className="flex-1 flex flex-col justify-center">
-            <p className="text-sm font-semibold text-foreground">January</p>
-            <p className="text-xs text-gray-500">11-Wednesday, 2025</p>
+        <div className="lg:col-span-4 relative">
+          <div className="flex flex-col p-4 bg-white border border-gray-200 rounded-xl min-h-[60px]">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-foreground">{month}</p>
+                <p className="text-xs text-gray-500">
+                  {day}-{weekday}, {year}
+                </p>
+              </div>
+              <button
+                onClick={() => dateInputRef.current?.showPicker()}
+                className="ml-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Calendar className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
           </div>
+
+          {/* Hidden date input */}
+          <input
+            ref={dateInputRef}
+            type="date"
+            value={date.toISOString().split("T")[0]}
+            onChange={handleDateChange}
+            min={new Date().toISOString().split("T")[0]}
+            className="absolute opacity-0 pointer-events-none"
+            style={{ width: 0, height: 0 }}
+          />
         </div>
 
         {/* Search Button */}
         <div className="lg:col-span-2 flex items-center justify-center">
-          <Button className="bg-black text-white hover:bg-black/90 rounded-xl px-6 py-4 h-auto w-full lg:w-auto min-h-[60px] text-sm">
+          <Button
+            onClick={handleSearch}
+            className="bg-black text-white hover:bg-black/90 rounded-xl px-6 py-4 h-auto w-full lg:w-auto min-h-[60px] text-sm"
+          >
             <Search className="w-4 h-4 mr-2" />
             Visa Types
           </Button>
