@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "@/components/ui/use-toast";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -81,6 +82,20 @@ export default function GoKiteSignup() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Validate email format
+    if (!email || !email.includes("@")) {
+      toast.error("Please enter a valid email address", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -92,27 +107,64 @@ export default function GoKiteSignup() {
 
       if (response.ok) {
         const data = await response.json();
-        toast({
-          title: "Sign In Successful",
-          description: "Welcome to GoKite!",
+        toast.success("Login Successful! Welcome to GoKite! ", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
         });
-        router.push("/");
+
+        // Redirect after a short delay to show toast
+        setTimeout(() => {
+          router.push("/");
+        }, 1000);
       } else {
         const errorData = await response.json();
-        toast({
-          title: "Sign In Failed",
-          description:
+
+        // Check for specific error types
+        if (response.status === 401 || response.status === 403) {
+          toast.error("Invalid email or credentials. Please try again.", {
+            position: "top-right",
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        } else if (response.status === 404) {
+          toast.error("Email not found. Please check your email address.", {
+            position: "top-right",
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        } else {
+          toast.error(
             errorData.message || "Unable to sign in. Please try again.",
-          variant: "destructive",
-        });
+            {
+              position: "top-right",
+              autoClose: 4000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+            }
+          );
+        }
       }
     } catch (err) {
       console.error("Network error", err);
-      toast({
-        title: "Network Error",
-        description:
-          "Unable to connect to the server. Please check your connection.",
-        variant: "destructive",
+      toast.error("Network Error! Unable to connect to the server. 🌐", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
       });
     } finally {
       setSubmitting(false);
@@ -120,88 +172,108 @@ export default function GoKiteSignup() {
   };
 
   return (
-    <div className="flex min-h-screen font-sans bg-gray-100">
-      {/* Left Side - Image with Logo */}
-      <div className="flex-1 relative flex items-center justify-center overflow-hidden min-h-[560px] bg-gradient-to-br from-blue-600 via-blue-400 to-blue-200">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-80"
-          style={{ backgroundImage: "url('/landingpage/hero.png')" }}
-        />
-        <div className="relative z-10 text-center">
-          <img
-            src="/logo-white.png"
-            alt="Go Kite Logo"
-            className="max-w-xs mx-auto object-contain"
-          />
-        </div>
-      </div>
+    <>
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
 
-      {/* Right Side - Sign Up Form */}
-      <div className="flex-1 bg-gray-50 flex items-center justify-center p-10 md:p-6">
-        <div className="w-full max-w-md">
-          <h1 className="text-3xl font-semibold text-gray-900 mb-2 leading-tight">
-            Sign in
-          </h1>
-          <p className="text-base text-gray-600 mb-8 leading-relaxed">
-            Book your entire trip in one place, with free access to Member
-            Prices and points.
-          </p>
-          <form onSubmit={handleSubmit}>
-            {/* Email Input */}
-            <div className="mb-4">
-              <Input
-                type="email"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-4 text-base border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 bg-white transition-colors"
-              />
-            </div>
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={submitting}
-              className={`w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-gray-800 text-base cursor-pointer transition
+      <div className="flex min-h-screen font-sans bg-gray-100">
+        {/* Left Side - Image with Logo */}
+        <div className="flex-1 relative flex items-center justify-center overflow-hidden min-h-[560px] bg-gradient-to-br from-blue-600 via-blue-400 to-blue-200">
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-80"
+            style={{ backgroundImage: "url('/landingpage/hero.png')" }}
+          />
+          <div className="relative z-10 text-center">
+            <img
+              src="/logo-white.png"
+              alt="Go Kite Logo"
+              className="max-w-xs mx-auto object-contain"
+            />
+          </div>
+        </div>
+
+        {/* Right Side - Sign Up Form */}
+        <div className="flex-1 bg-gray-50 flex items-center justify-center p-10 md:p-6">
+          <div className="w-full max-w-md">
+            <h1 className="text-3xl font-semibold text-gray-900 mb-2 leading-tight">
+              Sign in
+            </h1>
+            <p className="text-base text-gray-600 mb-8 leading-relaxed">
+              Book your entire trip in one place, with free access to Member
+              Prices and points.
+            </p>
+            <form onSubmit={handleSubmit}>
+              {/* Email Input */}
+              <div className="mb-4">
+                <Input
+                  type="email"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-4 text-base border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 bg-white transition-colors"
+                />
+              </div>
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={submitting}
+                className={`w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-gray-800 text-base cursor-pointer transition
                 ${
                   submitting
                     ? "bg-gray-200 cursor-not-allowed"
                     : "bg-white hover:bg-gray-100"
                 }`}
-            >
-              {submitting ? "Signing In..." : "Sign In"}
-            </Button>
-          </form>
-
-          {/* Sign In Link */}
-          <p className="text-sm text-gray-600 my-8">
-            Don't have an account?{" "}
-            <a href="#" className="text-blue-600 hover:underline">
-              Create one
-            </a>
-          </p>
-
-          {/* Social Login Buttons */}
-          <div className="flex flex-col gap-3">
-            {socialButtons.map(({ provider, icon }) => (
-              <Button
-                key={provider}
-                type="button"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white flex items-center justify-start text-gray-800 text-base cursor-pointer transition hover:bg-gray-100 hover:text-black"
-                onClick={() =>
-                  toast({
-                    title: `Social Sign In`,
-                    description: `Simulated ${provider} sign in (no backend).`,
-                  })
-                }
               >
-                {icon}
-                Continue with {provider}
+                {submitting ? "Signing In..." : "Sign In"}
               </Button>
-            ))}
+            </form>
+
+            {/* Sign In Link */}
+            <p className="text-sm text-gray-600 my-8">
+              Don't have an account?{" "}
+              <a href="#" className="text-blue-600 hover:underline">
+                Create one
+              </a>
+            </p>
+
+            {/* Social Login Buttons */}
+            <div className="flex flex-col gap-3">
+              {socialButtons.map(({ provider, icon }) => (
+                <Button
+                  key={provider}
+                  type="button"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white flex items-center justify-start text-gray-800 text-base cursor-pointer transition hover:bg-gray-100 hover:text-black"
+                  onClick={() =>
+                    toast.info(`${provider} Sign In - Coming Soon! 🚀`, {
+                      position: "top-right",
+                      autoClose: 3000,
+                      hideProgressBar: false,
+                      closeOnClick: true,
+                      pauseOnHover: true,
+                      draggable: true,
+                    })
+                  }
+                >
+                  {icon}
+                  Continue with {provider}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

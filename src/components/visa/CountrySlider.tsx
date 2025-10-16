@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import * as Flags from "country-flag-icons/react/3x2";
 import { usePageContext } from "../common/PageContext";
+import { useRouter } from "next/navigation";
 
 export interface VisaCountry {
   id: string;
@@ -24,6 +25,7 @@ interface VisaCardProps {
   type?: "popular" | "trending";
   subtitle?: string; // For showing custom subtitle like in trending
   hasVisaTag?: boolean; // For "VISA" tag in trending
+  onClick?: () => void; // Add onClick handler
 }
 
 const VisaCard = ({
@@ -31,13 +33,17 @@ const VisaCard = ({
   type = "popular",
   subtitle,
   hasVisaTag,
+  onClick,
 }: VisaCardProps) => {
   // Access flag by countryCode (uppercase)
   const FlagComponent =
     Flags[visa.countryCode.toUpperCase() as keyof typeof Flags];
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer min-w-[260px] flex-shrink-0">
+    <div
+      className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer min-w-[260px] flex-shrink-0"
+      onClick={onClick}
+    >
       <div className="flex flex-col gap-2">
         <div
           className={
@@ -126,6 +132,7 @@ const CountrySlider = ({
   const [error, setError] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
+  const router = useRouter();
 
   // Read cookie helper
   const getCookie = (name: string) => {
@@ -281,6 +288,21 @@ const CountrySlider = ({
     loadData();
   }, [pageLoading, sectionTitle]);
 
+  // Handle card click - store countryId and navigate
+  const handleCardClick = (visa: VisaCountry) => {
+    try {
+      if (typeof window !== "undefined") {
+        // Store both countryId and countryCode for the apply-visa page
+        window.sessionStorage.setItem("applyVisaCountryId", visa.id);
+        window.sessionStorage.setItem("applyVisaCountryCode", visa.countryCode);
+      }
+    } catch (e) {
+      console.error("Error saving to sessionStorage:", e);
+    }
+    // Navigate to apply-visa page
+    router.push("/apply-visa");
+  };
+
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
       const scrollAmount = 350;
@@ -356,6 +378,7 @@ const CountrySlider = ({
                 type === "trending" &&
                 (visa.eVisa || visa.visaType.toLowerCase().includes("e-visa"))
               }
+              onClick={() => handleCardClick(visa)}
             />
           ))}
         </div>

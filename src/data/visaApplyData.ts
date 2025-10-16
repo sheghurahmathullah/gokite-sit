@@ -1,4 +1,4 @@
-import { VisaOption, TimelineStep, Requirement, FAQ } from "@/types/visa";
+import { VisaOption, TimelineStep, Requirement, FAQ } from "@/data/visa";
 
 /**
  * Sample data for Apply Visa page
