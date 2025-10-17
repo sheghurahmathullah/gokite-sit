@@ -1,3 +1,20 @@
+export interface Destination {
+  id: string;
+  name: string;
+  image: string;
+  rating: number;
+  days: number;
+  nights: number;
+  flights: number;
+  hotels: number;
+  transfers: number;
+  activities: number;
+  features: string[];
+  originalPrice: number;
+  finalPrice: number;
+  currency: string;
+}
+
 export interface VisaDestination {
   id: string;
   country: string;
@@ -18,6 +35,7 @@ export interface VisaDestination {
   price: number;
   departureDate: string;
   departureTime: string;
+  flightsAvailable: number;
   getOn?: {
     date: string;
     price: string;

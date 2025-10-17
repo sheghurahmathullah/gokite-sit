@@ -91,7 +91,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
       // Create a mapping of page names/types to IDs
       const pageMapping: Record<string, string> = {};
       if (data.data && Array.isArray(data.data)) {
-        data.data.forEach((page) => {
+        data.data.forEach((page: Page) => {
           // Map based on title and slug from the actual API response
           const pageTitle = page.title?.toLowerCase() || "";
           const pageSlug = page.slug?.toLowerCase() || "";
