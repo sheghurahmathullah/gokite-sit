@@ -19,6 +19,15 @@ const navItems = [
 const TourOverview = ({ tour }: TourOverviewProps) => {
   const [showFullText, setShowFullText] = useState(false);
 
+  // Get the full description text
+  const fullText = tour.fullDescription || tour.description;
+  const words = fullText.split(" ");
+  const wordLimit = 50;
+
+  // Create truncated text with first 50 words
+  const truncatedText = words.slice(0, wordLimit).join(" ");
+  const hasMoreContent = words.length > wordLimit;
+
   return (
     <div className=" max-w-7xl mt-6">
       {/* Buttons Row */}
@@ -46,14 +55,15 @@ const TourOverview = ({ tour }: TourOverviewProps) => {
             {tour.title}
           </h2>
           <p className="text-foreground/70 leading-relaxed text-[1.12rem]">
-            {showFullText ? tour.fullDescription : tour.description}
+            {showFullText ? fullText : truncatedText}
+            {!showFullText && hasMoreContent && "..."}
           </p>
-          {!showFullText && (
+          {hasMoreContent && (
             <button
-              onClick={() => setShowFullText(true)}
+              onClick={() => setShowFullText(!showFullText)}
               className="text-[#4AB8B8] hover:underline mt-2 text-base"
             >
-              Read More...
+              {showFullText ? "Read Less" : "Read More..."}
             </button>
           )}
         </div>
