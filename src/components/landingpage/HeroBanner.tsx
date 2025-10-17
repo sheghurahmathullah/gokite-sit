@@ -193,7 +193,7 @@ const HeroBanner = () => {
                     className="w-6 h-6 lg:w-12 lg:h-12 object-contain"
                   />
                 </div>
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-sm font-medium text-white">
                   {item.label}
                 </span>
               </a>

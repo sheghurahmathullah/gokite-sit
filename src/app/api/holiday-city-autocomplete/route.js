@@ -33,8 +33,7 @@ export async function GET(request) {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
     };
 
-    const apiUrl =
-      "http://gokite-sit-b2c.convergentechnologies.com:30839/api/cms/api/v2/list/custom/data/holiday-city-autocomplete";
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/cms/api/v2/list/custom/data/holiday-city-autocomplete`;
 
     // Add timeout to prevent hanging requests
     const controller = new AbortController();
@@ -100,11 +99,14 @@ export async function GET(request) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("API endpoint not working - holiday-city-autocomplete:", error);
+    console.error(
+      "API endpoint not working - holiday-city-autocomplete:",
+      error
+    );
     console.error("Error details:", {
       name: error.name,
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
 
     // Handle timeout errors
