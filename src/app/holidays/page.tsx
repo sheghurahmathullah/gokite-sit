@@ -14,14 +14,14 @@ import { usePageContext } from "@/components/common/PageContext";
 const HolidaysPage = () => {
   const categories = useMemo(
     () => [
-      { id: 1, icon: "🏖️", label: "Beaches" },
-      { id: 2, icon: "🎯", label: "Adventure" },
-      { id: 3, icon: "🌍", label: "World Wonder" },
-      { id: 4, icon: "🏛️", label: "Iconic city" },
-      { id: 5, icon: "🌄", label: "Countryside" },
-      { id: 6, icon: "👨‍👩‍👧", label: "Kids Wonderland" },
-      { id: 7, icon: "⛷️", label: "Skiing" },
-      { id: 8, icon: "🦁", label: "Wildlife" },
+      { id: 1, icon: "/holidaygrid/beach.png", label: "Beaches" },
+      { id: 2, icon: "/holidaygrid/adventure.png", label: "Adventure" },
+      { id: 3, icon: "/holidaygrid/world wonder.png", label: "World Wonder" },
+      { id: 4, icon: "/holidaygrid/iconic city.png", label: "Iconic City" },
+      { id: 5, icon: "/holidaygrid/country side.png", label: "CountrySide" },
+      { id: 6, icon: "/holidaygrid/kids wonderland.png", label: "Kids Wonderland" },
+      { id: 7, icon: "/holidaygrid/skiing.png", label: "Skiing" },
+      { id: 8, icon: "/holidaygrid/wildlife.png", label: "Wildlife" },
     ],
     []
   );
@@ -313,24 +313,39 @@ const HolidaysPage = () => {
               </div>
 
               {/* Category Tabs */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-8">
-                <div className="flex gap-4 overflow-x-auto">
-                  {categories.map((category) => (
-                    <div
-                      key={category.id}
-                      onClick={() => setSelectedCategoryId(category.id)}
-                      className={`flex flex-col items-center gap-2 min-w-fit px-3 py-2 rounded-lg transition-all duration-200 ${
-                        category.id === selectedCategoryId
-                          ? "bg-white/20 text-white"
-                          : "text-white/70 hover:text-white hover:bg-white/10"
-                      }`}
-                    >
-                      <span className="text-xl">{category.icon}</span>
-                      <span className="text-xs whitespace-nowrap font-medium">
-                        {category.label}
-                      </span>
-                    </div>
-                  ))}
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl sm:rounded-3xl px-3 sm:px-6 py-3 sm:py-4 mb-8 border border-white/20">
+                <div className="flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide">
+                  {categories.map((category) => {
+                    const isActive = category.id === selectedCategoryId;
+                    return (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => setSelectedCategoryId(category.id)}
+                        className={`group flex-1 flex flex-col items-center justify-center px-1.5 sm:px-2 md:px-3 py-2 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-300 min-w-0 flex-shrink-0 ${
+                          isActive
+                            ? "text-white"
+                            : "text-white/70 hover:text-white hover:bg-white/5"
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-1 sm:gap-2">
+                          <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 flex items-center justify-center">
+                            <img 
+                              src={category.icon} 
+                              alt={category.label}
+                              className="w-full h-full object-contain filter brightness-0 invert"
+                            />
+                          </div>
+                          <span className="text-xs sm:text-sm font-medium whitespace-nowrap text-center">
+                            {category.label}
+                          </span>
+                        </div>
+                        {isActive && (
+                          <div className="mt-1 sm:mt-2 w-5 sm:w-6 md:w-8 h-0.5 sm:h-1 bg-white rounded-full" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
