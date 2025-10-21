@@ -197,7 +197,7 @@ const TourDetailPageInner = () => {
     // Places from thumbnail array
     places: Array.isArray(holidayDetails?.cardJson?.thumbnail)
       ? holidayDetails.cardJson.thumbnail.map((item: any, index: number) => ({
-          id: `place-${index}`,
+          id: `place-${index}-${item.title || index}-${Math.random().toString(36).substr(2, 9)}`,
           name: item.title || `Place ${index + 1}`,
           image: getImageUrl(item.image),
         }))
@@ -205,7 +205,7 @@ const TourDetailPageInner = () => {
     // Itinerary from cardJson
     itinerary: Array.isArray(holidayDetails?.cardJson?.itineraries)
       ? holidayDetails.cardJson.itineraries.map((item: any, index: number) => ({
-          id: `day-${index + 1}`,
+          id: `day-${index + 1}-${item.title || index}-${Math.random().toString(36).substr(2, 9)}`,
           day: `Day ${index + 1}`,
           time: item.time || "",
           title: item.title || "",
@@ -218,7 +218,7 @@ const TourDetailPageInner = () => {
     // What's included from cardJson
     included: Array.isArray(holidayDetails?.cardJson?.inclusions)
       ? holidayDetails.cardJson.inclusions.map((item: any, index: number) => ({
-          id: `included-${index}`,
+          id: `included-${index}-${item.title || index}-${Math.random().toString(36).substr(2, 9)}`,
           name: item.title || "",
           included: true,
           description: Array.isArray(item.description)
@@ -229,7 +229,7 @@ const TourDetailPageInner = () => {
     // FAQs from cardJson
     faqs: Array.isArray(holidayDetails?.cardJson?.faqs)
       ? holidayDetails.cardJson.faqs.map((item: any, index: number) => ({
-          id: `faq-${index}`,
+          id: `faq-${index}-${item.question || index}-${Math.random().toString(36).substr(2, 9)}`,
           question: item.question || "",
           answer: Array.isArray(item.answers)
             ? item.answers.map((a: any) => a?.text || "").join(" ")

@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/collapsible";
 
 interface ItineraryItem {
+  id: string;
   day: string;
   time: string;
   title: string;
@@ -25,7 +26,7 @@ const TourItinerary = ({ itinerary }: TourItineraryProps) => {
     if (expandAll) {
       setOpenItems([]);
     } else {
-      setOpenItems(itinerary.map((_, index) => `item-${index}`));
+      setOpenItems(itinerary.map((item) => item.id));
     }
     setExpandAll(!expandAll);
   };
@@ -55,7 +56,7 @@ const TourItinerary = ({ itinerary }: TourItineraryProps) => {
         <div className="absolute left-[7px] top-4 bottom-4 w-[2px] bg-border" />
 
         {itinerary.map((item, index) => {
-          const itemId = `item-${index}`;
+          const itemId = item.id || `item-${index}`;
           const isOpen = openItems.includes(itemId);
 
           return (

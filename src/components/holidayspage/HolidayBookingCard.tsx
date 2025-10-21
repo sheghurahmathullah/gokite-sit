@@ -70,13 +70,47 @@ const HolidayBookingCard = () => {
     }, 200);
   };
 
+  // Fetch and store selected country ID in sessionStorage
+  const fetchAndStoreCountryId = async (countryLabel: string) => {
+    try {
+      const res = await fetch("/api/cms/countries-dd-proxy", {
+        cache: "no-store",
+      });
+      const payload = await res.json();
+
+      const rows = Array.isArray(payload?.data?.data) ? payload.data.data : [];
+
+      const norm = (v: any) =>
+        typeof v === "string" ? v.trim().toLowerCase() : "";
+      const match = rows.find(
+        (r: any) => norm(r?.label) === norm(countryLabel)
+      );
+
+      if (match?.id) {
+        console.log("Selected holiday country id:", match.id);
+        try {
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem(
+              "selectedHolidayCountryId",
+              String(match.id)
+            );
+          }
+        } catch (_) {}
+      } else {
+        console.log("Country id not found for label:", countryLabel);
+      }
+    } catch (e) {
+      console.error("Failed to fetch holiday country id:", e);
+    }
+  };
+
   // Handle suggestion selection
   const handleSelectSuggestion = (item: SearchSuggestion) => {
     setSearchQuery(item.label);
     setSelectedCountry(item.value);
     setShowDropdown(false);
 
-    // Store in session storage
+    // Store destination name and type in session storage
     try {
       if (typeof window !== "undefined") {
         window.sessionStorage.setItem("selectedHolidayDestination", item.label);
@@ -86,12 +120,27 @@ const HolidayBookingCard = () => {
         );
       }
     } catch (_) {}
+
+    // Store city ID if it's a city selection
+    if (searchType === "city" && item.id) {
+      try {
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem("selectedHolidayCityId", item.id);
+          console.log("Selected holiday city id:", item.id);
+        }
+      } catch (_) {}
+    }
+
+    // Fetch and store country ID if it's a country selection
+    if (searchType === "country") {
+      fetchAndStoreCountryId(item.label);
+    }
   };
 
   // Handle search button click
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      router.push("/holiday-grid");
+      router.push("/holiday-list");
     }
   };
 

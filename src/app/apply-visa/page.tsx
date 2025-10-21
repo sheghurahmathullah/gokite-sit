@@ -38,86 +38,61 @@ const ApplyVisaPage: React.FC = () => {
   // Fetch visa details from API
   useEffect(() => {
     async function loadVisaDetails() {
-      let countryCode = "";
       let countryId = "";
 
       try {
         if (typeof window !== "undefined") {
           countryId = window.sessionStorage.getItem("applyVisaCountryId") || "";
-          countryCode =
-            window.sessionStorage.getItem("applyVisaCountryCode") || "";
         }
       } catch (e) {
         console.error("Error reading from sessionStorage:", e);
       }
 
       // If no country selected, use default (UAE/AE)
-      if (!countryCode) {
-        countryCode = "AE";
+      if (!countryId) {
+        countryId = "AE";
         console.log("No country code found, using default: AE");
       }
 
-      try {
-        setLoading(true);
+      setLoading(true);
+
+      // Helper function to make API call
+      const fetchVisaData = async (countryCode: string) => {
+        console.log(`Fetching visa data for country: ${countryCode}`);
         const res = await fetch("/api/cms/visa-country-search", {
           method: "POST",
           headers: getAuthHeaders(),
           body: JSON.stringify({ countryCode: countryCode }),
         });
 
-        if (!res.ok) throw new Error("Failed to fetch visa details");
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error(`API call failed for ${countryCode}:`, {
+            status: res.status,
+            statusText: res.statusText,
+            error: errorText
+          });
+          throw new Error(`Failed to fetch visa details for ${countryCode}: ${res.status} ${res.statusText}`);
+        }
 
         const json = await res.json();
         const items = Array.isArray(json?.data) ? json.data : [];
+        console.log(`API response for ${countryCode}:`, { itemsCount: items.length, data: json });
+        return items;
+      };
+
+      try {
+        // First attempt with the selected country
+        let items = await fetchVisaData(countryId);
 
         // If no data found and we're not already using AE, retry with AE
-        if (items.length === 0 && countryCode !== "AE") {
-          console.log(
-            `No data found for ${countryCode}, retrying with default: AE`
-          );
-
-          const retryRes = await fetch("/api/cms/visa-country-search", {
-            method: "POST",
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ countryCode: "AE" }),
-          });
-
-          if (!retryRes.ok)
-            throw new Error("Failed to fetch default visa details");
-
-          const retryJson = await retryRes.json();
-          const retryItems = Array.isArray(retryJson?.data)
-            ? retryJson.data
-            : [];
-
-          if (retryItems.length === 0) {
-            setNoVisaAvailable(true);
-            setVisaDetails(null);
-            setVisaError(null);
-            return;
-          }
-
-          const details = retryItems[0] || null;
-          console.log("Fetched default UAE visa details:", details);
-          setVisaDetails(details);
-          setVisaError(null);
-          setNoVisaAvailable(false);
-
-          // Cache the details
-          try {
-            if (typeof window !== "undefined") {
-              window.sessionStorage.setItem(
-                "applyVisaDetails",
-                JSON.stringify(details || {})
-              );
-            }
-          } catch (e) {
-            console.error("Error saving to sessionStorage:", e);
-          }
-          return;
+        if (items.length === 0 && countryId !== "AE") {
+          console.log(`No data found for ${countryId}, retrying with default: AE`);
+          items = await fetchVisaData("AE");
         }
 
         if (items.length === 0) {
+          console.log("No visa data available for any country");
           setNoVisaAvailable(true);
           setVisaDetails(null);
           setVisaError(null);
@@ -125,8 +100,7 @@ const ApplyVisaPage: React.FC = () => {
         }
 
         const details = items[0] || null;
-
-        console.log("Fetched visa details:", details);
+        console.log("Successfully fetched visa details:", details);
         setVisaDetails(details);
         setVisaError(null);
         setNoVisaAvailable(false);
@@ -144,7 +118,7 @@ const ApplyVisaPage: React.FC = () => {
         }
       } catch (e) {
         console.error("Error fetching visa details:", e);
-        setVisaError("Failed to load visa details");
+        setVisaError(`Failed to load visa details: ${e instanceof Error ? e.message : 'Unknown error'}`);
         setNoVisaAvailable(false);
       } finally {
         setLoading(false);
