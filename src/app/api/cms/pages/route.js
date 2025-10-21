@@ -15,7 +15,7 @@ export async function GET(request) {
       );
     }
 
-    const upstreamUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/cms/api/v2/list/custom/data/pages`;
+    const upstreamUrl = `${process.env.NEXT_PUBLIC_API_URL}/cms/api/v2/list/custom/data/pages`;
 
     console.log(`[Pages API] Fetching from: ${upstreamUrl}`);
     console.log(`[Pages API] Using token: ${token ? "Present" : "Missing"}`);

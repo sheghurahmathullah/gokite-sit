@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import https from "https";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-const UPSTREAM_URL = `${API_BASE_URL}/api/azp/api/auth/v1/guest-login?getTokenInCookie=true`;
+const UPSTREAM_URL = `${API_BASE_URL}/azp/api/auth/v1/guest-login?getTokenInCookie=true`;
 
 function extractCookieValue(setCookieHeader, name) {
   if (!setCookieHeader) return "";

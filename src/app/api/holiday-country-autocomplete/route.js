@@ -32,7 +32,7 @@ export async function GET(request) {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
     };
 
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/cms/api/v2/list/custom/data/holiday-country-autocomplete`;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/cms/api/v2/list/custom/data/holiday-country-autocomplete`;
 
     // Add timeout to prevent hanging requests
     const controller = new AbortController();

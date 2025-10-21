@@ -20,7 +20,7 @@ export async function GET(request) {
     const cookieStore = await cookies();
     const token = cookieStore.get("accesstoken")?.value || "";
 
-    const upstreamUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/cms/api/v1/file/download/${imageName}`;
+    const upstreamUrl = `${process.env.NEXT_PUBLIC_API_URL}/cms/api/v1/file/download/${imageName}`;
     const isHttps = upstreamUrl.startsWith("https:");
 
     console.log(`Upstream URL: ${upstreamUrl}`);

@@ -19,7 +19,7 @@ export async function GET() {
     };
 
     const resp = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/cms/api/v2/list/custom/data/cms-countries-dd`,
+      `${process.env.NEXT_PUBLIC_API_URL}/cms/api/v2/list/custom/data/cms-countries-dd`,
       {
         method: "GET",
         headers: {

@@ -16,7 +16,7 @@ export async function POST(request) {
       );
     }
 
-    const upstreamUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/cms/api/v2/list/custom/data/sections-visa-cards`;
+    const upstreamUrl = `${process.env.NEXT_PUBLIC_API_URL}/cms/api/v2/list/custom/data/sections-visa-cards`;
     const isHttps = upstreamUrl.startsWith("https:");
     const res = await fetch(upstreamUrl, {
       method: "POST",

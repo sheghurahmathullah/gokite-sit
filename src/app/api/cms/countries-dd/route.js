@@ -19,7 +19,7 @@ export async function GET() {
     };
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/cms/api/v2/list/custom/data/cms-section-visa-country-all`,
+      `${process.env.NEXT_PUBLIC_API_URL}/cms/api/v2/list/custom/data/cms-section-visa-country-all`,
       {
         method: "GET",
         headers: {

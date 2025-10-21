@@ -16,7 +16,7 @@ export async function POST(request) {
       );
     }
 
-    const upstreamUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/cms/api/v1/enquiries/package`;
+    const upstreamUrl = `${process.env.NEXT_PUBLIC_API_URL}/cms/api/v1/enquiries/package`;
     const isHttps = upstreamUrl.startsWith("https:");
     const res = await fetch(upstreamUrl, {
       method: "POST",
