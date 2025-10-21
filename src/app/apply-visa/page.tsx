@@ -52,9 +52,10 @@ const ApplyVisaPage: React.FC = () => {
       }
 
       // If no country selected, use default (UAE/AE)
-      // if (!countryCode) {
-      //   countryCode = "AE";
-      // }
+      if (!countryCode) {
+        countryCode = "AE";
+        console.log("No country code found, using default: AE");
+      }
 
       try {
         setLoading(true);
@@ -68,12 +69,61 @@ const ApplyVisaPage: React.FC = () => {
 
         const json = await res.json();
         const items = Array.isArray(json?.data) ? json.data : [];
+
+        // If no data found and we're not already using AE, retry with AE
+        if (items.length === 0 && countryCode !== "AE") {
+          console.log(
+            `No data found for ${countryCode}, retrying with default: AE`
+          );
+
+          const retryRes = await fetch("/api/cms/visa-country-search", {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ countryCode: "AE" }),
+          });
+
+          if (!retryRes.ok)
+            throw new Error("Failed to fetch default visa details");
+
+          const retryJson = await retryRes.json();
+          const retryItems = Array.isArray(retryJson?.data)
+            ? retryJson.data
+            : [];
+
+          if (retryItems.length === 0) {
+            setNoVisaAvailable(true);
+            setVisaDetails(null);
+            setVisaError(null);
+            return;
+          }
+
+          const details = retryItems[0] || null;
+          console.log("Fetched default UAE visa details:", details);
+          setVisaDetails(details);
+          setVisaError(null);
+          setNoVisaAvailable(false);
+
+          // Cache the details
+          try {
+            if (typeof window !== "undefined") {
+              window.sessionStorage.setItem(
+                "applyVisaDetails",
+                JSON.stringify(details || {})
+              );
+            }
+          } catch (e) {
+            console.error("Error saving to sessionStorage:", e);
+          }
+          return;
+        }
+
         if (items.length === 0) {
           setNoVisaAvailable(true);
           setVisaDetails(null);
           setVisaError(null);
           return;
         }
+
         const details = items[0] || null;
 
         console.log("Fetched visa details:", details);
@@ -130,7 +180,9 @@ const ApplyVisaPage: React.FC = () => {
           </div>
         ) : noVisaAvailable ? (
           <div className="flex items-center justify-center min-h-[400px]">
-            <p className="text-xl font-semibold text-gray-800">No VISA Available</p>
+            <p className="text-xl font-semibold text-gray-800">
+              No VISA Available
+            </p>
           </div>
         ) : visaError ? (
           <div className="flex flex-col items-center justify-center min-h-[400px] px-4">
