@@ -307,120 +307,129 @@ const HolidaysPage = () => {
 
         {/* Trip Packages Section */}
         <section className="mt-16 max-w-8xl mx-auto">
-          <div className="bg-gradient-to-r from-teal-900/40 to-teal-700/40 rounded-3xl overflow-hidden relative">
-            {/* Background Image */}
-            <div
-              className="absolute inset-0 bg-cover bg-center opacity-90"
-              style={{
-                backgroundImage:
-                  "url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop)",
-                backgroundBlendMode: "overlay",
-              }}
-            />
+          {/* Background Container - extends to cover half of the cards */}
+          <div className="relative">
+            <div className="bg-gradient-to-r from-teal-900/40 to-teal-700/40 rounded-3xl overflow-hidden relative">
+              {/* Background Image - extends 200px to cover half of cards */}
+              <div
+                className="absolute inset-0 bg-cover bg-center opacity-90"
+                style={{
+                  backgroundImage:
+                    "url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop)",
+                  backgroundBlendMode: "overlay",
+                  height: "calc(100% + 400px)",
+                }}
+              />
 
-            <div className="relative z-10 p-6 lg:p-8">
-              {/* Header */}
-              <div className="mb-8">
-                <p className="text-white/90 text-sm mb-4">Trip Packages</p>
-                <div className="flex items-start justify-between gap-8">
-                  <h2 className="text-4xl font-bold text-white max-w-md flex-shrink-0">
-                    Best Recommendation Destination For You
-                  </h2>
-                  <p className="text-white/80 text-sm leading-relaxed flex-1">
-                    Discover your next adventure with our curated list of the
-                    best recommendation destinations that offer unforgettable
-                    trip experiences. Whether you fancy touring around or
-                    immerse yourself in the beauty of exploration, let us guide
-                    you to unforgettable destinations that will create lasting
-                    memories
-                  </p>
+              <div className="relative z-10 p-6 lg:p-8">
+                {/* Header */}
+                <div className="mb-8">
+                  <p className="text-white/90 text-sm mb-4">Trip Packages</p>
+                  <div className="flex items-start justify-between gap-8">
+                    <h2 className="text-4xl font-bold text-white max-w-md flex-shrink-0">
+                      Best Recommendation Destination For You
+                    </h2>
+                    <p className="text-white/80 text-sm leading-relaxed flex-1">
+                      Discover your next adventure with our curated list of the
+                      best recommendation destinations that offer unforgettable
+                      trip experiences. Whether you fancy touring around or
+                      immerse yourself in the beauty of exploration, let us
+                      guide you to unforgettable destinations that will create
+                      lasting memories
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Category Tabs */}
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl sm:rounded-3xl px-3 sm:px-6 py-3 sm:py-4 mb-8 border border-white/20">
-                <div className="flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide">
-                  {categories.map((category) => {
-                    const isActive = category.id === selectedCategoryId;
-                    return (
-                      <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => setSelectedCategoryId(category.id)}
-                        className={`group flex-1 flex flex-col items-center justify-center px-1.5 sm:px-2 md:px-3 py-2 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-300 min-w-0 flex-shrink-0 ${
-                          isActive
-                            ? "text-white"
-                            : "text-white/70 hover:text-white hover:bg-white/5"
-                        }`}
-                      >
-                        <div className="flex flex-col items-center gap-1 sm:gap-2">
-                          <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 flex items-center justify-center">
-                            <img
-                              src={category.icon}
-                              alt={category.label}
-                              className="w-full h-full object-contain filter brightness-0 invert"
-                            />
+                {/* Category Tabs */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl sm:rounded-3xl px-3 sm:px-6 py-3 sm:py-4 mb-8 border border-white/20">
+                  <div className="flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide">
+                    {categories.map((category) => {
+                      const isActive = category.id === selectedCategoryId;
+                      return (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => setSelectedCategoryId(category.id)}
+                          className={`group flex-1 flex flex-col items-center justify-center px-1.5 sm:px-2 md:px-3 py-2 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-300 min-w-0 flex-shrink-0 ${
+                            isActive
+                              ? "text-white"
+                              : "text-white/70 hover:text-white hover:bg-white/5"
+                          }`}
+                        >
+                          <div className="flex flex-col items-center gap-1 sm:gap-2">
+                            <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 flex items-center justify-center">
+                              <img
+                                src={category.icon}
+                                alt={category.label}
+                                className="w-full h-full object-contain filter brightness-0 invert"
+                              />
+                            </div>
+                            <span className="text-xs sm:text-sm font-medium whitespace-nowrap text-center">
+                              {category.label}
+                            </span>
                           </div>
-                          <span className="text-xs sm:text-sm font-medium whitespace-nowrap text-center">
-                            {category.label}
-                          </span>
-                        </div>
-                        {isActive && (
-                          <div className="mt-1 sm:mt-2 w-5 sm:w-6 md:w-8 h-0.5 sm:h-1 bg-white rounded-full" />
-                        )}
-                      </button>
-                    );
-                  })}
+                          {isActive && (
+                            <div className="mt-1 sm:mt-2 w-5 sm:w-6 md:w-8 h-0.5 sm:h-1 bg-white rounded-full" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              {/* Beaches Section */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-white">
-                    {categories.find((c) => c.id === selectedCategoryId)
-                      ?.label || "Beaches"}
-                  </h3>
-                  <button
-                    className="px-6 py-2 bg-white text-gray-900 rounded-full text-sm font-medium hover:bg-white/90 transition-colors flex items-center gap-2"
-                    onClick={() => router.push("/holiday-grid")}
-                  >
-                    View All
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                {/* Section Title and View All Button */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-3xl font-bold text-white">
+                      {categories.find((c) => c.id === selectedCategoryId)
+                        ?.label || "Beaches"}
+                    </h3>
+                    <button
+                      className="px-6 py-2 bg-white text-gray-900 rounded-full text-sm font-medium hover:bg-white/90 transition-colors flex items-center gap-2"
+                      onClick={() => router.push("/holiday-grid")}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </button>
+                      View All
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
-                {/* Destination Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                  {(isLoading ? [] : destinations).map((destination) => (
-                    <DestinationCard
-                      key={destination.id}
-                      destination={destination}
-                    />
-                  ))}
-                  {isLoading && (
-                    <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-white/80 text-sm">
-                      Loading...
-                    </div>
-                  )}
-                  {!isLoading && destinations.length === 0 && (
-                    <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-white/80 text-sm">
-                      No packages found.
-                    </div>
-                  )}
-                </div>
+                {/* Spacer to increase banner height */}
+                <div className="h-28"></div>
+              </div>
+            </div>
+
+            {/* Destination Cards - Positioned to overlap with banner */}
+            <div className="relative -mt-32 px-6 lg:px-8 pb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                {(isLoading ? [] : destinations).map((destination) => (
+                  <DestinationCard
+                    key={destination.id}
+                    destination={destination}
+                  />
+                ))}
+                {isLoading && (
+                  <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+                    Loading...
+                  </div>
+                )}
+                {!isLoading && destinations.length === 0 && (
+                  <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+                    No packages found.
+                  </div>
+                )}
               </div>
             </div>
           </div>
