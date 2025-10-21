@@ -351,7 +351,7 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
                               <div className="text-xs text-gray-500">
                                 {fee.label}
                               </div>
-                              <div className="text-lg font-bold text-black">
+                              <div className="text-sm font-bold text-black">
                                 {`${
                                   (Array.isArray(option.companyPricing)
                                     ? option.companyPricing[0]?.currency
@@ -362,7 +362,7 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
                           ))}
                           <div className="text-center">
                             <div className="text-xs text-gray-500">Total</div>
-                            <div className="text-lg font-bold text-black">
+                            <div className="text-sm font-bold text-black">
                               {(() => {
                                 const { currency, total } = getTotalFee(
                                   option.companyPricing
@@ -379,7 +379,7 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
                             <div className="text-xs text-gray-500">
                               Form Fee + Tax
                             </div>
-                            <div className="text-lg font-bold text-black line-through">
+                            <div className="text-xs font-bold text-black line-through">
                               ₹{option.originalPrice?.toLocaleString()}
                             </div>
                           </div>
@@ -387,13 +387,13 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
                             <div className="text-xs text-gray-500">
                               Processing Fee
                             </div>
-                            <div className="text-lg font-bold text-black">
+                            <div className="text-xs font-bold text-black">
                               ₹{option.discountedPrice?.toLocaleString()}
                             </div>
                           </div>
                           <div className="text-right">
                             <div className="text-xs text-gray-500">Pay us</div>
-                            <div className="text-lg font-bold text-black">
+                            <div className="text-xs font-bold text-black">
                               ₹{option.finalPrice?.toLocaleString()}
                             </div>
                           </div>
