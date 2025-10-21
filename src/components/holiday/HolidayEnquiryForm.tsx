@@ -97,52 +97,52 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[1200px] w-full p-6">
-        <DialogHeader>
-          <DialogTitle className="text-xl mb-2 text-center">
+      <DialogContent className="max-w-[98vw] w-full p-2 max-h-[98vh] overflow-hidden">
+        <DialogHeader className="p-1">
+          <DialogTitle className="text-sm mb-0 text-center font-semibold">
             Holiday Enquiry Form
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-3 gap-4">
+        <form onSubmit={handleSubmit} className="grid grid-cols-3 gap-2">
           {/* 1. Personal Information */}
-          <div className="space-y-3 border p-3 rounded-lg">
-            <h3 className="text-base font-semibold mb-2">
+          <div className="space-y-1 border p-1.5 rounded">
+            <h3 className="text-xs font-semibold mb-0.5">
               Personal Information
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-1.5">
               <div>
-                <Label htmlFor="firstName" className="text-xs">
+                <Label htmlFor="firstName" className="text-[10px]">
                   First Name*
                 </Label>
                 <Input
                   id="firstName"
                   name="firstName"
-                  placeholder="Enter your first name"
+                  placeholder="First name"
                   value={formData.firstName}
                   onChange={handleInputChange}
-                  className="h-8 text-xs"
+                  className="h-6 text-[10px] px-2"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="lastName" className="text-xs">
+                <Label htmlFor="lastName" className="text-[10px]">
                   Last Name*
                 </Label>
                 <Input
                   id="lastName"
                   name="lastName"
-                  placeholder="Enter your last name"
+                  placeholder="Last name"
                   value={formData.lastName}
                   onChange={handleInputChange}
-                  className="h-8 text-xs"
+                  className="h-6 text-[10px] px-2"
                   required
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-1.5">
               <div>
-                <Label className="text-xs">Country of Residence*</Label>
+                <Label className="text-[10px]">Country of Residence*</Label>
                 <Select
                   value={formData.countryOfResidence}
                   onValueChange={(value) =>
@@ -153,15 +153,15 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                   }
                   required
                 >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Choose your country" />
+                  <SelectTrigger className="h-6 text-[10px]">
+                    <SelectValue placeholder="Choose country" />
                   </SelectTrigger>
                   <SelectContent>
                     {countries.map((country) => (
                       <SelectItem
                         key={country.isoCode}
                         value={country.isoCode}
-                        className="text-xs"
+                        className="text-[10px]"
                       >
                         {country.name}
                       </SelectItem>
@@ -170,7 +170,7 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                 </Select>
               </div>
               <div>
-                <Label className="text-xs">Nationality*</Label>
+                <Label className="text-[10px]">Nationality*</Label>
                 <Select
                   value={formData.nationality}
                   onValueChange={(value) =>
@@ -178,15 +178,15 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                   }
                   required
                 >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Choose your nationality" />
+                  <SelectTrigger className="h-6 text-[10px]">
+                    <SelectValue placeholder="Choose nationality" />
                   </SelectTrigger>
                   <SelectContent>
                     {countries.map((country) => (
                       <SelectItem
                         key={country.isoCode}
                         value={country.isoCode}
-                        className="text-xs"
+                        className="text-[10px]"
                       >
                         {country.name}
                       </SelectItem>
@@ -198,28 +198,28 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
           </div>
 
           {/* 2. Contact Information */}
-          <div className="space-y-3 border p-3 rounded-lg">
-            <h3 className="text-base font-semibold mb-2">
+          <div className="space-y-1 border p-1.5 rounded">
+            <h3 className="text-xs font-semibold mb-0.5">
               Contact Information
             </h3>
             <div>
-              <Label htmlFor="email" className="text-xs">
+              <Label htmlFor="email" className="text-[10px]">
                 Email Address*
               </Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Enter your email address"
+                placeholder="Email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="h-8 text-xs"
+                className="h-6 text-[10px] px-2"
                 required
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-1.5">
               <div>
-                <Label className="text-xs">Phone Code*</Label>
+                <Label className="text-[10px]">Phone Code*</Label>
                 <Select
                   value={formData.phoneCode}
                   onValueChange={(value) =>
@@ -227,15 +227,15 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                   }
                   required
                 >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Choose phone code" />
+                  <SelectTrigger className="h-6 text-[10px]">
+                    <SelectValue placeholder="Code" />
                   </SelectTrigger>
                   <SelectContent>
                     {countries.map((country) => (
                       <SelectItem
                         key={country.isoCode}
                         value={country.phonecode}
-                        className="text-xs"
+                        className="text-[10px]"
                       >
                         {country.name} (+{country.phonecode})
                       </SelectItem>
@@ -244,23 +244,23 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                 </Select>
               </div>
               <div>
-                <Label htmlFor="phoneNumber" className="text-xs">
+                <Label htmlFor="phoneNumber" className="text-[10px]">
                   Phone Number*
                 </Label>
                 <Input
                   id="phoneNumber"
                   name="phoneNumber"
                   type="tel"
-                  placeholder="Enter phone number"
+                  placeholder="Phone"
                   value={formData.phoneNumber}
                   onChange={handleInputChange}
-                  className="h-8 text-xs"
+                  className="h-6 text-[10px] px-2"
                   required
                 />
               </div>
             </div>
             <div>
-              <Label className="text-xs">Trip Type*</Label>
+              <Label className="text-[10px]">Trip Type*</Label>
               <Select
                 value={formData.tripType}
                 onValueChange={(value) =>
@@ -268,12 +268,12 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                 }
                 required
               >
-                <SelectTrigger className="h-8 text-xs">
+                <SelectTrigger className="h-6 text-[10px]">
                   <SelectValue placeholder="Choose trip type" />
                 </SelectTrigger>
                 <SelectContent>
                   {TRIP_TYPES.map((type) => (
-                    <SelectItem key={type} value={type} className="text-xs">
+                    <SelectItem key={type} value={type} className="text-[10px]">
                       {type}
                     </SelectItem>
                   ))}
@@ -281,39 +281,39 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
               </Select>
             </div>
             <div>
-              <Label htmlFor="companyName" className="text-xs">
-                Name of the Company
+              <Label htmlFor="companyName" className="text-[10px]">
+                Company
               </Label>
               <Input
                 id="companyName"
                 name="companyName"
-                placeholder="Enter company name"
+                placeholder="Company name"
                 value={formData.companyName}
                 onChange={handleInputChange}
-                className="h-8 text-xs"
+                className="h-6 text-[10px] px-2"
               />
             </div>
             <div>
-              <Label htmlFor="residence" className="text-xs">
+              <Label htmlFor="residence" className="text-[10px]">
                 Residence
               </Label>
               <Input
                 id="residence"
                 name="residence"
-                placeholder="Enter your city / residence"
+                placeholder="City/Residence"
                 value={formData.residence}
                 onChange={handleInputChange}
-                className="h-8 text-xs"
+                className="h-6 text-[10px] px-2"
               />
             </div>
           </div>
 
           {/* 3. Travel Information */}
-          <div className="space-y-3 border p-3 rounded-lg">
-            <h3 className="text-base font-semibold mb-2">Travel Information</h3>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1 border p-1.5 rounded">
+            <h3 className="text-xs font-semibold mb-0.5">Travel Information</h3>
+            <div className="grid grid-cols-2 gap-1.5">
               <div>
-                <Label htmlFor="fromDate" className="text-xs">
+                <Label htmlFor="fromDate" className="text-[10px]">
                   From Date*
                 </Label>
                 <Input
@@ -322,12 +322,12 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                   type="date"
                   value={formData.fromDate}
                   onChange={handleInputChange}
-                  className="h-8 text-xs"
+                  className="h-6 text-[10px] px-2"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="toDate" className="text-xs">
+                <Label htmlFor="toDate" className="text-[10px]">
                   To Date*
                 </Label>
                 <Input
@@ -336,7 +336,7 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                   type="date"
                   value={formData.toDate}
                   onChange={handleInputChange}
-                  className="h-8 text-xs"
+                  className="h-6 text-[10px] px-2"
                   required
                 />
               </div>
@@ -344,28 +344,30 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
           </div>
 
           {/* 4. Passenger Details */}
-          <div className="space-y-3 border p-3 rounded-lg">
-            <h3 className="text-base font-semibold mb-2">Passenger Details</h3>
-            <div className="grid grid-cols-3 gap-3">
+          <div className="space-y-1 border p-1.5 rounded">
+            <h3 className="text-xs font-semibold mb-0.5">Passenger Details</h3>
+            <div className="grid grid-cols-3 gap-1.5">
               <div>
-                <Label className="text-xs">Number of Adults*</Label>
-                <div className="flex items-center space-x-2">
+                <Label className="text-[10px]">Adults*</Label>
+                <div className="flex items-center space-x-1">
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
-                    className="h-6 w-6"
+                    className="h-5 w-5 text-[10px]"
                     onClick={() => handleCounterChange("adults", false)}
                     disabled={formData.adults <= 1}
                   >
                     -
                   </Button>
-                  <span className="text-xs px-2">{formData.adults}</span>
+                  <span className="text-[10px] px-1 min-w-[20px] text-center">
+                    {formData.adults}
+                  </span>
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
-                    className="h-6 w-6"
+                    className="h-5 w-5 text-[10px]"
                     onClick={() => handleCounterChange("adults", true)}
                   >
                     +
@@ -373,24 +375,26 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                 </div>
               </div>
               <div>
-                <Label className="text-xs">Number of Children*</Label>
-                <div className="flex items-center space-x-2">
+                <Label className="text-[10px]">Children*</Label>
+                <div className="flex items-center space-x-1">
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
-                    className="h-6 w-6"
+                    className="h-5 w-5 text-[10px]"
                     onClick={() => handleCounterChange("children", false)}
                     disabled={formData.children <= 0}
                   >
                     -
                   </Button>
-                  <span className="text-xs px-2">{formData.children}</span>
+                  <span className="text-[10px] px-1 min-w-[20px] text-center">
+                    {formData.children}
+                  </span>
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
-                    className="h-6 w-6"
+                    className="h-5 w-5 text-[10px]"
                     onClick={() => handleCounterChange("children", true)}
                   >
                     +
@@ -398,24 +402,26 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                 </div>
               </div>
               <div>
-                <Label className="text-xs">Number of Infants*</Label>
-                <div className="flex items-center space-x-2">
+                <Label className="text-[10px]">Infants*</Label>
+                <div className="flex items-center space-x-1">
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
-                    className="h-6 w-6"
+                    className="h-5 w-5 text-[10px]"
                     onClick={() => handleCounterChange("infants", false)}
                     disabled={formData.infants <= 0}
                   >
                     -
                   </Button>
-                  <span className="text-xs px-2">{formData.infants}</span>
+                  <span className="text-[10px] px-1 min-w-[20px] text-center">
+                    {formData.infants}
+                  </span>
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
-                    className="h-6 w-6"
+                    className="h-5 w-5 text-[10px]"
                     onClick={() => handleCounterChange("infants", true)}
                   >
                     +
@@ -426,79 +432,79 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
           </div>
 
           {/* 5. Budget */}
-          <div className="space-y-3 border p-3 rounded-lg">
-            <h3 className="text-base font-semibold mb-2">Budget</h3>
+          <div className="space-y-1 border p-1.5 rounded">
+            <h3 className="text-xs font-semibold mb-0.5">Budget</h3>
             <div>
-              <Label htmlFor="totalBudget" className="text-xs">
+              <Label htmlFor="totalBudget" className="text-[10px]">
                 Total Budget
               </Label>
               <Input
                 id="totalBudget"
                 name="totalBudget"
                 type="number"
-                placeholder="Enter amount"
+                placeholder="Amount"
                 value={formData.totalBudget}
                 onChange={handleInputChange}
-                className="h-8 text-xs"
+                className="h-6 text-[10px] px-2"
               />
             </div>
           </div>
 
           {/* 6. Destination & Package */}
-          <div className="space-y-3 border p-3 rounded-lg">
-            <h3 className="text-base font-semibold mb-2">
+          <div className="space-y-1 border p-1.5 rounded">
+            <h3 className="text-xs font-semibold mb-0.5">
               Destination & Package
             </h3>
             <div>
-              <Label htmlFor="destination" className="text-xs">
+              <Label htmlFor="destination" className="text-[10px]">
                 Destination
               </Label>
               <Input
                 id="destination"
                 name="destination"
-                placeholder="Enter destination"
+                placeholder="Destination"
                 value={formData.destination}
                 onChange={handleInputChange}
-                className="h-8 text-xs"
+                className="h-6 text-[10px] px-2"
               />
             </div>
             <div>
-              <Label htmlFor="packageName" className="text-xs">
+              <Label htmlFor="packageName" className="text-[10px]">
                 Package Name*
               </Label>
               <Input
                 id="packageName"
                 name="packageName"
-                placeholder="Enter package name"
+                placeholder="Package name"
                 value={formData.packageName}
                 onChange={handleInputChange}
-                className="h-8 text-xs"
+                className="h-6 text-[10px] px-2"
                 required
               />
             </div>
           </div>
 
           {/* 7. Additional Information */}
-          <div className="space-y-3 border p-3 rounded-lg col-span-2">
-            <h3 className="text-base font-semibold mb-2">
+          <div className="space-y-1 border p-1.5 rounded col-span-2">
+            <h3 className="text-xs font-semibold mb-0.5">
               Additional Information
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-1.5">
               <div>
-                <Label htmlFor="description" className="text-xs">
+                <Label htmlFor="description" className="text-[10px]">
                   Description (Optional)
                 </Label>
                 <Textarea
                   id="description"
                   name="description"
-                  placeholder="Provide any additional details or specific requests..."
+                  placeholder="Additional details..."
                   value={formData.description}
                   onChange={handleInputChange}
-                  className="text-xs h-20"
+                  className="text-[10px] h-14 px-2 py-1"
                 />
               </div>
               <div>
-                <Label htmlFor="attachment" className="text-xs">
+                <Label htmlFor="attachment" className="text-[10px]">
                   File Attachment (Optional)
                 </Label>
                 <Input
@@ -506,20 +512,24 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                   name="attachment"
                   type="file"
                   onChange={handleFileChange}
-                  className="text-xs h-8"
+                  className="text-[10px] h-6"
                 />
               </div>
             </div>
           </div>
 
           {/* Submit Button */}
-          <DialogFooter className="col-span-3 flex justify-center space-x-4 mt-2">
+          <DialogFooter className="col-span-3 flex justify-center space-x-3 mt-1">
             <DialogClose asChild>
-              <Button type="button" variant="outline" className="px-6">
+              <Button
+                type="button"
+                variant="outline"
+                className="px-4 h-7 text-xs"
+              >
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" className="px-6">
+            <Button type="submit" className="px-4 h-7 text-xs">
               Submit Enquiry
             </Button>
           </DialogFooter>

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import TopNav from "@/components/common/TopNav";
 import HeroBanner from "@/components/landingpage/HeroBanner";
@@ -57,6 +58,7 @@ function getCookie(name: string): string {
 const FALLBACK_IMAGE = "/landingpage/hero.png";
 
 const Index = () => {
+  const router = useRouter();
   const [holidayDestinations, setHolidayDestinations] = useState<any[]>([]);
   const [visaDestinations, setVisaDestinations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -326,7 +328,8 @@ const Index = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-foreground hover:text-foreground/80"
+                className="text-foreground bg-[#f2f0f0]"
+                onClick={() => router.push("/holiday-grid")}
               >
                 View All
               </Button>
@@ -364,7 +367,7 @@ const Index = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-foreground hover:text-foreground/80"
+                className="text-foreground bg-[#f2f0f0]"
               >
                 View All
               </Button>

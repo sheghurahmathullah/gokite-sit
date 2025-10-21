@@ -1,17 +1,16 @@
 "use client";
 import TopNav from "@/components/common/IconNav";
+import { useRouter } from "next/navigation";
 import Footer from "@/components/common/Footer";
 import HolidayHeroBanner from "@/components/holidayspage/HolidayHeroBanner";
 import SectionHeader from "@/components/common/SectionHeader";
 import DestinationCard from "@/components/common/DestinationCard";
-import {
-  honeymoonSpecials,
-  moreDestinations,
-} from "@/data/holidaysData";
+import { honeymoonSpecials, moreDestinations } from "@/data/holidaysData";
 import { useEffect, useMemo, useState } from "react";
 import { usePageContext } from "@/components/common/PageContext";
 
 const HolidaysPage = () => {
+  const router = useRouter();
   const categories = useMemo(
     () => [
       { id: 1, icon: "/holidaygrid/beach.png", label: "Beaches" },
@@ -19,7 +18,11 @@ const HolidaysPage = () => {
       { id: 3, icon: "/holidaygrid/world wonder.png", label: "World Wonder" },
       { id: 4, icon: "/holidaygrid/iconic city.png", label: "Iconic City" },
       { id: 5, icon: "/holidaygrid/country side.png", label: "CountrySide" },
-      { id: 6, icon: "/holidaygrid/kids wonderland.png", label: "Kids Wonderland" },
+      {
+        id: 6,
+        icon: "/holidaygrid/kids wonderland.png",
+        label: "Kids Wonderland",
+      },
       { id: 7, icon: "/holidaygrid/skiing.png", label: "Skiing" },
       { id: 8, icon: "/holidaygrid/wildlife.png", label: "Wildlife" },
     ],
@@ -76,7 +79,9 @@ const HolidaysPage = () => {
   // CMS-driven sections: Honeymoon Freebies Special and Additional Destinations
   const { getPageIdWithFallback } = usePageContext();
   const [honeymoonCards, setHoneymoonCards] = useState<DestinationShape[]>([]);
-  const [additionalCards, setAdditionalCards] = useState<DestinationShape[]>([]);
+  const [additionalCards, setAdditionalCards] = useState<DestinationShape[]>(
+    []
+  );
   const [isSectionsLoading, setIsSectionsLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -95,7 +100,9 @@ const HolidaysPage = () => {
         });
         if (!sectionsRes.ok) throw new Error("Failed to load pages-sections");
         const sectionsJson = await sectionsRes.json();
-        const sectionsArr = Array.isArray(sectionsJson?.data) ? sectionsJson.data : [];
+        const sectionsArr = Array.isArray(sectionsJson?.data)
+          ? sectionsJson.data
+          : [];
 
         // 2) Find the HOLIDAY section titled "Honeymoon Freebies Special"
         const targetSection = sectionsArr.find(
@@ -104,7 +111,8 @@ const HolidaysPage = () => {
             (s?.contentType || "").toUpperCase() === "HOLIDAY"
         );
         const pageSectionId = targetSection?.pageSectionId;
-        if (!pageSectionId) throw new Error("Missing pageSectionId for target section");
+        if (!pageSectionId)
+          throw new Error("Missing pageSectionId for target section");
 
         // 3) Fetch holiday cards for that section
         const cardsRes = await fetch("/api/cms/sections-holiday-cards", {
@@ -112,19 +120,29 @@ const HolidaysPage = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ pageSectionId, limitValue: 10 }),
         });
-        if (!cardsRes.ok) throw new Error("Failed to load sections-holiday-cards");
+        if (!cardsRes.ok)
+          throw new Error("Failed to load sections-holiday-cards");
         const cardsJson = await cardsRes.json();
-        const items: CardApiItem[] = Array.isArray(cardsJson?.data) ? cardsJson.data : [];
+        const items: CardApiItem[] = Array.isArray(cardsJson?.data)
+          ? cardsJson.data
+          : [];
 
         // Map to DestinationCard shape
         const mapped: DestinationShape[] = items.map((item) => {
           const days = Number(item.noOfDays ?? item.cardJson?.days ?? 0) || 0;
-          const nights = Number(item.noOfNights ?? item.cardJson?.nights ?? 0) || 0;
-          const ratingRaw = item.packageRating ?? item.cardJson?.packageRating ?? 0;
-          const rating = typeof ratingRaw === "string" ? Number(ratingRaw) || 0 : ratingRaw || 0;
+          const nights =
+            Number(item.noOfNights ?? item.cardJson?.nights ?? 0) || 0;
+          const ratingRaw =
+            item.packageRating ?? item.cardJson?.packageRating ?? 0;
+          const rating =
+            typeof ratingRaw === "string"
+              ? Number(ratingRaw) || 0
+              : ratingRaw || 0;
           const currency = item.currency || "";
-          const originalPrice = Number((item.oldPrice || "0").replace(/[, ]/g, "")) || 0;
-          const finalPrice = Number((item.newPrice || "0").replace(/[, ]/g, "")) || 0;
+          const originalPrice =
+            Number((item.oldPrice || "0").replace(/[, ]/g, "")) || 0;
+          const finalPrice =
+            Number((item.newPrice || "0").replace(/[, ]/g, "")) || 0;
 
           const getCount = (label: string) => {
             const match = (item.cardJson?.itineraryIcons || []).find((i) =>
@@ -215,12 +233,19 @@ const HolidaysPage = () => {
         const mapped: DestinationShape[] = (items || []).map((item) => {
           // numbers and fallbacks
           const days = Number(item.noOfDays ?? item.cardJson?.days ?? 0) || 0;
-          const nights = Number(item.noOfNights ?? item.cardJson?.nights ?? 0) || 0;
-          const ratingRaw = item.packageRating ?? item.cardJson?.packageRating ?? 0;
-          const rating = typeof ratingRaw === "string" ? Number(ratingRaw) || 0 : ratingRaw || 0;
+          const nights =
+            Number(item.noOfNights ?? item.cardJson?.nights ?? 0) || 0;
+          const ratingRaw =
+            item.packageRating ?? item.cardJson?.packageRating ?? 0;
+          const rating =
+            typeof ratingRaw === "string"
+              ? Number(ratingRaw) || 0
+              : ratingRaw || 0;
           const currency = item.currency || "";
-          const originalPrice = Number((item.oldPrice || "0").replace(/[, ]/g, "")) || 0;
-          const finalPrice = Number((item.newPrice || "0").replace(/[, ]/g, "")) || 0;
+          const originalPrice =
+            Number((item.oldPrice || "0").replace(/[, ]/g, "")) || 0;
+          const finalPrice =
+            Number((item.newPrice || "0").replace(/[, ]/g, "")) || 0;
 
           // attempt to parse counts from itineraryIcons text like "2 Flights"
           const getCount = (label: string) => {
@@ -330,8 +355,8 @@ const HolidaysPage = () => {
                       >
                         <div className="flex flex-col items-center gap-1 sm:gap-2">
                           <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 flex items-center justify-center">
-                            <img 
-                              src={category.icon} 
+                            <img
+                              src={category.icon}
                               alt={category.label}
                               className="w-full h-full object-contain filter brightness-0 invert"
                             />
@@ -353,9 +378,13 @@ const HolidaysPage = () => {
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-bold text-white">
-                    {categories.find((c) => c.id === selectedCategoryId)?.label || "Beaches"}
+                    {categories.find((c) => c.id === selectedCategoryId)
+                      ?.label || "Beaches"}
                   </h3>
-                  <button className="px-6 py-2 bg-white text-gray-900 rounded-full text-sm font-medium hover:bg-white/90 transition-colors flex items-center gap-2">
+                  <button
+                    className="px-6 py-2 bg-white text-gray-900 rounded-full text-sm font-medium hover:bg-white/90 transition-colors flex items-center gap-2"
+                    onClick={() => router.push("/holiday-grid")}
+                  >
                     View All
                     <svg
                       className="w-4 h-4"
@@ -376,7 +405,10 @@ const HolidaysPage = () => {
                 {/* Destination Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                   {(isLoading ? [] : destinations).map((destination) => (
-                    <DestinationCard key={destination.id} destination={destination} />
+                    <DestinationCard
+                      key={destination.id}
+                      destination={destination}
+                    />
                   ))}
                   {isLoading && (
                     <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-white/80 text-sm">

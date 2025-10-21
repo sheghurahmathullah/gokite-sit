@@ -156,24 +156,30 @@ const VisaRulesCard = () => {
 
   if (loading) {
     return (
-      <section className="px-20 py-8 lg:py-12">
-        <p>Loading visa rules...</p>
+      <section className="w-full px-6 py-8 lg:py-12">
+        <div className="max-w-[85rem] mx-auto">
+          <p>Loading visa rules...</p>
+        </div>
       </section>
     );
   }
 
   if (error) {
     return (
-      <section className="px-20 py-8 lg:py-12">
-        <p>Error loading visa rules: {error}</p>
+      <section className="w-full px-6 py-8 lg:py-12">
+        <div className="max-w-[85rem] mx-auto">
+          <p>Error loading visa rules: {error}</p>
+        </div>
       </section>
     );
   }
 
   if (visaRulesData.length === 0) {
     return (
-      <section className="px-20 py-8 lg:py-12">
-        <p>No visa rules announcements available at the moment.</p>
+      <section className="w-full px-6 py-8 lg:py-12">
+        <div className="max-w-[85rem] mx-auto">
+          <p>No visa rules announcements available at the moment.</p>
+        </div>
       </section>
     );
   }
@@ -192,47 +198,49 @@ const VisaRulesCard = () => {
   };
 
   return (
-    <section className="px-20 py-8 lg:py-12">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Visa Rules & Announcements
-        </h2>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => scroll("left")}
-            className="rounded-full w-9 h-9 bg-gray-700 text-white hover:bg-gray-800 flex items-center justify-center transition-colors"
-            aria-label="Scroll left"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => scroll("right")}
-            className="rounded-full w-9 h-9 bg-gray-700 text-white hover:bg-gray-800 flex items-center justify-center transition-colors"
-            aria-label="Scroll right"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-      <div
-        ref={scrollContainerRef}
-        className="flex gap-6 overflow-x-auto pb-4"
-        style={{
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-        }}
-      >
-        {visaRulesData.map((rule) => (
-          <div key={rule.uniqueId || rule.id} className="flex-shrink-0">
-            <VisaRuleCard rule={rule} />
+    <section className="w-full px-6 py-8 lg:py-12">
+      <div className="max-w-[85rem] mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Visa Rules & Announcements
+          </h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => scroll("left")}
+              className="rounded-full w-9 h-9 bg-black text-white hover:bg-gray-800 flex items-center justify-center transition-colors"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => scroll("right")}
+              className="rounded-full w-9 h-9 bg-black text-white hover:bg-gray-800 flex items-center justify-center transition-colors"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
           </div>
-        ))}
+        </div>
+        <div
+          ref={scrollContainerRef}
+          className="flex gap-6 overflow-x-auto pb-4"
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        >
+          {visaRulesData.map((rule) => (
+            <div key={rule.uniqueId || rule.id} className="flex-shrink-0">
+              <VisaRuleCard rule={rule} />
+            </div>
+          ))}
+        </div>
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
       </div>
-      <style jsx>{`
-        div::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </section>
   );
 };
