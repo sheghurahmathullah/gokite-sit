@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Input } from "@/components/ui/input";
@@ -79,6 +79,10 @@ export default function GoKiteSignup() {
   const [email, setEmail] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get redirect parameter from URL
+  const redirectTo = searchParams.get("redirect") || "/";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -118,7 +122,7 @@ export default function GoKiteSignup() {
 
         // Redirect after a short delay to show toast
         setTimeout(() => {
-          router.push("/");
+          router.push(redirectTo);
         }, 1000);
       } else {
         const errorData = await response.json();
