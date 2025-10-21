@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -75,7 +75,7 @@ const socialButtons = [
   },
 ];
 
-export default function GoKiteSignup() {
+function SignInForm() {
   const [email, setEmail] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
   const router = useRouter();
@@ -279,5 +279,13 @@ export default function GoKiteSignup() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function GoKiteSignup() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInForm />
+    </Suspense>
   );
 }
