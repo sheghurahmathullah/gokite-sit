@@ -40,15 +40,9 @@ const TourDetailPageInner = () => {
   const [error, setError] = useState<string | null>(null);
   const [holidayId, setHolidayId] = useState<string | null>(null);
 
-  // Resolve holidayId: prefer query param, else sessionStorage, else use slug
+  // Resolve holidayId: prefer sessionStorage, else query param, else use slug
   useEffect(() => {
-    const idFromQuery = searchParams.get("holidayId");
-    if (idFromQuery) {
-      setHolidayId(idFromQuery);
-      return;
-    }
-
-    // Try to get from sessionStorage
+    // Try to get from sessionStorage first (highest priority)
     if (typeof window !== "undefined") {
       try {
         const stored = window.sessionStorage.getItem("holidayId");
@@ -59,6 +53,13 @@ const TourDetailPageInner = () => {
       } catch (e) {
         // ignore storage errors
       }
+    }
+
+    // Check query param as second priority
+    const idFromQuery = searchParams.get("holidayId");
+    if (idFromQuery) {
+      setHolidayId(idFromQuery);
+      return;
     }
 
     // Use slug as fallback

@@ -28,18 +28,20 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
   const router = useRouter();
 
   const handleCardClick = () => {
-    // Store holidayId in sessionStorage
-    if (destination.id && typeof window !== "undefined") {
+    // Store holidayId and title in sessionStorage
+    if (typeof window !== "undefined") {
       try {
-        window.sessionStorage.setItem("holidayId", destination.id);
+        if (destination.id) {
+          window.sessionStorage.setItem("holidayId", destination.id);
+        }
+        window.sessionStorage.setItem("holidayTitle", destination.name);
       } catch (e) {
-        console.error("Failed to store holidayId:", e);
+        console.error("Failed to store holiday data:", e);
       }
     }
 
-    // Navigate to tour details page with slug
-    const slug =
-      destination.id || destination.name.toLowerCase().replace(/\s+/g, "-");
+    // Navigate to tour details page with slug (using title)
+    const slug = destination.name.toLowerCase().replace(/\s+/g, "-");
     router.push(`/tour-details/${slug}`);
   };
 
