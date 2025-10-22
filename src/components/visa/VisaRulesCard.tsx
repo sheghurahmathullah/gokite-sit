@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import * as Flags from "country-flag-icons/react/3x2";
 import { usePageContext } from "../common/PageContext";
+import { useRouter } from "next/navigation";
 
 interface VisaRuleAnnouncement {
   id: string;
@@ -25,6 +26,7 @@ const VisaRulesCard = () => {
   const [error, setError] = useState<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
+  const router = useRouter();
 
   // Read cookie helper
   const getCookie = (name: string) => {
@@ -197,6 +199,21 @@ const VisaRulesCard = () => {
     }
   };
 
+  // Handle card click - store countryId and navigate
+  const handleCardClick = (rule: VisaRuleAnnouncement) => {
+    try {
+      if (typeof window !== "undefined") {
+        // Store both countryId and countryCode for the apply-visa page
+        window.sessionStorage.setItem("applyVisaCountryId", rule.id);
+        window.sessionStorage.setItem("applyVisaCountryCode", rule.countryCode);
+      }
+    } catch (e) {
+      console.error("Error saving to sessionStorage:", e);
+    }
+    // Navigate to apply-visa page
+    router.push("/apply-visa");
+  };
+
   return (
     <section className="w-full px-6 py-8 lg:py-12">
       <div className="max-w-[85rem] mx-auto">
@@ -231,7 +248,7 @@ const VisaRulesCard = () => {
         >
           {visaRulesData.map((rule) => (
             <div key={rule.uniqueId || rule.id} className="flex-shrink-0">
-              <VisaRuleCard rule={rule} />
+              <VisaRuleCard rule={rule} onClick={() => handleCardClick(rule)} />
             </div>
           ))}
         </div>
@@ -246,12 +263,15 @@ const VisaRulesCard = () => {
 };
 
 // Individual card component
-const VisaRuleCard = ({ rule }: { rule: VisaRuleAnnouncement }) => {
+const VisaRuleCard = ({ rule, onClick }: { rule: VisaRuleAnnouncement; onClick: () => void }) => {
   const FlagComponent =
     Flags[rule.countryCode.toUpperCase() as keyof typeof Flags] || Flags.US;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative w-full max-w-sm">
+    <div 
+      className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative w-full max-w-sm cursor-pointer hover:shadow-md transition-all"
+      onClick={onClick}
+    >
       {/* Flag and Country Name */}
       <div className="flex flex-col items-start gap-2 px-6 pt-6 pb-4">
         <span className="block w-10 h-7 rounded overflow-hidden shadow-sm">
