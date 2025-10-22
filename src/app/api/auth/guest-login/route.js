@@ -46,10 +46,14 @@ export async function POST(request) {
     const setCookie = upstream.headers.get("set-cookie") || "";
     const access = extractCookieValue(setCookie, "accesstoken");
     const refresh = extractCookieValue(setCookie, "refreshtoken");
+    const sessionDuration = extractCookieValue(setCookie, "sessionDuration");
 
     const response = new NextResponse(text, {
       status: upstream.status,
-      headers: { "content-type": contentType },
+      headers: { 
+        "content-type": contentType,
+        ...(sessionDuration && { "x-session-duration": String(sessionDuration) })
+      },
     });
 
     if (access) {
@@ -63,6 +67,14 @@ export async function POST(request) {
     if (refresh) {
       response.cookies.set("refreshtoken", refresh, {
         httpOnly: true,
+        sameSite: "lax",
+        secure: isProd,
+        path: "/",
+      });
+    }
+    if (sessionDuration) {
+      response.cookies.set("sessionDuration", sessionDuration, {
+        httpOnly: false, // Allow client-side access
         sameSite: "lax",
         secure: isProd,
         path: "/",

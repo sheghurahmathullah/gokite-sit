@@ -5,6 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AuthClientStorage, ensureFreshToken } from "@/lib/auth-client";
 
 const socialButtons = [
   {
@@ -111,6 +112,29 @@ function SignInForm() {
 
       if (response.ok) {
         const data = await response.json();
+        // Store username and token issue time in session storage
+        AuthClientStorage.setStoredUsername(email);
+        AuthClientStorage.setTokenIssuedNow();
+        
+        // Extract and store sessionDuration if available
+        const sessionDurationHeader = response.headers.get("x-session-duration");
+        if (sessionDurationHeader) {
+          const durationMs = Number(sessionDurationHeader) * 1000; // Convert seconds to milliseconds
+          if (!isNaN(durationMs) && durationMs > 0) {
+            AuthClientStorage.setStoredSessionDuration(durationMs);
+          }
+        }
+        
+        // Also check if sessionDuration cookie was set and store it
+        setTimeout(() => {
+          const sessionDurationFromCookie = AuthClientStorage.getStoredSessionDuration();
+          if (sessionDurationFromCookie) {
+            AuthClientStorage.setStoredSessionDuration(sessionDurationFromCookie);
+          }
+        }, 100); // Small delay to ensure cookies are set
+        
+        // Ensure token is marked fresh
+        ensureFreshToken();
         toast.success("Login Successful! Welcome to GoKite! ", {
           position: "top-right",
           autoClose: 2000,
