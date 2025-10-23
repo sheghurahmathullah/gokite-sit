@@ -6,6 +6,7 @@ import { Monda, Outfit } from "next/font/google";
 import { PageProvider } from "@/components/common/PageContext";
 import { Toaster } from "@/components/ui/toaster";
 import AuthInitializer from "@/components/common/AuthInitializer";
+import { Suspense } from "react";
 
 const monda = Monda({
   weight: ["400", "700"],
@@ -35,7 +36,9 @@ export default function RootLayout({
     <html lang="en" className={`${monda.variable} ${outfit.variable}`}>
       <body>
         <PageProvider>
-          <AuthInitializer />
+          <Suspense fallback={null}>
+            <AuthInitializer />
+          </Suspense>
           {children}
           <Toaster />
         </PageProvider>
