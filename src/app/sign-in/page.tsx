@@ -5,7 +5,6 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AuthClientStorage, ensureFreshToken } from "@/lib/auth-client";
 
 const socialButtons = [
   {
@@ -88,115 +87,23 @@ function SignInForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Validate email format
-    if (!email || !email.includes("@")) {
-      toast.error("Please enter a valid email address", {
+    // Show dummy message since authentication is now automatic
+    toast.info(
+      "Authentication is handled automatically! You're already signed in.",
+      {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-      });
-      return;
-    }
-
-    setSubmitting(true);
-
-    try {
-      const response = await fetch("/api/auth/guest-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userName: email }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // Store username and token issue time in session storage
-        AuthClientStorage.setStoredUsername(email);
-        AuthClientStorage.setTokenIssuedNow();
-        
-        // Extract and store sessionDuration if available
-        const sessionDurationHeader = response.headers.get("x-session-duration");
-        if (sessionDurationHeader) {
-          const durationMs = Number(sessionDurationHeader) * 1000; // Convert seconds to milliseconds
-          if (!isNaN(durationMs) && durationMs > 0) {
-            AuthClientStorage.setStoredSessionDuration(durationMs);
-          }
-        }
-        
-        // Also check if sessionDuration cookie was set and store it
-        setTimeout(() => {
-          const sessionDurationFromCookie = AuthClientStorage.getStoredSessionDuration();
-          if (sessionDurationFromCookie) {
-            AuthClientStorage.setStoredSessionDuration(sessionDurationFromCookie);
-          }
-        }, 100); // Small delay to ensure cookies are set
-        
-        // Ensure token is marked fresh
-        ensureFreshToken();
-        toast.success("Login Successful! Welcome to GoKite! ", {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-
-        // Redirect after a short delay to show toast
-        setTimeout(() => {
-          router.push(redirectTo);
-        }, 1000);
-      } else {
-        const errorData = await response.json();
-
-        // Check for specific error types
-        if (response.status === 401 || response.status === 403) {
-          toast.error("Invalid email or credentials. Please try again.", {
-            position: "top-right",
-            autoClose: 4000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          });
-        } else if (response.status === 404) {
-          toast.error("Email not found. Please check your email address.", {
-            position: "top-right",
-            autoClose: 4000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          });
-        } else {
-          toast.error(
-            errorData.message || "Unable to sign in. Please try again.",
-            {
-              position: "top-right",
-              autoClose: 4000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-            }
-          );
-        }
       }
-    } catch (err) {
-      console.error("Network error", err);
-      toast.error("Network Error! Unable to connect to the server. 🌐", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-    } finally {
-      setSubmitting(false);
-    }
+    );
+
+    // Redirect to home page after showing message
+    setTimeout(() => {
+      router.push(redirectTo);
+    }, 1500);
   };
 
   return (
@@ -241,6 +148,16 @@ function SignInForm() {
               Book your entire trip in one place, with free access to Member
               Prices and points.
             </p>
+
+            {/* Dummy Notice */}
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> Authentication is now handled
+                automatically. This page is kept for future use if manual
+                sign-in is needed.
+              </p>
+            </div>
+
             <form onSubmit={handleSubmit}>
               {/* Email Input */}
               <div className="mb-4">
@@ -264,7 +181,7 @@ function SignInForm() {
                     : "bg-white hover:bg-gray-100"
                 }`}
               >
-                {submitting ? "Signing In..." : "Sign In"}
+                {submitting ? "Processing..." : "Continue to Home"}
               </Button>
             </form>
 

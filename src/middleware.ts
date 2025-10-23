@@ -16,19 +16,9 @@ export function middleware(request: NextRequest) {
   // Get the access token from cookies
   const accessToken = request.cookies.get("accesstoken")?.value;
 
-  // If user is not authenticated and trying to access a protected route
-  if (!accessToken && !isPublicRoute) {
-    // Redirect to sign-in page
-    const signInUrl = new URL("/sign-in", request.url);
-    // Optionally, you can add a redirect parameter to return to the original page after login
-    signInUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(signInUrl);
-  }
-
-  // If user is authenticated and trying to access sign-in page, redirect to home
-  if (accessToken && pathname === "/sign-in") {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
+  // Since authentication is now automatic via AuthInitializer, we don't need to redirect
+  // The sign-in page is kept as a dummy/placeholder for future use
+  // All routes are accessible, but the sign-in page will show a notice about automatic auth
 
   // Allow the request to proceed
   return NextResponse.next();
