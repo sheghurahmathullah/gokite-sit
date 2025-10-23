@@ -78,7 +78,7 @@ const HolidayGridPage = () => {
       // Use holidayUniqueId as the primary ID for navigation
       // This will be stored in sessionStorage and used by tour-details page
       const holidayId =
-        item.holidayUniqueId || item.holidayId || String(item.id);
+        item.holidayId || String(item.id);
 
       return {
         id: holidayId, // This will be used as slug and stored in sessionStorage
