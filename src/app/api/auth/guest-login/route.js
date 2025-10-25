@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import https from "https";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-const UPSTREAM_URL = `${API_BASE_URL}/azp/api/auth/v1/guest-login?getTokenInCookie=true`;
+const UPSTREAM_URL = `${process.env.NEXT_PUBLIC_API_URL}/azp/api/auth/v1/guest-login?getTokenInCookie=true`;
 
 function extractCookieValue(setCookieHeader, name) {
   if (!setCookieHeader) return "";
@@ -46,14 +46,10 @@ export async function POST(request) {
     const setCookie = upstream.headers.get("set-cookie") || "";
     const access = extractCookieValue(setCookie, "accesstoken");
     const refresh = extractCookieValue(setCookie, "refreshtoken");
-    const sessionDuration = extractCookieValue(setCookie, "sessionDuration");
 
     const response = new NextResponse(text, {
       status: upstream.status,
-      headers: { 
-        "content-type": contentType,
-        ...(sessionDuration && { "x-session-duration": String(sessionDuration) })
-      },
+      headers: { "content-type": contentType },
     });
 
     if (access) {
@@ -67,14 +63,6 @@ export async function POST(request) {
     if (refresh) {
       response.cookies.set("refreshtoken", refresh, {
         httpOnly: true,
-        sameSite: "lax",
-        secure: isProd,
-        path: "/",
-      });
-    }
-    if (sessionDuration) {
-      response.cookies.set("sessionDuration", sessionDuration, {
-        httpOnly: false, // Allow client-side access
         sameSite: "lax",
         secure: isProd,
         path: "/",

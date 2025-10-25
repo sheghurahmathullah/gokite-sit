@@ -87,23 +87,92 @@ function SignInForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Show dummy message since authentication is now automatic
-    toast.info(
-      "Authentication is handled automatically! You're already signed in.",
-      {
+    // Validate email format
+    if (!email || !email.includes("@")) {
+      toast.error("Please enter a valid email address", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-      }
-    );
+      });
+      return;
+    }
 
-    // Redirect to home page after showing message
-    setTimeout(() => {
-      router.push(redirectTo);
-    }, 1500);
+    setSubmitting(true);
+
+    try {
+      const response = await fetch("/api/auth/guest-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userName: email }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast.success("Login Successful! Welcome to GoKite! ", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+
+        // Redirect after a short delay to show toast
+        setTimeout(() => {
+          router.push(redirectTo);
+        }, 1000);
+      } else {
+        const errorData = await response.json();
+
+        // Check for specific error types
+        if (response.status === 401 || response.status === 403) {
+          toast.error("Invalid email or credentials. Please try again.", {
+            position: "top-right",
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        } else if (response.status === 404) {
+          toast.error("Email not found. Please check your email address.", {
+            position: "top-right",
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        } else {
+          toast.error(
+            errorData.message || "Unable to sign in. Please try again.",
+            {
+              position: "top-right",
+              autoClose: 4000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+            }
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Network error", err);
+      toast.error("Network Error! Unable to connect to the server. 🌐", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -148,16 +217,6 @@ function SignInForm() {
               Book your entire trip in one place, with free access to Member
               Prices and points.
             </p>
-
-            {/* Dummy Notice */}
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Note:</strong> Authentication is now handled
-                automatically. This page is kept for future use if manual
-                sign-in is needed.
-              </p>
-            </div>
-
             <form onSubmit={handleSubmit}>
               {/* Email Input */}
               <div className="mb-4">
@@ -181,7 +240,7 @@ function SignInForm() {
                     : "bg-white hover:bg-gray-100"
                 }`}
               >
-                {submitting ? "Processing..." : "Continue to Home"}
+                {submitting ? "Signing In..." : "Sign In"}
               </Button>
             </form>
 
