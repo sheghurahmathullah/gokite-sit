@@ -50,7 +50,9 @@ const TopNav = () => {
     <nav className="w-full px-6 lg:px-12 py-4 flex items-center justify-between">
       {/* Logo */}
       <div className="flex items-center gap-2">
-        <img src="/logo.svg" alt="GoKite" className="h-12" />
+        <a href="/" className="cursor-pointer">
+          <img src="/logo.svg" alt="GoKite" className="h-12" />
+        </a>
       </div>
 
       {/* Icon navigation */}
