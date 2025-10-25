@@ -72,6 +72,7 @@ const HolidaysPage = () => {
     currency: string;
     originalPrice: number;
     finalPrice: number;
+    itineraryIcons?: { text?: string; image?: string }[];
   };
 
   const [destinations, setDestinations] = useState<DestinationShape[]>([]);
@@ -178,6 +179,7 @@ const HolidaysPage = () => {
             currency,
             originalPrice,
             finalPrice,
+            itineraryIcons: item.cardJson?.itineraryIcons || [],
           };
         });
 
@@ -282,6 +284,7 @@ const HolidaysPage = () => {
             currency,
             originalPrice,
             finalPrice,
+            itineraryIcons: item.cardJson?.itineraryIcons || [],
           };
         });
 
