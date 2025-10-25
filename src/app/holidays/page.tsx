@@ -6,11 +6,12 @@ import HolidayHeroBanner from "@/components/holidayspage/HolidayHeroBanner";
 import SectionHeader from "@/components/common/SectionHeader";
 import DestinationCard from "@/components/common/DestinationCard";
 import { honeymoonSpecials, moreDestinations } from "@/data/holidaysData";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePageContext } from "@/components/common/PageContext";
 
 const HolidaysPage = () => {
   const router = useRouter();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const categories = useMemo(
     () => [
       { id: 1, icon: "/holidaygrid/beach.png", label: "Beaches" },
@@ -297,6 +298,18 @@ const HolidaysPage = () => {
       isCancelled = true;
     };
   }, [selectedCategoryId]);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const scrollAmount = 320; // Scroll by one card width + gap
+      container.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
@@ -384,25 +397,54 @@ const HolidaysPage = () => {
                       {categories.find((c) => c.id === selectedCategoryId)
                         ?.label || "Beaches"}
                     </h3>
+                    <div className="flex items-center gap-3">
                     <button
-                      className="px-6 py-2 bg-white text-gray-900 rounded-full text-sm font-medium hover:bg-white/90 transition-colors flex items-center gap-2"
-                      onClick={() => router.push("/holiday-grid")}
-                    >
-                      View All
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                        className="px-6 py-2 bg-white text-gray-900 rounded-full text-sm font-medium hover:bg-white/90 transition-colors flex items-center gap-2"
+                        onClick={() => router.push("/holiday-grid")}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </button>
+                        View All
+                      </button>
+                      {/* Left Chevron Button */}
+                      <button
+                        onClick={() => scroll("left")}
+                        className="w-10 h-10 bg-black rounded-full text-white hover:bg-black/80 transition-all duration-200 flex items-center justify-center shadow-lg"
+                        aria-label="Scroll left"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2.5}
+                            d="M15 19l-7-7 7-7"
+                          />
+                        </svg>
+                      </button>
+                      {/* Right Chevron Button */}
+                      <button
+                        onClick={() => scroll("right")}
+                        className="w-10 h-10 bg-black rounded-full text-white hover:bg-black/80 transition-all duration-200 flex items-center justify-center shadow-lg"
+                        aria-label="Scroll right"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2.5}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -413,20 +455,22 @@ const HolidaysPage = () => {
 
             {/* Destination Cards - Positioned to overlap with banner */}
             <div className="relative -mt-32 px-6 lg:px-8 pb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+              <div 
+                ref={scrollContainerRef}
+                className="flex gap-5 overflow-x-auto scrollbar-hide scroll-smooth"
+              >
                 {(isLoading ? [] : destinations).map((destination) => (
-                  <DestinationCard
-                    key={destination.id}
-                    destination={destination}
-                  />
+                  <div key={destination.id} className="flex-shrink-0 w-[300px]">
+                    <DestinationCard destination={destination} />
+                  </div>
                 ))}
                 {isLoading && (
-                  <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+                  <div className="flex-shrink-0 w-full text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
                     Loading...
                   </div>
                 )}
                 {!isLoading && destinations.length === 0 && (
-                  <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+                  <div className="flex-shrink-0 w-full text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
                     No packages found.
                   </div>
                 )}
