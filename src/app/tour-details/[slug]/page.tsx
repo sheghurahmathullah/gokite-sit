@@ -266,7 +266,10 @@ const TourDetailPageInner = () => {
           <PlacesCarousel places={transformedTourData.places} />
 
           {/* Itinerary Section */}
-          <TourItinerary itinerary={transformedTourData.itinerary} />
+          <TourItinerary 
+            itinerary={transformedTourData.itinerary} 
+            itineraryMainDescription={holidayDetails?.cardJson?.itineraryMainDescription}
+          />
 
           {/* What's Included Section */}
           <WhatsIncluded included={transformedTourData.included} />

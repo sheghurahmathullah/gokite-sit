@@ -16,9 +16,10 @@ interface ItineraryItem {
 
 interface TourItineraryProps {
   itinerary: ItineraryItem[];
+  itineraryMainDescription?: string;
 }
 
-const TourItinerary = ({ itinerary }: TourItineraryProps) => {
+const TourItinerary = ({ itinerary, itineraryMainDescription }: TourItineraryProps) => {
   const [expandAll, setExpandAll] = useState(false);
   const [openItems, setOpenItems] = useState<string[]>([]);
 
@@ -50,6 +51,14 @@ const TourItinerary = ({ itinerary }: TourItineraryProps) => {
           {expandAll ? "Collapse All" : "Expand All"}
         </button>
       </div>
+
+      {itineraryMainDescription && (
+        <div className="mb-6">
+          <p className="text-foreground/80 leading-relaxed">
+            {itineraryMainDescription}
+          </p>
+        </div>
+      )}
 
       <div className="space-y-4 relative">
         {/* Timeline line */}
