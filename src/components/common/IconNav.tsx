@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
 
 const iconNavItems = [
   {
@@ -46,6 +47,15 @@ const iconNavItems = [
 ];
 
 const TopNav = () => {
+  const pathname = usePathname();
+
+  const isActive = (item: typeof iconNavItems[0]) => {
+    if (item.redirectUrl === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(item.redirectUrl) && item.redirectUrl !== "#";
+  };
+
   return (
     <nav className="w-full px-6 lg:px-12 py-4 flex items-center justify-between">
       {/* Logo */}
@@ -57,24 +67,32 @@ const TopNav = () => {
 
       {/* Icon navigation */}
       <div className="flex gap-4 lg:gap-12 flex-1 mx-8 ml-16">
-        {iconNavItems.map((item) => (
-          <a
-            key={item.id}
-            href={item.redirectUrl}
-            className="flex flex-col items-center gap-2 group transition-transform hover:-translate-y-1"
-          >
-            <div className="w-8 h-8 lg:w-8 lg:h-8 rounded-full bg-white shadow-lg flex  group-hover:shadow-xl transition-shadow">
-              <img
-                src={item.imgSrc}
-                alt={item.label}
-                className="w-6 h-6 lg:w-12 lg:h-12 object-contain"
-              />
-            </div>
-            <span className="text-sm font-medium text-foreground">
-              {item.label}
-            </span>
-          </a>
-        ))}
+        {iconNavItems.map((item) => {
+          const active = isActive(item);
+          return (
+            <a
+              key={item.id}
+              href={item.redirectUrl}
+              className="flex flex-col items-center gap-2 group transition-transform hover:-translate-y-1"
+            >
+              <div className="w-8 h-8 lg:w-8 lg:h-8 rounded-full bg-white shadow-lg flex  group-hover:shadow-xl transition-shadow">
+                <img
+                  src={item.imgSrc}
+                  alt={item.label}
+                  className="w-6 h-6 lg:w-12 lg:h-12 object-contain"
+                />
+              </div>
+              <div className="relative">
+                <span className="text-sm font-medium text-foreground">
+                  {item.label}
+                </span>
+                {active && (
+                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-full h-0.5 bg-yellow-400"></div>
+                )}
+              </div>
+            </a>
+          );
+        })}
       </div>
 
       {/* User Button */}
