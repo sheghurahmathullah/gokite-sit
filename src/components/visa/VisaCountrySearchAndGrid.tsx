@@ -90,6 +90,7 @@ export default function VisaCountrySearchAndGrid() {
   const [error, setError] = useState<string | null>(null);
   const filterScrollRef = useRef<HTMLDivElement>(null);
 
+
   // Fetch countries data from API
   const fetchCountriesData = async () => {
     try {
@@ -101,10 +102,9 @@ export default function VisaCountrySearchAndGrid() {
       }
       const result = await response.json();
 
-      // API returns { success, data: { success, data: [...] } }
+      // API returns { success: true, data: { data: [...] } }
       if (result?.success && result?.data) {
-        const upstream = result.data;
-        const itemsArray = Array.isArray(upstream?.data) ? upstream.data : [];
+        const itemsArray = Array.isArray(result.data) ? result.data : [];
         const transformedData = transformCountriesData(itemsArray);
         setCountriesData(transformedData);
       } else {
@@ -120,6 +120,10 @@ export default function VisaCountrySearchAndGrid() {
 
   // Transform API data to component format
   const transformCountriesData = (apiData: any[]): VisaCountry[] => {
+    if (!Array.isArray(apiData) || apiData.length === 0) {
+      return [];
+    }
+
     return apiData.map((item, index) => {
       const title = item?.visaCardJson?.title || item?.visaCardTitle || "";
       const imageName = item?.visaCardJson?.image || "";
@@ -161,13 +165,13 @@ export default function VisaCountrySearchAndGrid() {
 
   // Filter countries based on selected filter and search query
   const filteredCountries = countriesData.filter((country) => {
-    // Check category filter
+    // Check category filter - show cards that contain the selected filter in their tagNames
     const matchesCategory =
       !country.tagNames ||
       country.tagNames.length === 0 ||
       country.tagNames.some(
         (tag) =>
-          tag.trim().toLowerCase() === selectedFilter.trim().toLowerCase()
+          tag.trim().toLowerCase().includes(selectedFilter.trim().toLowerCase())
       );
 
     // Check search query
