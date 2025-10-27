@@ -48,7 +48,7 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
 
   return (
     <div
-      className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group p-4 cursor-pointer"
+      className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group p-4 cursor-pointer h-full flex flex-col"
       onClick={handleCardClick}
     >
       {/* Image */}
@@ -78,7 +78,7 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
       </div>
 
       {/* Content */}
-      <div>
+      <div className="flex-1 flex flex-col">
         {/* Title & Rating */}
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-bold text-black">{destination.name}</h3>
@@ -145,7 +145,7 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
         </ul>
 
         {/* Pricing */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mt-auto">
           <span className="text-sm text-gray-500 line-through">
             {destination.currency}
             {destination.originalPrice.toLocaleString()}

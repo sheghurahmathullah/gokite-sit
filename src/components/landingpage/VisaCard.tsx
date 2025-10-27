@@ -66,7 +66,7 @@ const VisaCard = ({ destination }: VisaCardProps) => {
 
   return (
     <div 
-      className="bg-card rounded-2xl overflow-hidden card-shadow hover:card-shadow-hover transition-all duration-300 hover:-translate-y-2 group cursor-pointer"
+      className="bg-card rounded-2xl overflow-hidden card-shadow hover:card-shadow-hover transition-all duration-300 hover:-translate-y-2 group cursor-pointer h-full flex flex-col"
       onClick={handleCardClick}
     >
       {/* Image with overlays */}

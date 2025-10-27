@@ -63,6 +63,9 @@ const Index = () => {
   const [visaDestinations, setVisaDestinations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cardsPerView, setCardsPerView] = useState(4);
+  const [holidayStartIndex, setHolidayStartIndex] = useState(0);
+  const [visaStartIndex, setVisaStartIndex] = useState(0);
 
   const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
 
@@ -239,6 +242,64 @@ const Index = () => {
     });
   };
 
+  // Calculate cards per view based on viewport
+  useEffect(() => {
+    const calculateCardsPerView = () => {
+      if (typeof window === "undefined") return;
+      
+      const width = window.innerWidth;
+      if (width >= 1024) {
+        setCardsPerView(4); // lg and above
+      } else if (width >= 768) {
+        setCardsPerView(2); // md
+      } else {
+        setCardsPerView(1); // sm
+      }
+    };
+
+    calculateCardsPerView();
+    window.addEventListener("resize", calculateCardsPerView);
+    return () => window.removeEventListener("resize", calculateCardsPerView);
+  }, []);
+
+  // Reset indices when cardsPerView changes
+  useEffect(() => {
+    setHolidayStartIndex(0);
+    setVisaStartIndex(0);
+  }, [cardsPerView]);
+
+  // Navigation handlers - move one card at a time
+  const handleHolidayPrev = () => {
+    setHolidayStartIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleHolidayNext = () => {
+    setHolidayStartIndex((prev) => 
+      Math.min(prev + 1, holidayDestinations.length - cardsPerView)
+    );
+  };
+
+  const handleVisaPrev = () => {
+    setVisaStartIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleVisaNext = () => {
+    setVisaStartIndex((prev) => 
+      Math.min(prev + 1, visaDestinations.length - cardsPerView)
+    );
+  };
+
+  // Get visible cards
+  const visibleHolidayCards = holidayDestinations.slice(
+    holidayStartIndex,
+    holidayStartIndex + cardsPerView
+  );
+
+  const visibleVisaCards = visaDestinations.slice(
+    visaStartIndex,
+    visaStartIndex + cardsPerView
+  );
+
   // Load data on component mount
   useEffect(() => {
     if (pageLoading) return;
@@ -276,6 +337,7 @@ const Index = () => {
           const transformedHolidayDestinations =
             transformHolidayData(holidayCardsData);
           setHolidayDestinations(transformedHolidayDestinations);
+          setHolidayStartIndex(0);
         }
 
         // Fetch and transform visa cards
@@ -290,6 +352,7 @@ const Index = () => {
             transformedVisaDestinations
           );
           setVisaDestinations(transformedVisaDestinations);
+          setVisaStartIndex(0);
         }
       } catch (err: unknown) {
         console.error("Error loading data:", err);
@@ -319,7 +382,7 @@ const Index = () => {
         <HeroBanner />
 
         {/* Popular Holiday Destinations */}
-        <section className="px-6 lg:px-12 mt-16">
+        <section className="px-6 lg:px-12 mt-5">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold text-foreground">
               Popular Holiday Destinations
@@ -336,14 +399,18 @@ const Index = () => {
               <Button
                 variant="default"
                 size="icon"
-                className="rounded-full bg-foreground text-background hover:bg-foreground/90"
+                className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
+                onClick={handleHolidayPrev}
+                disabled={holidayStartIndex === 0}
               >
                 <ChevronLeft className="w-5 h-5" />
               </Button>
               <Button
                 variant="default"
                 size="icon"
-                className="rounded-full bg-foreground text-background hover:bg-foreground/90"
+                className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
+                onClick={handleHolidayNext}
+                disabled={holidayStartIndex + cardsPerView >= holidayDestinations.length}
               >
                 <ChevronRight className="w-5 h-5" />
               </Button>
@@ -351,8 +418,13 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {holidayDestinations.map((destination) => (
-              <DestinationCard key={destination.id} destination={destination} />
+            {visibleHolidayCards.map((destination) => (
+              <div 
+                key={`${destination.id}-${holidayStartIndex}`} 
+                className="h-full transition-all duration-500 ease-out opacity-100"
+              >
+                <DestinationCard destination={destination} />
+              </div>
             ))}
           </div>
         </section>
@@ -374,14 +446,18 @@ const Index = () => {
               <Button
                 variant="default"
                 size="icon"
-                className="rounded-full bg-foreground text-background hover:bg-foreground/90"
+                className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
+                onClick={handleVisaPrev}
+                disabled={visaStartIndex === 0}
               >
                 <ChevronLeft className="w-5 h-5" />
               </Button>
               <Button
                 variant="default"
                 size="icon"
-                className="rounded-full bg-foreground text-background hover:bg-foreground/90"
+                className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
+                onClick={handleVisaNext}
+                disabled={visaStartIndex + cardsPerView >= visaDestinations.length}
               >
                 <ChevronRight className="w-5 h-5" />
               </Button>
@@ -389,8 +465,13 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {visaDestinations.map((destination) => (
-              <VisaCard key={destination.id} destination={destination} />
+            {visibleVisaCards.map((destination) => (
+              <div 
+                key={`${destination.id}-${visaStartIndex}`} 
+                className="h-full transition-all duration-500 ease-out opacity-100"
+              >
+                <VisaCard destination={destination} />
+              </div>
             ))}
           </div>
         </section>
