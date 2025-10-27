@@ -15,9 +15,11 @@ interface IncludedItem {
 
 interface WhatsIncludedProps {
   included: IncludedItem[];
+  title?: string;
+  isExcluded?: boolean;
 }
 
-const WhatsIncluded = ({ included }: WhatsIncludedProps) => {
+const WhatsIncluded = ({ included, title, isExcluded = false }: WhatsIncludedProps) => {
   const [expandAll, setExpandAll] = useState(false);
   const [openItems, setOpenItems] = useState<string[]>([]);
 
@@ -38,10 +40,12 @@ const WhatsIncluded = ({ included }: WhatsIncludedProps) => {
     );
   };
 
+  const displayTitle = title || (isExcluded ? "What's Excluded" : "What's Included");
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-foreground">What's Included</h2>
+        <h2 className="text-2xl font-bold text-foreground">{displayTitle}</h2>
         <button
           onClick={handleExpandAll}
           className="text-[#4AB8B8] hover:underline text-sm"
@@ -63,13 +67,13 @@ const WhatsIncluded = ({ included }: WhatsIncludedProps) => {
               <CollapsibleTrigger className="w-full">
                 <div className="flex items-center justify-between p-4 border-b border-border hover:bg-muted/20 transition-colors">
                   <div className="flex items-center gap-3">
-                    {item.included ? (
-                      <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                        <Check className="w-4 h-4 text-white" />
-                      </div>
-                    ) : (
+                    {isExcluded ? (
                       <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
                         <X className="w-4 h-4 text-white" />
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white" />
                       </div>
                     )}
                     <span className="font-medium text-foreground">

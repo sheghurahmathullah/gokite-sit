@@ -227,6 +227,17 @@ const TourDetailPageInner = () => {
             : item.description || "",
         }))
       : [],
+    // What's excluded from cardJson
+    excluded: Array.isArray(holidayDetails?.cardJson?.exclusions)
+      ? holidayDetails.cardJson.exclusions.map((item: any, index: number) => ({
+          id: `excluded-${index}-${item.title || index}-${Math.random().toString(36).substr(2, 9)}`,
+          name: item.title || "",
+          included: false,
+          description: Array.isArray(item.description)
+            ? item.description.map((d: any) => d?.text || "").join(" ")
+            : item.description || "",
+        }))
+      : [],
     // FAQs from cardJson
     faqs: Array.isArray(holidayDetails?.cardJson?.faqs)
       ? holidayDetails.cardJson.faqs.map((item: any, index: number) => ({
@@ -273,6 +284,11 @@ const TourDetailPageInner = () => {
 
           {/* What's Included Section */}
           <WhatsIncluded included={transformedTourData.included} />
+
+          {/* What's Excluded Section */}
+          {transformedTourData.excluded && transformedTourData.excluded.length > 0 && (
+            <WhatsIncluded included={transformedTourData.excluded} isExcluded={true} />
+          )}
 
           {/* FAQs Section */}
           <TourFAQ faqs={transformedTourData.faqs} />
