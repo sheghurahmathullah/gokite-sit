@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import VisaBookingCard from "@/components/landingpage/VisaBookingCard";
 import { usePageContext } from "@/components/common/PageContext";
 
@@ -25,7 +26,7 @@ const iconNavItems = [
     id: "Flight",
     label: "Flight",
     imgSrc: "/landingpage/icons/flight.png",
-    redirectUrl: "/",
+    redirectUrl: "/flight",
   },
   {
     id: "Activities",
@@ -60,10 +61,18 @@ const iconNavItems = [
 ];
 
 const HeroBanner = () => {
+  const pathname = usePathname();
   const [bannerImages, setBannerImages] = useState<string[]>([FALLBACK_IMAGE]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const { getPageIdWithFallback } = usePageContext();
+
+  const isActive = (item: typeof iconNavItems[0]) => {
+    if (item.redirectUrl === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(item.redirectUrl) && item.redirectUrl !== "#";
+  };
 
   const getAuthHeaders = () => {
     const token = getCookie("accesstoken");
@@ -180,24 +189,27 @@ const HeroBanner = () => {
 
           {/* Icon Navigation */}
           <div className="flex items-center justify-center gap-4 lg:gap-8 mb-8 flex-wrap">
-            {iconNavItems.map((item) => (
-              <a
-                key={item.id}
-                href={item.redirectUrl}
-                className="flex flex-col items-center gap-2 group transition-transform hover:-translate-y-1"
-              >
-                <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white shadow-lg flex items-center justify-center group-hover:shadow-xl transition-shadow">
-                  <img
-                    src={item.imgSrc}
-                    alt={item.label}
-                    className="w-6 h-6 lg:w-12 lg:h-12 object-contain"
-                  />
-                </div>
-                <span className="text-sm font-medium text-white">
-                  {item.label}
-                </span>
-              </a>
-            ))}
+            {iconNavItems.map((item) => {
+              const active = isActive(item);
+              return (
+                <a
+                  key={item.id}
+                  href={item.redirectUrl}
+                  className="flex flex-col items-center gap-2 group transition-transform hover:-translate-y-1"
+                >
+                  <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white shadow-lg flex items-center justify-center group-hover:shadow-xl transition-shadow ${active ? "ring-4 ring-yellow-400" : ""}`}>
+                    <img
+                      src={item.imgSrc}
+                      alt={item.label}
+                      className="w-6 h-6 lg:w-12 lg:h-12 object-contain"
+                    />
+                  </div>
+                  <span className="text-sm font-medium text-white">
+                    {item.label}
+                  </span>
+                </a>
+              );
+            })}
           </div>
 
           {/* Booking Card */}

@@ -87,7 +87,7 @@ const TopNav = () => {
                   {item.label}
                 </span>
                 {active && (
-                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-full h-0.5 bg-yellow-400"></div>
+                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-full h-1 bg-yellow-400 rounded-full"></div>
                 )}
               </div>
             </a>
