@@ -53,7 +53,7 @@ const VisaBookingCard = () => {
               String(match.id)
             );
           }
-        } catch (_) {}
+        } catch (_) { }
       } else {
         console.log("Country id not found for label:", countryLabel);
       }
@@ -148,10 +148,10 @@ const VisaBookingCard = () => {
     <div className="max-w-7xl mx-auto bg-white rounded-3xl p-6 lg:p-8 card-shadow">
       <h2 className="text-2xl font-semibold mb-4 text-foreground">Get Visa</h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6 items-stretch">
         {/* Destination Input Field with Autocomplete */}
         <div className="lg:col-span-6 relative" ref={dropdownRef}>
-          <div className="flex flex-col p-4 bg-white border border-gray-200 rounded-xl min-h-[60px]">
+          <div className="flex flex-col p-4 bg-white border border-gray-200 rounded-xl min-h-[60px] h-full">
             <label className="text-sm text-gray-600 mb-1">
               Where are you going?
             </label>
@@ -193,7 +193,7 @@ const VisaBookingCard = () => {
 
         {/* Date Input Field */}
         <div className="lg:col-span-4 relative">
-          <div className="flex flex-col p-4 bg-white border border-gray-200 rounded-xl min-h-[60px]">
+          <div className="flex flex-col p-4 bg-white border border-gray-200 rounded-xl min-h-[60px] h-full">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <p className="text-sm font-semibold text-foreground">{month}</p>
@@ -223,10 +223,10 @@ const VisaBookingCard = () => {
         </div>
 
         {/* Search Button */}
-        <div className="lg:col-span-2 flex items-center justify-center">
+        <div className="lg:col-span-2 flex items-stretch justify-center">
           <Button
             onClick={handleSearch}
-            className="bg-black text-white hover:bg-black/90 rounded-xl px-6 py-4 h-auto w-full lg:w-auto min-h-[60px] text-sm"
+            className="bg-black text-white hover:bg-black/90 rounded-xl px-6 py-4 h-full w-full lg:w-auto text-sm"
           >
             <Search className="w-4 h-4 mr-2" />
             Visa Types

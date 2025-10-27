@@ -110,7 +110,7 @@ const HeroBanner = () => {
 
   return (
     <section className="w-full px-6 lg:px-12">
-      <div className="hero-gradient rounded-[2.5rem] overflow-hidden relative min-h-[600px] lg:min-h-[700px] flex items-center justify-center">
+      <div className="hero-gradient rounded-[2.5rem] overflow-hidden relative min-h-[500px] lg:min-h-[600px] flex items-center justify-center">
         {/* Background image with carousel */}
         <div className="absolute inset-0">
           <img
@@ -151,11 +151,10 @@ const HeroBanner = () => {
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === currentIndex
-                    ? "bg-white w-8"
-                    : "bg-white/50 hover:bg-white/75"
-                }`}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentIndex
+                  ? "bg-white w-8"
+                  : "bg-white/50 hover:bg-white/75"
+                  }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
             ))}

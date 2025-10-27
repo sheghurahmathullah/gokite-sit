@@ -188,7 +188,7 @@ const Index = () => {
       const getOnDate = new Date();
       getOnDate.setDate(
         getOnDate.getDate() +
-          parseInt(item.visaCardJson.processing_days || "10")
+        parseInt(item.visaCardJson.processing_days || "10")
       );
 
       // Calculate total price
@@ -246,7 +246,7 @@ const Index = () => {
   useEffect(() => {
     const calculateCardsPerView = () => {
       if (typeof window === "undefined") return;
-      
+
       const width = window.innerWidth;
       if (width >= 1024) {
         setCardsPerView(4); // lg and above
@@ -268,13 +268,15 @@ const Index = () => {
     setVisaStartIndex(0);
   }, [cardsPerView]);
 
+
+
   // Navigation handlers - move one card at a time
   const handleHolidayPrev = () => {
     setHolidayStartIndex((prev) => Math.max(0, prev - 1));
   };
 
   const handleHolidayNext = () => {
-    setHolidayStartIndex((prev) => 
+    setHolidayStartIndex((prev) =>
       Math.min(prev + 1, holidayDestinations.length - cardsPerView)
     );
   };
@@ -284,10 +286,33 @@ const Index = () => {
   };
 
   const handleVisaNext = () => {
-    setVisaStartIndex((prev) => 
+    setVisaStartIndex((prev) =>
       Math.min(prev + 1, visaDestinations.length - cardsPerView)
     );
   };
+
+  // Auto-scroll carousels (exactly as in VISA page)
+  useEffect(() => {
+    if (holidayDestinations.length <= cardsPerView) return;
+    const interval = setInterval(() => {
+      setHolidayStartIndex((prev) => {
+        const maxIndex = holidayDestinations.length - cardsPerView;
+        return prev < maxIndex ? prev + 1 : 0;
+      });
+    }, 4000); // 4 seconds
+    return () => clearInterval(interval);
+  }, [holidayDestinations.length, cardsPerView]);
+
+  useEffect(() => {
+    if (visaDestinations.length <= cardsPerView) return;
+    const interval = setInterval(() => {
+      setVisaStartIndex((prev) => {
+        const maxIndex = visaDestinations.length - cardsPerView;
+        return prev < maxIndex ? prev + 1 : 0;
+      });
+    }, 4000); // 4 seconds
+    return () => clearInterval(interval);
+  }, [visaDestinations.length, cardsPerView]);
 
   // Get visible cards
   const visibleHolidayCards = holidayDestinations.slice(
@@ -419,8 +444,8 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {visibleHolidayCards.map((destination) => (
-              <div 
-                key={`${destination.id}-${holidayStartIndex}`} 
+              <div
+                key={`${destination.id}-${holidayStartIndex}`}
                 className="h-full transition-all duration-500 ease-out opacity-100"
               >
                 <DestinationCard destination={destination} />
@@ -466,8 +491,8 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {visibleVisaCards.map((destination) => (
-              <div 
-                key={`${destination.id}-${visaStartIndex}`} 
+              <div
+                key={`${destination.id}-${visaStartIndex}`}
                 className="h-full transition-all duration-500 ease-out opacity-100"
               >
                 <VisaCard destination={destination} />

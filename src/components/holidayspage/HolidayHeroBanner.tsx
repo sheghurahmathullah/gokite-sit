@@ -110,9 +110,9 @@ const HolidayHeroBanner = () => {
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full min-h-[400px]">
       {/* Hero Container with Carousel */}
-      <div className="relative w-full rounded-3xl overflow-hidden px-6 lg:px-12 pt-32 pb-32 min-h-[600px]">
+      <div className="relative w-full rounded-3xl overflow-hidden px-6 lg:px-12 pt-12 pb-12 min-h-[460px]">
         {/* Carousel Slides */}
         {bannerImages.map((image, index) => (
           <div
@@ -167,11 +167,10 @@ const HolidayHeroBanner = () => {
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === currentSlide
-                    ? "bg-white w-8"
-                    : "bg-white/50 hover:bg-white/75"
-                }`}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentSlide
+                  ? "bg-white w-8"
+                  : "bg-white/50 hover:bg-white/75"
+                  }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
             ))}
