@@ -1,11 +1,13 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import TopNav from "@/components/common/TopNav";
 import HeroBanner from "@/components/landingpage/HeroBanner";
 import DestinationCard from "@/components/common/DestinationCard";
-import VisaCard from "@/components/landingpage/VisaCard";
+import VisaCarousel, {
+  VisaCarouselRef,
+} from "@/components/landingpage/VisaCarousel";
 import Footer from "@/components/common/Footer";
 import { Button } from "@/components/ui/button";
 import { usePageContext } from "@/components/common/PageContext";
@@ -65,7 +67,7 @@ const Index = () => {
   const [error, setError] = useState<string | null>(null);
   const [cardsPerView, setCardsPerView] = useState(4);
   const [holidayStartIndex, setHolidayStartIndex] = useState(0);
-  const [visaStartIndex, setVisaStartIndex] = useState(0);
+  const visaCarouselRef = useRef<VisaCarouselRef>(null);
 
   const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
 
@@ -188,7 +190,7 @@ const Index = () => {
       const getOnDate = new Date();
       getOnDate.setDate(
         getOnDate.getDate() +
-        parseInt(item.visaCardJson.processing_days || "10")
+          parseInt(item.visaCardJson.processing_days || "10")
       );
 
       // Calculate total price
@@ -265,10 +267,7 @@ const Index = () => {
   // Reset indices when cardsPerView changes
   useEffect(() => {
     setHolidayStartIndex(0);
-    setVisaStartIndex(0);
   }, [cardsPerView]);
-
-
 
   // Navigation handlers - move one card at a time
   const handleHolidayPrev = () => {
@@ -278,16 +277,6 @@ const Index = () => {
   const handleHolidayNext = () => {
     setHolidayStartIndex((prev) =>
       Math.min(prev + 1, holidayDestinations.length - cardsPerView)
-    );
-  };
-
-  const handleVisaPrev = () => {
-    setVisaStartIndex((prev) => Math.max(0, prev - 1));
-  };
-
-  const handleVisaNext = () => {
-    setVisaStartIndex((prev) =>
-      Math.min(prev + 1, visaDestinations.length - cardsPerView)
     );
   };
 
@@ -303,26 +292,10 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [holidayDestinations.length, cardsPerView]);
 
-  useEffect(() => {
-    if (visaDestinations.length <= cardsPerView) return;
-    const interval = setInterval(() => {
-      setVisaStartIndex((prev) => {
-        const maxIndex = visaDestinations.length - cardsPerView;
-        return prev < maxIndex ? prev + 1 : 0;
-      });
-    }, 4000); // 4 seconds
-    return () => clearInterval(interval);
-  }, [visaDestinations.length, cardsPerView]);
-
   // Get visible cards
   const visibleHolidayCards = holidayDestinations.slice(
     holidayStartIndex,
     holidayStartIndex + cardsPerView
-  );
-
-  const visibleVisaCards = visaDestinations.slice(
-    visaStartIndex,
-    visaStartIndex + cardsPerView
   );
 
   // Load data on component mount
@@ -377,7 +350,6 @@ const Index = () => {
             transformedVisaDestinations
           );
           setVisaDestinations(transformedVisaDestinations);
-          setVisaStartIndex(0);
         }
       } catch (err: unknown) {
         console.error("Error loading data:", err);
@@ -435,7 +407,9 @@ const Index = () => {
                 size="icon"
                 className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
                 onClick={handleHolidayNext}
-                disabled={holidayStartIndex + cardsPerView >= holidayDestinations.length}
+                disabled={
+                  holidayStartIndex + cardsPerView >= holidayDestinations.length
+                }
               >
                 <ChevronRight className="w-5 h-5" />
               </Button>
@@ -465,6 +439,7 @@ const Index = () => {
                 variant="ghost"
                 size="sm"
                 className="text-foreground bg-[#f2f0f0]"
+                onClick={() => router.push("/visa")}
               >
                 View All
               </Button>
@@ -472,8 +447,7 @@ const Index = () => {
                 variant="default"
                 size="icon"
                 className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
-                onClick={handleVisaPrev}
-                disabled={visaStartIndex === 0}
+                onClick={() => visaCarouselRef.current?.scrollPrev()}
               >
                 <ChevronLeft className="w-5 h-5" />
               </Button>
@@ -481,24 +455,14 @@ const Index = () => {
                 variant="default"
                 size="icon"
                 className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
-                onClick={handleVisaNext}
-                disabled={visaStartIndex + cardsPerView >= visaDestinations.length}
+                onClick={() => visaCarouselRef.current?.scrollNext()}
               >
                 <ChevronRight className="w-5 h-5" />
               </Button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {visibleVisaCards.map((destination) => (
-              <div
-                key={`${destination.id}-${visaStartIndex}`}
-                className="h-full transition-all duration-500 ease-out opacity-100"
-              >
-                <VisaCard destination={destination} />
-              </div>
-            ))}
-          </div>
+          <VisaCarousel ref={visaCarouselRef} destinations={visaDestinations} />
         </section>
       </main>
 

@@ -76,8 +76,11 @@ const socialIcons = {
 const Footer = () => {
   return (
     <footer
-      className="w-full px-6 lg:px-12 py-12 mt-20"
-      style={{ backgroundColor: "hsl(var(--footer-bg))" }}
+      className="w-full px-6 lg:px-12 py-12 mt-20 border-t-2"
+      style={{
+        backgroundColor: "#C8E5ED",
+        borderTopColor: "#A0D4E0",
+      }}
     >
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -86,17 +89,17 @@ const Footer = () => {
             <div className="flex items-center gap-2 mb-4">
               <img src="/logo.svg" alt="GoKite" className="h-16" />
             </div>
-            <p className="text-sm text-foreground/70 mb-4">
+            <p className="text-sm text-gray-700 mb-4">
               Contact our Travel agent
             </p>
-            <p className="text-sm text-foreground/70 mb-1">
-              Monday-Friday 8AM-8PM
+            <p className="text-sm text-gray-700 mb-1">
+              Monday-Friday (9Am-5Pm)
             </p>
-            <p className="text-sm font-semibold text-foreground">
-              +91 7620370430
+            <p className="text-sm font-semibold text-gray-900">
+              +91 7620370639
             </p>
-            <p className="text-sm text-foreground/70 mt-3">
-              Email: Support@gokite.com
+            <p className="text-sm text-gray-700 mt-3">
+              Email : Support@gokite.com
             </p>
 
             {/* Social Icons */}
@@ -105,7 +108,7 @@ const Footer = () => {
                 href="https://www.facebook.com/gokite"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-brand-cyan/20 flex items-center justify-center"
+                className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center hover:bg-white/70 transition-colors"
               >
                 {socialIcons.facebook}
               </a>
@@ -113,7 +116,7 @@ const Footer = () => {
                 href="https://www.instagram.com/gokite"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-brand-cyan/20 flex items-center justify-center"
+                className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center hover:bg-white/70 transition-colors"
               >
                 {socialIcons.instagram}
               </a>
@@ -121,15 +124,15 @@ const Footer = () => {
                 href="https://twitter.com/gokite"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-brand-cyan/20 flex items-center justify-center"
+                className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center hover:bg-white/70 transition-colors"
               >
                 {socialIcons.twitter}
               </a>
               <a
-                href="https://wa.me/917620370430"
+                href="https://wa.me/917620370639"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-brand-cyan/20 flex items-center justify-center"
+                className="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center hover:bg-white/70 transition-colors"
               >
                 {socialIcons.whatsapp}
               </a>
@@ -138,12 +141,12 @@ const Footer = () => {
 
           {/* Our Services */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Our Services</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">Our Services</h3>
             <ul className="space-y-2">
               <li>
                 <a
                   href="#"
-                  className="text-sm text-foreground/70 hover:text-foreground transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Flight Booking
                 </a>
@@ -151,7 +154,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-foreground/70 hover:text-foreground transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Visa
                 </a>
@@ -159,7 +162,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-foreground/70 hover:text-foreground transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Activities
                 </a>
@@ -167,9 +170,17 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-foreground/70 hover:text-foreground transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Holidays
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
+                >
+                  Hotel
                 </a>
               </li>
             </ul>
@@ -177,12 +188,12 @@ const Footer = () => {
 
           {/* About */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">About</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">About</h3>
             <ul className="space-y-2">
               <li>
                 <a
                   href="#"
-                  className="text-sm text-foreground/70 hover:text-foreground transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Account
                 </a>
@@ -190,7 +201,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-foreground/70 hover:text-foreground transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   About Us
                 </a>
@@ -198,7 +209,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-foreground/70 hover:text-foreground transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Support
                 </a>
@@ -206,7 +217,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-foreground/70 hover:text-foreground transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Help Desk
                 </a>
@@ -214,7 +225,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-foreground/70 hover:text-foreground transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Terms & Condition
                 </a>
