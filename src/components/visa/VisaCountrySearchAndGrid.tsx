@@ -237,13 +237,14 @@ export default function VisaCountrySearchAndGrid() {
           <div className="flex items-center gap-4">
             {/* Search Bar */}
             <div className="relative flex-1 max-w-xs">
-              <img src="images/visa/visa-flight.png" alt="" className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" />
+              <img src="images/visa/visa-flight.png" alt="" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search Country"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-6 py-3 bg-white rounded-2xl border border-gray-200 text-sm focus:outline-none focus:border-gray-300"
+                className="w-full pl-12 pr-6 py-3 bg-white rounded-xl border border-blue-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-blue-300 transition-colors"
+                style={{ fontFamily: '"DM Mono", monospace' }}
               />
             </div>
 
@@ -261,9 +262,10 @@ export default function VisaCountrySearchAndGrid() {
                   key={filter}
                   onClick={() => setSelectedFilter(filter)}
                   className={`px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${selectedFilter === filter
-                    ? "bg-gray-900 text-white"
+                    ? "text-white border-0"
                     : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
                     }`}
+                  style={selectedFilter === filter ? { backgroundColor: '#FBB609' } : undefined}
                 >
                   {filter}
                 </button>

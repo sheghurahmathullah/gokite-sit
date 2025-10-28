@@ -148,11 +148,11 @@ const VisaBookingCard = () => {
     <div className="max-w-7xl mx-auto bg-white rounded-3xl p-6 lg:p-8 card-shadow">
       <h2 className="text-2xl font-semibold mb-4 text-foreground">Get Visa</h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 mb-6 items-stretch">
         {/* Destination Input Field with Autocomplete */}
         <div className="lg:col-span-6 relative" ref={dropdownRef}>
-          <div className="flex flex-col p-4 bg-white border border-gray-200 rounded-xl min-h-[60px] h-full">
-            <label className="text-sm text-gray-600 mb-1">
+          <div className="flex flex-col justify-center p-4 bg-white border border-gray-200 rounded-lg h-full">
+            <label className="text-xs text-gray-500 mb-0.5 leading-tight">
               Where are you going?
             </label>
             <input
@@ -161,13 +161,13 @@ const VisaBookingCard = () => {
               value={searchQuery}
               onChange={handleCountryInputChange}
               onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
-              className="text-sm text-gray-900 outline-none bg-transparent"
+              className="text-base text-gray-700 outline-none bg-transparent placeholder:text-gray-500"
             />
           </div>
 
           {/* Autocomplete Dropdown */}
           {showDropdown && (
-            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
               {isLoading ? (
                 <div className="p-4 text-sm text-gray-500 text-center">
                   Loading...
@@ -193,21 +193,14 @@ const VisaBookingCard = () => {
 
         {/* Date Input Field */}
         <div className="lg:col-span-4 relative">
-          <div className="flex flex-col p-4 bg-white border border-gray-200 rounded-xl min-h-[60px] h-full">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-foreground">{month}</p>
-                <p className="text-xs text-gray-500">
-                  {day}-{weekday}, {year}
-                </p>
-              </div>
-              <button
-                onClick={() => dateInputRef.current?.showPicker()}
-                className="ml-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Calendar className="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
+          <div 
+            onClick={() => dateInputRef.current?.showPicker()}
+            className="flex flex-col justify-center p-4 bg-white border border-gray-200 rounded-lg h-full cursor-pointer hover:border-gray-300 transition-colors"
+          >
+            <p className="text-base font-bold text-gray-900 leading-tight mb-0.5">{month}</p>
+            <p className="text-xs text-gray-500 font-normal leading-tight">
+              {day}-{weekday}, {year}
+            </p>
           </div>
 
           {/* Hidden date input */}
@@ -223,10 +216,10 @@ const VisaBookingCard = () => {
         </div>
 
         {/* Search Button */}
-        <div className="lg:col-span-2 flex items-stretch justify-center">
+        <div className="lg:col-span-2 flex items-stretch">
           <Button
             onClick={handleSearch}
-            className="bg-black text-white hover:bg-black/90 rounded-xl px-6 py-4 h-full w-full lg:w-auto text-sm"
+            className="bg-black text-white hover:bg-black/90 rounded-lg px-6 h-full w-full text-sm font-medium flex items-center justify-center"
           >
             <Search className="w-4 h-4 mr-2" />
             Visa Types
