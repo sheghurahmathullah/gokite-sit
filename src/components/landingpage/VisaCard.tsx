@@ -6,13 +6,22 @@ interface VisaCardProps {
 }
 
 const formatDate = (dateString: string) => {
-  // Parse the full date string and return only the date part
+  // Parse the date and format as "DD MMM, HH:MMAM/PM"
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+
+  const day = date.getDate();
+  const month = date.toLocaleDateString("en-US", { month: "short" });
+
+  let hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? "PM" : "AM";
+
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+
+  const minutesStr = minutes < 10 ? "0" + minutes : minutes;
+
+  return `${day} ${month}, ${hours}:${minutesStr}${ampm}`;
 };
 
 const VisaCard = ({ destination }: VisaCardProps) => {
@@ -50,7 +59,10 @@ const VisaCard = ({ destination }: VisaCardProps) => {
         console.log("Selected visa country id:", match.id);
         try {
           if (typeof window !== "undefined") {
-            window.sessionStorage.setItem("applyVisaCountryId", String(match.id));
+            window.sessionStorage.setItem(
+              "applyVisaCountryId",
+              String(match.id)
+            );
           }
         } catch (_) {}
       } else {
@@ -65,8 +77,9 @@ const VisaCard = ({ destination }: VisaCardProps) => {
   };
 
   return (
-    <div 
-      className="bg-card rounded-2xl overflow-hidden card-shadow hover:card-shadow-hover transition-all duration-300 hover:-translate-y-2 group cursor-pointer h-full flex flex-col"
+    <div
+      className="rounded-2xl overflow-hidden card-shadow hover:card-shadow-hover transition-all duration-300 hover:-translate-y-2 group cursor-pointer h-full flex flex-col mb-6"
+      style={{ backgroundColor: "#fafafa" }}
       onClick={handleCardClick}
     >
       {/* Image with overlays */}
@@ -100,7 +113,7 @@ const VisaCard = ({ destination }: VisaCardProps) => {
       </div>
 
       {/* Footer */}
-      <div className="p-4 bg-card">
+      <div className="p-4">
         <h3 className="text-2xl font-bold text-foreground mb-2">
           {destination.country}
         </h3>

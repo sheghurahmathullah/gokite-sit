@@ -14,20 +14,20 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import VisaCard from "./VisaCard";
+import DestinationCard from "@/components/common/DestinationCard";
 
-interface VisaCarouselProps {
+interface HolidayCarouselProps {
   destinations: any[];
 }
 
-export interface VisaCarouselRef {
+export interface HolidayCarouselRef {
   scrollNext: () => void;
   scrollPrev: () => void;
   canScrollNext: boolean;
   canScrollPrev: boolean;
 }
 
-const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
+const HolidayCarousel = forwardRef<HolidayCarouselRef, HolidayCarouselProps>(
   ({ destinations }, ref) => {
     const [api, setApi] = useState<CarouselApi>();
     const [canScrollPrev, setCanScrollPrev] = useState(false);
@@ -35,7 +35,7 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
 
     const autoplayRef = useRef(
       Autoplay({
-        delay: 3000,
+        delay: 4000,
         stopOnInteraction: false,
         stopOnMouseEnter: true,
         stopOnFocusIn: false,
@@ -70,7 +70,7 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
     }));
 
     return (
-      <div className="relative pb-8 bg-white">
+      <div className="relative pb-8">
         <Carousel
           setApi={setApi}
           opts={{
@@ -86,16 +86,16 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
           onMouseEnter={() => autoplayRef.current.stop()}
           onMouseLeave={() => autoplayRef.current.play()}
         >
-          <CarouselContent className="-ml-4">
+          <CarouselContent className="-ml-6">
             {/* Duplicate destinations array to create seamless infinite loop */}
             {[...destinations, ...destinations, ...destinations].map(
               (destination, index) => (
                 <CarouselItem
                   key={`${destination.id}-${index}`}
-                  className="pl-4 md:basis-1/2 lg:basis-1/4 xl:basis-1/4 transition-all duration-700 ease-in-out"
+                  className="pl-6 md:basis-1/2 lg:basis-1/4 xl:basis-1/4 transition-all duration-700 ease-in-out"
                 >
-                  <div className="max-w-sm mx-auto">
-                    <VisaCard destination={destination} />
+                  <div className="h-full">
+                    <DestinationCard destination={destination} />
                   </div>
                 </CarouselItem>
               )
@@ -107,6 +107,6 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
   }
 );
 
-VisaCarousel.displayName = "VisaCarousel";
+HolidayCarousel.displayName = "HolidayCarousel";
 
-export default VisaCarousel;
+export default HolidayCarousel;
