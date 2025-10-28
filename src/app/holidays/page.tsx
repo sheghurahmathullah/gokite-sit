@@ -5,13 +5,18 @@ import Footer from "@/components/common/Footer";
 import HolidayHeroBanner from "@/components/holidayspage/HolidayHeroBanner";
 import SectionHeader from "@/components/common/SectionHeader";
 import DestinationCard from "@/components/common/DestinationCard";
+import HolidayCarousel, {
+  HolidayCarouselRef,
+} from "@/components/landingpage/HolidayCarousel";
 import { honeymoonSpecials, moreDestinations } from "@/data/holidaysData";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePageContext } from "@/components/common/PageContext";
 
 const HolidaysPage = () => {
   const router = useRouter();
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const categoryCarouselRef = useRef<HolidayCarouselRef>(null);
+  const honeymoonCarouselRef = useRef<HolidayCarouselRef>(null);
+  const additionalCarouselRef = useRef<HolidayCarouselRef>(null);
   const categories = useMemo(
     () => [
       { id: 1, icon: "/holidaygrid/beach.png", label: "Beaches" },
@@ -302,14 +307,27 @@ const HolidaysPage = () => {
     };
   }, [selectedCategoryId]);
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const scrollAmount = 320; // Scroll by one card width + gap
-      container.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      });
+  const scrollCategory = (direction: "left" | "right") => {
+    if (categoryCarouselRef.current) {
+      direction === "left"
+        ? categoryCarouselRef.current.scrollPrev()
+        : categoryCarouselRef.current.scrollNext();
+    }
+  };
+
+  const scrollHoneymoon = (direction: "left" | "right") => {
+    if (honeymoonCarouselRef.current) {
+      direction === "left"
+        ? honeymoonCarouselRef.current.scrollPrev()
+        : honeymoonCarouselRef.current.scrollNext();
+    }
+  };
+
+  const scrollAdditional = (direction: "left" | "right") => {
+    if (additionalCarouselRef.current) {
+      direction === "left"
+        ? additionalCarouselRef.current.scrollPrev()
+        : additionalCarouselRef.current.scrollNext();
     }
   };
 
@@ -401,7 +419,7 @@ const HolidaysPage = () => {
                         ?.label || "Beaches"}
                     </h3>
                     <div className="flex items-center gap-3">
-                    <button
+                      <button
                         className="px-6 py-2 bg-white text-gray-900 rounded-full text-sm font-medium hover:bg-white/90 transition-colors flex items-center gap-2"
                         onClick={() => router.push("/holiday-grid")}
                       >
@@ -409,7 +427,7 @@ const HolidaysPage = () => {
                       </button>
                       {/* Left Chevron Button */}
                       <button
-                        onClick={() => scroll("left")}
+                        onClick={() => scrollCategory("left")}
                         className="w-10 h-10 bg-black rounded-full text-white hover:bg-black/80 transition-all duration-200 flex items-center justify-center shadow-lg"
                         aria-label="Scroll left"
                       >
@@ -429,7 +447,7 @@ const HolidaysPage = () => {
                       </button>
                       {/* Right Chevron Button */}
                       <button
-                        onClick={() => scroll("right")}
+                        onClick={() => scrollCategory("right")}
                         className="w-10 h-10 bg-black rounded-full text-white hover:bg-black/80 transition-all duration-200 flex items-center justify-center shadow-lg"
                         aria-label="Scroll right"
                       >
@@ -458,24 +476,20 @@ const HolidaysPage = () => {
 
             {/* Destination Cards - Positioned to overlap with banner */}
             <div className="relative -mt-32 px-6 lg:px-8 pb-6">
-              <div 
-                ref={scrollContainerRef}
-                className="flex gap-5 overflow-x-auto scrollbar-hide scroll-smooth"
-              >
-                {(isLoading ? [] : destinations).map((destination) => (
-                  <div key={destination.id} className="flex-shrink-0 w-[300px]">
-                    <DestinationCard destination={destination} />
-                  </div>
-                ))}
-                {isLoading && (
-                  <div className="flex-shrink-0 w-full text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+              <div className="bg-white rounded-2xl p-4">
+                {isLoading ? (
+                  <div className="text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
                     Loading...
                   </div>
-                )}
-                {!isLoading && destinations.length === 0 && (
-                  <div className="flex-shrink-0 w-full text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+                ) : destinations.length === 0 ? (
+                  <div className="text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
                     No packages found.
                   </div>
+                ) : (
+                  <HolidayCarousel
+                    ref={categoryCarouselRef}
+                    destinations={destinations}
+                  />
                 )}
               </div>
             </div>
@@ -484,54 +498,140 @@ const HolidaysPage = () => {
 
         {/* Honeymoon Freebies Special Section */}
         <section className="mt-20 max-w-8xl mx-auto">
-          <SectionHeader
-            title="Honeymoon Freebies Special"
-            showPagination
-            totalDots={2}
-            activeIndex={0}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {(isSectionsLoading ? [] : honeymoonCards).map((destination) => (
-              <DestinationCard key={destination.id} destination={destination} />
-            ))}
-            {isSectionsLoading && (
-              <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-white/80 text-sm">
-                Loading...
-              </div>
-            )}
-            {!isSectionsLoading && honeymoonCards.length === 0 && (
-              <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-white/80 text-sm">
-                No packages found.
-              </div>
-            )}
+          <div className="flex items-center justify-between mb-6">
+            <SectionHeader
+              title="Honeymoon Freebies Special"
+              showPagination
+              totalDots={2}
+              activeIndex={0}
+            />
+            <div className="flex items-center gap-3">
+              {/* Left Chevron Button */}
+              <button
+                onClick={() => scrollHoneymoon("left")}
+                className="w-10 h-10 bg-black rounded-full text-white hover:bg-black/80 transition-all duration-200 flex items-center justify-center shadow-lg"
+                aria-label="Scroll left"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              {/* Right Chevron Button */}
+              <button
+                onClick={() => scrollHoneymoon("right")}
+                className="w-10 h-10 bg-black rounded-full text-white hover:bg-black/80 transition-all duration-200 flex items-center justify-center shadow-lg"
+                aria-label="Scroll right"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
+
+          {isSectionsLoading ? (
+            <div className="text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+              Loading...
+            </div>
+          ) : honeymoonCards.length === 0 ? (
+            <div className="text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+              No packages found.
+            </div>
+          ) : (
+            <HolidayCarousel
+              ref={honeymoonCarouselRef}
+              destinations={honeymoonCards}
+            />
+          )}
         </section>
 
         {/* Additional Destinations Section */}
         <section className="mt-20 max-w-8xl mx-auto">
-          <SectionHeader
-            title=""
-            showPagination
-            totalDots={2}
-            activeIndex={1}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {(isSectionsLoading ? [] : additionalCards).map((destination) => (
-              <DestinationCard key={destination.id} destination={destination} />
-            ))}
-            {isSectionsLoading && (
-              <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-white/80 text-sm">
-                Loading...
-              </div>
-            )}
-            {!isSectionsLoading && additionalCards.length === 0 && (
-              <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-white/80 text-sm">
-                No packages found.
-              </div>
-            )}
+          <div className="flex items-center justify-between mb-6">
+            <SectionHeader
+              title=""
+              showPagination
+              totalDots={2}
+              activeIndex={1}
+            />
+            <div className="flex items-center gap-3">
+              {/* Left Chevron Button */}
+              <button
+                onClick={() => scrollAdditional("left")}
+                className="w-10 h-10 bg-black rounded-full text-white hover:bg-black/80 transition-all duration-200 flex items-center justify-center shadow-lg"
+                aria-label="Scroll left"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              {/* Right Chevron Button */}
+              <button
+                onClick={() => scrollAdditional("right")}
+                className="w-10 h-10 bg-black rounded-full text-white hover:bg-black/80 transition-all duration-200 flex items-center justify-center shadow-lg"
+                aria-label="Scroll right"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
+
+          {isSectionsLoading ? (
+            <div className="text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+              Loading...
+            </div>
+          ) : additionalCards.length === 0 ? (
+            <div className="text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+              No packages found.
+            </div>
+          ) : (
+            <HolidayCarousel
+              ref={additionalCarouselRef}
+              destinations={additionalCards}
+            />
+          )}
         </section>
       </main>
 

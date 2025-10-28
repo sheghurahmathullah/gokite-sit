@@ -48,7 +48,8 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
 
   return (
     <div
-      className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group p-4 cursor-pointer h-full flex flex-col"
+      className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group p-4 cursor-pointer h-full flex flex-col"
+      style={{ backgroundColor: "#fafafa" }}
       onClick={handleCardClick}
     >
       {/* Image */}
@@ -97,38 +98,54 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
 
         {/* Icons Row */}
         <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
-          {(destination.itineraryIcons && destination.itineraryIcons.length > 0) ? (
+          {destination.itineraryIcons &&
+          destination.itineraryIcons.length > 0 ? (
             destination.itineraryIcons.slice(0, 4).map((icon, index) => (
-              <div key={index} className="flex flex-col items-center gap-2 text-xs text-gray-600 flex-1 min-w-0">
+              <div
+                key={index}
+                className="flex flex-col items-center gap-2 text-xs text-gray-600 flex-1 min-w-0"
+              >
                 {icon.image ? (
-                  <img 
-                    src={`/api/cms/file-download?image=${encodeURIComponent(icon.image)}`} 
-                    alt={icon.text || ''} 
+                  <img
+                    src={`/api/cms/file-download?image=${encodeURIComponent(
+                      icon.image
+                    )}`}
+                    alt={icon.text || ""}
                     className="w-5 h-5 flex-shrink-0 object-contain"
                   />
                 ) : (
                   <Plane className="w-5 h-5 flex-shrink-0" />
                 )}
-                <span className="text-center text-[10px] leading-tight break-words max-w-[70px]">{icon.text || ''}</span>
+                <span className="text-center text-[10px] leading-tight break-words max-w-[70px]">
+                  {icon.text || ""}
+                </span>
               </div>
             ))
           ) : (
             <>
               <div className="flex flex-col items-center gap-2 text-xs text-gray-600 flex-1 min-w-0">
                 <Plane className="w-5 h-5 flex-shrink-0" />
-                <span className="text-center text-[10px] leading-tight">{destination.flights} Flights</span>
+                <span className="text-center text-[10px] leading-tight">
+                  {destination.flights} Flights
+                </span>
               </div>
               <div className="flex flex-col items-center gap-2 text-xs text-gray-600 flex-1 min-w-0">
                 <Building2 className="w-5 h-5 flex-shrink-0" />
-                <span className="text-center text-[10px] leading-tight">{destination.hotels} Accommodation</span>
+                <span className="text-center text-[10px] leading-tight">
+                  {destination.hotels} Accommodation
+                </span>
               </div>
               <div className="flex flex-col items-center gap-2 text-xs text-gray-600 flex-1 min-w-0">
                 <Car className="w-5 h-5 flex-shrink-0" />
-                <span className="text-center text-[10px] leading-tight">{destination.transfers} Cars</span>
+                <span className="text-center text-[10px] leading-tight">
+                  {destination.transfers} Cars
+                </span>
               </div>
               <div className="flex flex-col items-center gap-2 text-xs text-gray-600 flex-1 min-w-0">
                 <User className="w-5 h-5 flex-shrink-0" />
-                <span className="text-center text-[10px] leading-tight">{destination.activities} Activities</span>
+                <span className="text-center text-[10px] leading-tight">
+                  {destination.activities} Activities
+                </span>
               </div>
             </>
           )}

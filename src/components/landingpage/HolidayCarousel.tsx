@@ -70,7 +70,7 @@ const HolidayCarousel = forwardRef<HolidayCarouselRef, HolidayCarouselProps>(
     }));
 
     return (
-      <div className="relative pb-8">
+      <div className="relative pb-8 bg-white">
         <Carousel
           setApi={setApi}
           opts={{
