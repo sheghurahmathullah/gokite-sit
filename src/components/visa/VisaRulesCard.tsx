@@ -4,6 +4,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import * as Flags from "country-flag-icons/react/3x2";
 import { usePageContext } from "../common/PageContext";
 import { useRouter } from "next/navigation";
+import VisaRulesCarousel, {
+  VisaRulesCarouselRef,
+  VisaRuleAnnouncement as ImportedVisaRuleAnnouncement,
+} from "./VisaRulesCarousel";
 
 interface VisaRuleAnnouncement {
   id: string;
@@ -24,7 +28,7 @@ const VisaRulesCard = () => {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<VisaRulesCarouselRef>(null);
   const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
   const router = useRouter();
 
@@ -187,15 +191,10 @@ const VisaRulesCard = () => {
   }
 
   const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = 400;
-      const newScrollLeft =
-        scrollContainerRef.current.scrollLeft +
-        (direction === "left" ? -scrollAmount : scrollAmount);
-      scrollContainerRef.current.scrollTo({
-        left: newScrollLeft,
-        behavior: "smooth",
-      });
+    if (carouselRef.current) {
+      direction === "left"
+        ? carouselRef.current.scrollPrev()
+        : carouselRef.current.scrollNext();
     }
   };
 
@@ -238,85 +237,14 @@ const VisaRulesCard = () => {
             </button>
           </div>
         </div>
-        <div
-          ref={scrollContainerRef}
-          className="flex gap-6 overflow-x-auto pb-4"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
-        >
-          {visaRulesData.map((rule) => (
-            <div key={rule.uniqueId || rule.id} className="flex-shrink-0">
-              <VisaRuleCard rule={rule} onClick={() => handleCardClick(rule)} />
-            </div>
-          ))}
-        </div>
-        <style jsx>{`
-          div::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
-      </div>
-    </section>
-  );
-};
 
-// Individual card component
-const VisaRuleCard = ({ rule, onClick }: { rule: VisaRuleAnnouncement; onClick: () => void }) => {
-  const FlagComponent =
-    Flags[rule.countryCode.toUpperCase() as keyof typeof Flags] || Flags.US;
-
-  return (
-    <div 
-      className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative w-full max-w-sm cursor-pointer hover:shadow-md transition-all"
-      onClick={onClick}
-    >
-      {/* Flag and Country Name */}
-      <div className="flex flex-col items-start gap-2 px-6 pt-6 pb-4">
-        <span className="block w-10 h-7 rounded overflow-hidden shadow-sm">
-          {rule.flagImageUrl ? (
-            <img
-              src={rule.flagImageUrl}
-              alt={`${rule.country} flag`}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-                const nextSibling = e.currentTarget
-                  .nextElementSibling as HTMLElement;
-                if (nextSibling) nextSibling.style.display = "block";
-              }}
-            />
-          ) : null}
-          <FlagComponent
-            className="w-full h-full object-cover"
-            style={{ display: rule.flagImageUrl ? "none" : "block" }}
-          />
-        </span>
-        <h3 className="font-bold text-2xl text-gray-900">{rule.country}</h3>
-      </div>
-
-      {/* Card/Document Image - Top Right */}
-      <div className="absolute -top-2 right-6">
-        <img
-          src="/visa/visa-card.png"
-          alt="Digital Card"
-          className="w-32 h-32 object-contain"
+        <VisaRulesCarousel
+          ref={carouselRef}
+          rules={visaRulesData}
+          onCardClick={handleCardClick}
         />
       </div>
-
-      {/* Main Content */}
-      <div className="px-6 pb-16 pt-2">
-        <p className="text-gray-700 text-[15px] leading-relaxed">
-          {rule.description}
-        </p>
-      </div>
-
-      {/* Logo - Bottom Right */}
-      <div className="absolute bottom-5 right-6">
-        <img src="/logo.svg" alt="Logo" className="h-6 w-auto object-contain" />
-      </div>
-    </div>
+    </section>
   );
 };
 

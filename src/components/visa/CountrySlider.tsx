@@ -3,6 +3,9 @@ import { useState, useEffect, useRef } from "react";
 import * as Flags from "country-flag-icons/react/3x2";
 import { usePageContext } from "../common/PageContext";
 import { useRouter } from "next/navigation";
+import VisaCountryCarousel, {
+  VisaCountryCarouselRef,
+} from "./VisaCountryCarousel";
 
 export interface VisaCountry {
   id: string;
@@ -19,93 +22,6 @@ export interface VisaCountry {
   flagImageUrl?: string;
   subtitle?: string;
 }
-
-interface VisaCardProps {
-  visa: VisaCountry;
-  type?: "popular" | "trending";
-  subtitle?: string; // For showing custom subtitle like in trending
-  hasVisaTag?: boolean; // For "VISA" tag in trending
-  onClick?: () => void; // Add onClick handler
-}
-
-const VisaCard = ({
-  visa,
-  type = "popular",
-  subtitle,
-  hasVisaTag,
-  onClick,
-}: VisaCardProps) => {
-  // Access flag by countryCode (uppercase)
-  const FlagComponent =
-    Flags[visa.countryCode.toUpperCase() as keyof typeof Flags];
-
-  return (
-    <div
-      className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer min-w-[260px] flex-shrink-0"
-      onClick={onClick}
-    >
-      <div className="flex flex-col gap-2">
-        <div
-          className={
-            type === "trending"
-              ? "flex items-center justify-between mb-1"
-              : "mb-1"
-          }
-        >
-          {visa.flagImageUrl ? (
-            <img
-              src={visa.flagImageUrl}
-              alt={`${visa.country} flag`}
-              className="w-12 h-12 rounded object-cover"
-              onError={(e) => {
-                // Fallback to component flag on error
-                e.currentTarget.style.display = "none";
-                const nextSibling = e.currentTarget
-                  .nextElementSibling as HTMLElement;
-                if (nextSibling) nextSibling.style.display = "block";
-              }}
-            />
-          ) : null}
-          {FlagComponent && (
-            <FlagComponent
-              className="w-12 h-12 rounded"
-              style={{ display: visa.flagImageUrl ? "none" : "block" }}
-            />
-          )}
-          {hasVisaTag && (
-            <img
-              src="/visa/visa-icon.png"
-              alt="Visa"
-              className="w-8 h-6 ml-auto"
-            />
-          )}
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-900 text-base mb-0.5">
-            {visa.country}
-          </h3>
-          {type === "popular" ? (
-            <p className="text-xs text-gray-500 mb-3">{visa.visaType}</p>
-          ) : (
-            subtitle && <p className="text-xs text-gray-500 mb-3">{subtitle}</p>
-          )}
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-baseline gap-1">
-            <span className="text-base font-semibold text-gray-900">
-              {visa.currency}
-              {visa.price.toLocaleString()}
-            </span>
-            {visa.perAdult && (
-              <span className="text-xs text-gray-500">per adult</span>
-            )}
-          </div>
-          <ChevronRight className="w-4 h-4 text-yellow-500 flex-shrink-0" />
-        </div>
-      </div>
-    </div>
-  );
-};
 
 interface CountrySliderProps {
   title: string;
@@ -130,7 +46,7 @@ const CountrySlider = ({
   const [countries, setCountries] = useState<VisaCountry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<VisaCountryCarouselRef>(null);
   const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
   const router = useRouter();
 
@@ -304,15 +220,10 @@ const CountrySlider = ({
   };
 
   const scroll = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = 350;
-      const newScrollLeft =
-        scrollContainerRef.current.scrollLeft +
-        (direction === "left" ? -scrollAmount : scrollAmount);
-      scrollContainerRef.current.scrollTo({
-        left: newScrollLeft,
-        behavior: "smooth",
-      });
+    if (carouselRef.current) {
+      direction === "left"
+        ? carouselRef.current.scrollPrev()
+        : carouselRef.current.scrollNext();
     }
   };
 
@@ -357,36 +268,12 @@ const CountrySlider = ({
           </div>
         </div>
 
-        <div
-          ref={scrollContainerRef}
-          className="flex gap-4 overflow-x-auto pb-2"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-            WebkitOverflowScrolling: "touch",
-          }}
-        >
-          {countries.map((visa) => (
-            <VisaCard
-              key={visa.id}
-              visa={visa}
-              type={type}
-              subtitle={
-                type === "trending" ? "Get your Visa by 24hours" : undefined
-              }
-              hasVisaTag={
-                type === "trending" &&
-                (visa.eVisa || visa.visaType.toLowerCase().includes("e-visa"))
-              }
-              onClick={() => handleCardClick(visa)}
-            />
-          ))}
-        </div>
-        <style>{`
-          div::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
+        <VisaCountryCarousel
+          ref={carouselRef}
+          countries={countries}
+          type={type}
+          onCardClick={handleCardClick}
+        />
       </div>
     </section>
   );
