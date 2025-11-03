@@ -365,7 +365,7 @@ const Index = () => {
         </section>
 
         {/* Top Visa Destination */}
-        <section className="px-6 lg:px-12 mt-16">
+        <section className="px-6 lg:px-12 mt-4">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold text-foreground">
               Top Visa Destination

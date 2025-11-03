@@ -2,6 +2,13 @@
 import { Plane, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Autoplay from "embla-carousel-autoplay";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 
 interface VisaCountry {
   id: string;
@@ -32,10 +39,47 @@ const filters = [
 const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
   const router = useRouter();
 
+  const handleCardClick = async () => {
+    try {
+      // Fetch country ID from API
+      const res = await fetch("/api/cms/countries-dd-proxy", {
+        cache: "no-store",
+      });
+      const payload = await res.json();
+
+      const rows = Array.isArray(payload?.data?.data) ? payload.data.data : [];
+
+      const norm = (v: any) =>
+        typeof v === "string" ? v.trim().toLowerCase() : "";
+      const match = rows.find(
+        (r: any) => norm(r?.label) === norm(country.country)
+      );
+
+      if (match?.id) {
+        console.log("Selected visa country id:", match.id);
+        try {
+          if (typeof window !== "undefined") {
+            window.sessionStorage.setItem(
+              "applyVisaCountryId",
+              String(match.id)
+            );
+          }
+        } catch (_) {}
+      } else {
+        console.log("Country id not found for:", country.country);
+      }
+    } catch (e) {
+      console.error("Failed to fetch country id:", e);
+    }
+
+    // Navigate to apply-visa page
+    router.push("/apply-visa");
+  };
+
   return (
     <div
       className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all cursor-pointer border border-gray-100"
-      onClick={() => router.push("/apply-visa")}
+      onClick={handleCardClick}
     >
       <div className="relative h-56 overflow-hidden">
         <img
@@ -89,7 +133,18 @@ export default function VisaCountrySearchAndGrid() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const filterScrollRef = useRef<HTMLDivElement>(null);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
 
+  const autoplayRef = useRef(
+    Autoplay({
+      delay: 3000,
+      stopOnInteraction: false,
+      stopOnMouseEnter: true,
+      stopOnFocusIn: false,
+    })
+  );
 
   // Fetch countries data from API
   const fetchCountriesData = async () => {
@@ -163,15 +218,34 @@ export default function VisaCountrySearchAndGrid() {
     fetchCountriesData();
   }, []);
 
+  // Update carousel scroll state
+  useEffect(() => {
+    if (!carouselApi) {
+      return;
+    }
+
+    const onSelect = () => {
+      setCanScrollPrev(carouselApi.canScrollPrev());
+      setCanScrollNext(carouselApi.canScrollNext());
+    };
+
+    onSelect();
+    carouselApi.on("select", onSelect);
+    carouselApi.on("reInit", onSelect);
+
+    return () => {
+      carouselApi.off("select", onSelect);
+    };
+  }, [carouselApi]);
+
   // Filter countries based on selected filter and search query
   const filteredCountries = countriesData.filter((country) => {
     // Check category filter - show cards that contain the selected filter in their tagNames
     const matchesCategory =
       !country.tagNames ||
       country.tagNames.length === 0 ||
-      country.tagNames.some(
-        (tag) =>
-          tag.trim().toLowerCase().includes(selectedFilter.trim().toLowerCase())
+      country.tagNames.some((tag) =>
+        tag.trim().toLowerCase().includes(selectedFilter.trim().toLowerCase())
       );
 
     // Check search query
@@ -182,16 +256,13 @@ export default function VisaCountrySearchAndGrid() {
     return matchesCategory && matchesSearch;
   });
 
-  const scroll = (direction: "left" | "right") => {
-    if (filterScrollRef.current) {
-      const scrollAmount = 200;
-      const newScrollLeft =
-        filterScrollRef.current.scrollLeft +
-        (direction === "left" ? -scrollAmount : scrollAmount);
-      filterScrollRef.current.scrollTo({
-        left: newScrollLeft,
-        behavior: "smooth",
-      });
+  const scrollCarousel = (direction: "left" | "right") => {
+    if (carouselApi) {
+      if (direction === "left") {
+        carouselApi.scrollPrev();
+      } else {
+        carouselApi.scrollNext();
+      }
     }
   };
 
@@ -237,7 +308,11 @@ export default function VisaCountrySearchAndGrid() {
           <div className="flex items-center gap-4">
             {/* Search Bar */}
             <div className="relative flex-1 max-w-xs">
-              <img src="images/visa/visa-flight.png" alt="" className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" />
+              <img
+                src="images/visa/visa-flight.png"
+                alt=""
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+              />
               <input
                 type="text"
                 placeholder="Search Country"
@@ -261,30 +336,37 @@ export default function VisaCountrySearchAndGrid() {
                 <button
                   key={filter}
                   onClick={() => setSelectedFilter(filter)}
-                  className={`px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${selectedFilter === filter
-                    ? "text-white border-0"
-                    : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
-                    }`}
-                  style={selectedFilter === filter ? { backgroundColor: '#FBB609' } : undefined}
+                  className={`px-4 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
+                    selectedFilter === filter
+                      ? "text-white border-0"
+                      : "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+                  }`}
+                  style={
+                    selectedFilter === filter
+                      ? { backgroundColor: "#FBB609" }
+                      : undefined
+                  }
                 >
                   {filter}
                 </button>
               ))}
             </div>
 
-            {/* Chevron buttons */}
+            {/* Chevron buttons for carousel control */}
             <div className="flex items-center gap-2">
               <button
-                onClick={() => scroll("left")}
-                className="rounded-full w-9 h-9 bg-black text-white hover:bg-gray-800 flex items-center justify-center transition-colors"
-                aria-label="Scroll left"
+                onClick={() => scrollCarousel("left")}
+                disabled={!canScrollPrev}
+                className="rounded-full w-9 h-9 bg-black text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                aria-label="Previous slide"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
-                onClick={() => scroll("right")}
-                className="rounded-full w-9 h-9 bg-black text-white hover:bg-gray-800 flex items-center justify-center transition-colors"
-                aria-label="Scroll right"
+                onClick={() => scrollCarousel("right")}
+                disabled={!canScrollNext}
+                className="rounded-full w-9 h-9 bg-black text-white hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                aria-label="Next slide"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -293,14 +375,43 @@ export default function VisaCountrySearchAndGrid() {
         </div>
       </div>
 
-      {/* Country Grid */}
+      {/* Country Carousel */}
       <div className="px-6 py-8">
         <div className="max-w-[1400px] mx-auto">
           {filteredCountries.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-              {filteredCountries.map((country) => (
-                <VisaCountryCard key={country.id} country={country} />
-              ))}
+            <div className="relative">
+              {/* Carousel */}
+              <Carousel
+                setApi={setCarouselApi}
+                opts={{
+                  align: "start",
+                  loop: true,
+                  dragFree: false,
+                  slidesToScroll: 1,
+                  skipSnaps: false,
+                  containScroll: false,
+                }}
+                plugins={[autoplayRef.current]}
+                className="w-full"
+                onMouseEnter={() => autoplayRef.current.stop()}
+                onMouseLeave={() => autoplayRef.current.play()}
+              >
+                <CarouselContent className="-ml-4">
+                  {/* Duplicate countries array for seamless infinite loop */}
+                  {[
+                    ...filteredCountries,
+                    ...filteredCountries,
+                    ...filteredCountries,
+                  ].map((country, index) => (
+                    <CarouselItem
+                      key={`${country.id}-${index}`}
+                      className="pl-4 sm:basis-1/2 lg:basis-1/4 xl:basis-1/5 transition-all duration-700 ease-in-out"
+                    >
+                      <VisaCountryCard country={country} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
             </div>
           ) : (
             <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
