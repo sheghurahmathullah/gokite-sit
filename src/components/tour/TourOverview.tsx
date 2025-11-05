@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileText } from "lucide-react";
 
 interface TourOverviewProps {
@@ -6,18 +6,20 @@ interface TourOverviewProps {
     title: string;
     description: string;
     fullDescription: string;
+    brochure?: string;
   };
 }
 
 const navItems = [
-  { label: "Overview" },
-  { label: "Itinerary" },
-  { label: "What's Included" },
-  { label: "FAQs" },
+  { label: "Overview", id: "overview" },
+  { label: "Itinerary", id: "itinerary" },
+  { label: "What's Included", id: "whats-included" },
+  { label: "FAQs", id: "faqs" },
 ];
 
 const TourOverview = ({ tour }: TourOverviewProps) => {
   const [showFullText, setShowFullText] = useState(false);
+  const [activeSection, setActiveSection] = useState("overview");
 
   // Get the full description text
   const fullText = tour.fullDescription || tour.description;
@@ -28,19 +30,58 @@ const TourOverview = ({ tour }: TourOverviewProps) => {
   const truncatedText = words.slice(0, wordLimit).join(" ");
   const hasMoreContent = words.length > wordLimit;
 
+  // Scroll to section smoothly
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 100; // Offset from top for sticky header
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  // Scrollspy: Update active section based on scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + 150; // Offset for better UX
+
+      // Find which section is currently in view
+      for (let i = navItems.length - 1; i >= 0; i--) {
+        const section = document.getElementById(navItems[i].id);
+        if (section) {
+          const sectionTop = section.offsetTop;
+          if (scrollPosition >= sectionTop) {
+            setActiveSection(navItems[i].id);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Call once on mount
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <div className=" max-w-7xl mt-6">
+    <div id="overview" className=" max-w-7xl mt-6">
       {/* Buttons Row */}
       <div className="flex gap-4 mb-8">
-        {navItems.map((item, idx) => (
+        {navItems.map((item) => (
           <button
             key={item.label}
-            className={`px-6 py-2 rounded-full text-base transition ${
-              idx === 0
+            onClick={() => scrollToSection(item.id)}
+            className={`px-6 py-2 rounded-full text-base transition cursor-pointer hover:shadow-md ${
+              activeSection === item.id
                 ? "bg-foreground text-background font-semibold shadow"
-                : "bg-background text-foreground/70 border border-foreground/10"
+                : "bg-background text-foreground/70 border border-foreground/10 hover:border-foreground/30"
             }`}
-            disabled
           >
             {item.label}
           </button>
@@ -74,13 +115,27 @@ const TourOverview = ({ tour }: TourOverviewProps) => {
             <p className="text-foreground/70 mb-2 text-base">
               Plan your adventure:
             </p>
-            <a
-              href="#"
-              className="flex items-center gap-2 text-[#4AB8B8] hover:underline font-medium"
-            >
-              <FileText className="w-4 h-4" />
-              Download PDF Brochure
-            </a>
+            {tour.brochure ? (
+              <a
+                href={`/api/cms/file-download?image=${encodeURIComponent(
+                  tour.brochure
+                )}`}
+                download={`${tour.title
+                  .replace(/[^a-z0-9]/gi, "_")
+                  .toLowerCase()}_brochure.pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-[#4AB8B8] hover:underline font-medium cursor-pointer"
+              >
+                <FileText className="w-4 h-4" />
+                Download PDF Brochure
+              </a>
+            ) : (
+              <span className="flex items-center gap-2 text-foreground/40 font-medium">
+                <FileText className="w-4 h-4" />
+                Brochure not available
+              </span>
+            )}
           </div>
         </div>
       </div>

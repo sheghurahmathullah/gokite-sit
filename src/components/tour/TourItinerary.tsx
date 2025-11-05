@@ -97,9 +97,11 @@ const TourItinerary = ({ itinerary, itineraryMainDescription }: TourItineraryPro
                   </div>
                 </CollapsibleTrigger>
 
-                <CollapsibleContent className="mt-2">
-                  <div className="p-4 border border-border">
-                    <p className="text-foreground/70">{item.description}</p>
+                <CollapsibleContent>
+                  <div className="py-4 pl-4 pr-4">
+                    <p className="text-foreground/70 leading-relaxed whitespace-pre-line">
+                      {item.description}
+                    </p>
                   </div>
                 </CollapsibleContent>
               </div>

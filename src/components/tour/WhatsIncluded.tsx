@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Check, X, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import Image from "next/image";
 import {
   Collapsible,
   CollapsibleContent,
@@ -16,10 +17,12 @@ interface IncludedItem {
 interface WhatsIncludedProps {
   included: IncludedItem[];
   title?: string;
-  isExcluded?: boolean;
 }
 
-const WhatsIncluded = ({ included, title, isExcluded = false }: WhatsIncludedProps) => {
+const WhatsIncluded = ({
+  included,
+  title = "What's Included",
+}: WhatsIncludedProps) => {
   const [expandAll, setExpandAll] = useState(false);
   const [openItems, setOpenItems] = useState<string[]>([]);
 
@@ -40,12 +43,10 @@ const WhatsIncluded = ({ included, title, isExcluded = false }: WhatsIncludedPro
     );
   };
 
-  const displayTitle = title || (isExcluded ? "What's Excluded" : "What's Included");
-
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-foreground">{displayTitle}</h2>
+        <h2 className="text-2xl font-bold text-foreground">{title}</h2>
         <button
           onClick={handleExpandAll}
           className="text-[#4AB8B8] hover:underline text-sm"
@@ -67,15 +68,19 @@ const WhatsIncluded = ({ included, title, isExcluded = false }: WhatsIncludedPro
               <CollapsibleTrigger className="w-full">
                 <div className="flex items-center justify-between p-4 border-b border-border hover:bg-muted/20 transition-colors">
                   <div className="flex items-center gap-3">
-                    {isExcluded ? (
-                      <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
-                        <X className="w-4 h-4 text-white" />
-                      </div>
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                        <Check className="w-4 h-4 text-white" />
-                      </div>
-                    )}
+                    <div className="w-6 h-6 relative flex-shrink-0">
+                      <Image
+                        src={
+                          item.included
+                            ? "/images/holidays/include.png"
+                            : "/images/holidays/exclude.png"
+                        }
+                        alt={item.included ? "Included" : "Excluded"}
+                        width={24}
+                        height={24}
+                        className="object-contain"
+                      />
+                    </div>
                     <span className="font-medium text-foreground">
                       {item.name}
                     </span>
@@ -89,9 +94,11 @@ const WhatsIncluded = ({ included, title, isExcluded = false }: WhatsIncludedPro
               </CollapsibleTrigger>
 
               {item.description && (
-                <CollapsibleContent className="mt-2">
-                  <div className="p-4 border border-border ml-12">
-                    <p className="text-foreground/70">{item.description}</p>
+                <CollapsibleContent>
+                  <div className="py-4 pl-[52px]">
+                    <p className="text-foreground/70 leading-relaxed whitespace-pre-line">
+                      {item.description}
+                    </p>
                   </div>
                 </CollapsibleContent>
               )}

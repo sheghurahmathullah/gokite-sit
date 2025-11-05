@@ -470,7 +470,7 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
           {/* Additional Information Row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="description" className="text-xs font-medium">
+              <Label htmlFor="description" className="text-xs font-medium mb-1 block">
                 Description (Optional)
               </Label>
               <Textarea
@@ -479,20 +479,27 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                 placeholder="Additional details..."
                 value={formData.description}
                 onChange={handleInputChange}
-                className="text-xs h-16"
+                className="text-xs min-h-[80px] resize-none"
               />
             </div>
             <div>
-              <Label htmlFor="attachment" className="text-xs font-medium">
+              <Label htmlFor="attachment" className="text-xs font-medium mb-1 block">
                 File Attachment (Optional)
               </Label>
-              <Input
-                id="attachment"
-                name="attachment"
-                type="file"
-                onChange={handleFileChange}
-                className="text-xs h-7 mt-1"
-              />
+              <div className="border border-input rounded-md p-2 bg-background hover:bg-accent/50 transition-colors">
+                <Input
+                  id="attachment"
+                  name="attachment"
+                  type="file"
+                  onChange={handleFileChange}
+                  className="text-xs h-auto border-0 p-0 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                />
+                {formData.attachment && (
+                  <p className="text-xs text-muted-foreground mt-2 truncate">
+                    Selected: {formData.attachment.name}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 

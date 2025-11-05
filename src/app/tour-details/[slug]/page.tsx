@@ -196,10 +196,14 @@ const TourDetailPageInner = () => {
     // Overview data
     description: holidayDetails?.cardJson?.overview || "",
     fullDescription: holidayDetails?.cardJson?.overview || "",
+    brochure:
+      holidayDetails?.brochure || holidayDetails?.cardJson?.brochure || "",
     // Places from thumbnail array
     places: Array.isArray(holidayDetails?.cardJson?.thumbnail)
       ? holidayDetails.cardJson.thumbnail.map((item: any, index: number) => ({
-          id: `place-${index}-${item.title || index}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `place-${index}-${item.title || index}-${Math.random()
+            .toString(36)
+            .substr(2, 9)}`,
           name: item.title || `Place ${index + 1}`,
           image: getImageUrl(item.image),
         }))
@@ -207,7 +211,9 @@ const TourDetailPageInner = () => {
     // Itinerary from cardJson
     itinerary: Array.isArray(holidayDetails?.cardJson?.itineraries)
       ? holidayDetails.cardJson.itineraries.map((item: any, index: number) => ({
-          id: `day-${index + 1}-${item.title || index}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `day-${index + 1}-${item.title || index}-${Math.random()
+            .toString(36)
+            .substr(2, 9)}`,
           day: `Day ${index + 1}`,
           time: item.time || "",
           title: item.title || "",
@@ -220,7 +226,9 @@ const TourDetailPageInner = () => {
     // What's included from cardJson
     included: Array.isArray(holidayDetails?.cardJson?.inclusions)
       ? holidayDetails.cardJson.inclusions.map((item: any, index: number) => ({
-          id: `included-${index}-${item.title || index}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `included-${index}-${item.title || index}-${Math.random()
+            .toString(36)
+            .substr(2, 9)}`,
           name: item.title || "",
           included: true,
           description: Array.isArray(item.description)
@@ -231,7 +239,9 @@ const TourDetailPageInner = () => {
     // What's excluded from cardJson
     excluded: Array.isArray(holidayDetails?.cardJson?.exclusions)
       ? holidayDetails.cardJson.exclusions.map((item: any, index: number) => ({
-          id: `excluded-${index}-${item.title || index}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `excluded-${index}-${item.title || index}-${Math.random()
+            .toString(36)
+            .substr(2, 9)}`,
           name: item.title || "",
           included: false,
           description: Array.isArray(item.description)
@@ -242,7 +252,9 @@ const TourDetailPageInner = () => {
     // FAQs from cardJson
     faqs: Array.isArray(holidayDetails?.cardJson?.faqs)
       ? holidayDetails.cardJson.faqs.map((item: any, index: number) => ({
-          id: `faq-${index}-${item.question || index}-${Math.random().toString(36).substr(2, 9)}`,
+          id: `faq-${index}-${item.question || index}-${Math.random()
+            .toString(36)
+            .substr(2, 9)}`,
           question: item.question || "",
           answer: Array.isArray(item.answers)
             ? item.answers.map((a: any) => a?.text || "").join(" ")
@@ -278,21 +290,29 @@ const TourDetailPageInner = () => {
           <PlacesCarousel places={transformedTourData.places} />
 
           {/* Itinerary Section */}
-          <TourItinerary 
-            itinerary={transformedTourData.itinerary} 
-            itineraryMainDescription={holidayDetails?.cardJson?.itineraryMainDescription}
-          />
+          <div id="itinerary">
+            <TourItinerary
+              itinerary={transformedTourData.itinerary}
+              itineraryMainDescription={
+                holidayDetails?.cardJson?.itineraryMainDescription
+              }
+            />
+          </div>
 
           {/* What's Included Section */}
-          <WhatsIncluded included={transformedTourData.included} />
-
-          {/* What's Excluded Section */}
-          {transformedTourData.excluded && transformedTourData.excluded.length > 0 && (
-            <WhatsIncluded included={transformedTourData.excluded} isExcluded={true} />
-          )}
+          <div id="whats-included">
+            <WhatsIncluded
+              included={[
+                ...transformedTourData.included,
+                ...transformedTourData.excluded,
+              ]}
+            />
+          </div>
 
           {/* FAQs Section */}
-          <TourFAQ faqs={transformedTourData.faqs} />
+          <div id="faqs">
+            <TourFAQ faqs={transformedTourData.faqs} />
+          </div>
         </div>
       </div>
 

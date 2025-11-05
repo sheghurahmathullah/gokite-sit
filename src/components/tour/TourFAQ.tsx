@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { CheckCircle2, HelpCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import Image from "next/image";
 import {
   Collapsible,
   CollapsibleContent,
@@ -10,7 +11,6 @@ interface FAQ {
   id: string;
   question: string;
   answer: string;
-  hasCheck?: boolean;
 }
 
 interface TourFAQProps {
@@ -45,11 +45,15 @@ const TourFAQ = ({ faqs }: TourFAQProps) => {
               <CollapsibleTrigger className="w-full">
                 <div className="flex items-center justify-between p-4 border-b border-border hover:bg-muted/20 transition-colors">
                   <div className="flex items-center gap-3">
-                    {faq.hasCheck ? (
-                      <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
-                    ) : (
-                      <HelpCircle className="w-5 h-5 text-foreground/50 flex-shrink-0" />
-                    )}
+                    <div className="w-5 h-5 relative flex-shrink-0">
+                      <Image
+                        src="/images/holidays/include.png"
+                        alt="FAQ"
+                        width={20}
+                        height={20}
+                        className="object-contain"
+                      />
+                    </div>
                     <span className="font-medium text-foreground text-left">
                       {faq.question}
                     </span>
@@ -62,9 +66,9 @@ const TourFAQ = ({ faqs }: TourFAQProps) => {
                 </div>
               </CollapsibleTrigger>
 
-              <CollapsibleContent className="mt-2">
-                <div className="p-4 border border-border ml-12">
-                  <div className="text-foreground/70 whitespace-pre-line">
+              <CollapsibleContent>
+                <div className="py-4 pl-[44px] pr-4">
+                  <div className="text-foreground/70 leading-relaxed whitespace-pre-line">
                     {faq.answer}
                   </div>
                 </div>
