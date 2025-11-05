@@ -50,6 +50,13 @@ interface Section {
   contentType: string;
 }
 
+interface SectionWithData {
+  pageSectionId: string;
+  title: string;
+  contentType: string;
+  data: any[];
+}
+
 // Helper to read cookie on client
 function getCookie(name: string): string {
   if (typeof document === "undefined") return "";
@@ -64,12 +71,12 @@ const FALLBACK_IMAGE = "/landingpage/hero.png";
 
 const Index = () => {
   const router = useRouter();
-  const [holidayDestinations, setHolidayDestinations] = useState<any[]>([]);
-  const [visaDestinations, setVisaDestinations] = useState<any[]>([]);
+  const [holidaySections, setHolidaySections] = useState<SectionWithData[]>([]);
+  const [visaSections, setVisaSections] = useState<SectionWithData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const holidayCarouselRef = useRef<HolidayCarouselRef>(null);
-  const visaCarouselRef = useRef<VisaCarouselRef>(null);
+  const holidayCarouselRefs = useRef<Map<string, HolidayCarouselRef>>(new Map());
+  const visaCarouselRefs = useRef<Map<string, VisaCarouselRef>>(new Map());
 
   const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
 
@@ -260,44 +267,51 @@ const Index = () => {
         const sections = await fetchSectionsData();
         console.log("Fetched sections:", sections);
 
-        // Find holiday destinations section
-        const holidaySection = sections.find(
-          (section) =>
-            section.title === "Popular Holiday Destination" &&
-            section.contentType === "HOLIDAY"
+        // Find all holiday destinations sections
+        const holidayFiltered = sections.filter(
+          (section) => section.contentType === "HOLIDAY"
         );
 
-        // Find visa destinations section
-        const visaSection =
-          sections.find(
-            (section) =>
-              section.title === "home-Visa-section" &&
-              section.contentType === "VISA"
-          ) || sections.find((section) => section.contentType === "VISA");
-        console.log("Visa section:", visaSection);
+        // Find all visa destinations sections
+        const visaFiltered = sections.filter(
+          (section) => section.contentType === "VISA"
+        );
+        console.log("Holiday sections:", holidayFiltered);
+        console.log("Visa sections:", visaFiltered);
 
-        // Fetch and transform holiday cards
-        if (holidaySection) {
-          const holidayCardsData = await fetchHolidayCardsData(
-            holidaySection.pageSectionId
+        // Fetch and transform holiday cards from all holiday sections
+        if (holidayFiltered.length > 0) {
+          const holidaySectionsWithData = await Promise.all(
+            holidayFiltered.map(async (section) => {
+              const cardsData = await fetchHolidayCardsData(section.pageSectionId);
+              const transformedData = transformHolidayData(cardsData);
+              return {
+                pageSectionId: section.pageSectionId,
+                title: section.title,
+                contentType: section.contentType,
+                data: transformedData,
+              };
+            })
           );
-          const transformedHolidayDestinations =
-            transformHolidayData(holidayCardsData);
-          setHolidayDestinations(transformedHolidayDestinations);
+          setHolidaySections(holidaySectionsWithData);
         }
 
-        // Fetch and transform visa cards
-        if (visaSection) {
-          const visaCardsData = await fetchVisaCardsData(
-            visaSection.pageSectionId
+        // Fetch and transform visa cards from all visa sections
+        if (visaFiltered.length > 0) {
+          const visaSectionsWithData = await Promise.all(
+            visaFiltered.map(async (section) => {
+              const cardsData = await fetchVisaCardsData(section.pageSectionId);
+              const transformedData = transformVisaData(cardsData);
+              return {
+                pageSectionId: section.pageSectionId,
+                title: section.title,
+                contentType: section.contentType,
+                data: transformedData,
+              };
+            })
           );
-          console.log("Visa cards data:", visaCardsData);
-          const transformedVisaDestinations = transformVisaData(visaCardsData);
-          console.log(
-            "Transformed visa destinations:",
-            transformedVisaDestinations
-          );
-          setVisaDestinations(transformedVisaDestinations);
+          console.log("Visa sections with data:", visaSectionsWithData);
+          setVisaSections(visaSectionsWithData);
         }
       } catch (err: unknown) {
         console.error("Error loading data:", err);
@@ -308,7 +322,7 @@ const Index = () => {
     };
 
     loadData();
-  }, [pageLoading, getPageIdWithFallback]);
+  }, [pageLoading]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -326,82 +340,119 @@ const Index = () => {
         {/* Hero Section */}
         <HeroBanner />
 
-        {/* Popular Holiday Destinations */}
-        <section className="px-6 lg:px-12 mt-5">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-foreground">
-              Popular Holiday Destinations
-            </h2>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-foreground bg-[#f2f0f0]"
-                onClick={() => router.push("/holiday-grid")}
-              >
-                View All
-              </Button>
-              <Button
-                variant="default"
-                size="icon"
-                className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
-                onClick={() => holidayCarouselRef.current?.scrollPrev()}
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </Button>
-              <Button
-                variant="default"
-                size="icon"
-                className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
-                onClick={() => holidayCarouselRef.current?.scrollNext()}
-              >
-                <ChevronRight className="w-5 h-5" />
-              </Button>
+        {/* Holiday Sections - Dynamic */}
+        {holidaySections.map((section, index) => (
+          <section
+            key={section.pageSectionId}
+            className={`px-6 lg:px-12 ${index === 0 ? "mt-5" : "mt-4"}`}
+          >
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold text-foreground">
+                {section.title}
+              </h2>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-foreground bg-[#f2f0f0]"
+                  onClick={() => router.push("/holiday-grid")}
+                >
+                  View All
+                </Button>
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
+                  onClick={() =>
+                    holidayCarouselRefs.current
+                      .get(section.pageSectionId)
+                      ?.scrollPrev()
+                  }
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
+                  onClick={() =>
+                    holidayCarouselRefs.current
+                      .get(section.pageSectionId)
+                      ?.scrollNext()
+                  }
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
-          </div>
 
-          <HolidayCarousel
-            ref={holidayCarouselRef}
-            destinations={holidayDestinations}
-          />
-        </section>
+            <HolidayCarousel
+              ref={(ref) => {
+                if (ref) {
+                  holidayCarouselRefs.current.set(section.pageSectionId, ref);
+                }
+              }}
+              destinations={section.data}
+            />
+          </section>
+        ))}
 
-        {/* Top Visa Destination */}
-        <section className="px-6 lg:px-12 mt-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-foreground">
-              Top Visa Destination
-            </h2>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-foreground bg-[#f2f0f0]"
-                onClick={() => router.push("/visa")}
-              >
-                View All
-              </Button>
-              <Button
-                variant="default"
-                size="icon"
-                className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
-                onClick={() => visaCarouselRef.current?.scrollPrev()}
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </Button>
-              <Button
-                variant="default"
-                size="icon"
-                className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
-                onClick={() => visaCarouselRef.current?.scrollNext()}
-              >
-                <ChevronRight className="w-5 h-5" />
-              </Button>
+        {/* Visa Sections - Dynamic */}
+        {visaSections.map((section) => (
+          <section
+            key={section.pageSectionId}
+            className="px-6 lg:px-12 mt-4"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold text-foreground">
+                {section.title}
+              </h2>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-foreground bg-[#f2f0f0]"
+                  onClick={() => router.push("/visa")}
+                >
+                  View All
+                </Button>
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
+                  onClick={() =>
+                    visaCarouselRefs.current
+                      .get(section.pageSectionId)
+                      ?.scrollPrev()
+                  }
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="rounded-full bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50"
+                  onClick={() =>
+                    visaCarouselRefs.current
+                      .get(section.pageSectionId)
+                      ?.scrollNext()
+                  }
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
-          </div>
 
-          <VisaCarousel ref={visaCarouselRef} destinations={visaDestinations} />
-        </section>
+            <VisaCarousel
+              ref={(ref) => {
+                if (ref) {
+                  visaCarouselRefs.current.set(section.pageSectionId, ref);
+                }
+              }}
+              destinations={section.data}
+            />
+          </section>
+        ))}
       </main>
 
       <Footer />

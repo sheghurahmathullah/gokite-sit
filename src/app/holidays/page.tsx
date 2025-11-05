@@ -4,19 +4,15 @@ import { useRouter } from "next/navigation";
 import Footer from "@/components/common/Footer";
 import HolidayHeroBanner from "@/components/holidayspage/HolidayHeroBanner";
 import SectionHeader from "@/components/common/SectionHeader";
-import DestinationCard from "@/components/common/DestinationCard";
 import HolidayCarousel, {
   HolidayCarouselRef,
 } from "@/components/landingpage/HolidayCarousel";
-import { honeymoonSpecials, moreDestinations } from "@/data/holidaysData";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePageContext } from "@/components/common/PageContext";
 
 const HolidaysPage = () => {
   const router = useRouter();
   const categoryCarouselRef = useRef<HolidayCarouselRef>(null);
-  const honeymoonCarouselRef = useRef<HolidayCarouselRef>(null);
-  const additionalCarouselRef = useRef<HolidayCarouselRef>(null);
   const categories = useMemo(
     () => [
       { id: 1, icon: "/holidaygrid/beach.png", label: "Beaches" },
@@ -84,13 +80,20 @@ const HolidaysPage = () => {
   const [destinations, setDestinations] = useState<DestinationShape[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // CMS-driven sections: Honeymoon Freebies Special and Additional Destinations
+  // CMS-driven sections: Dynamic Holiday Sections
   const { getPageIdWithFallback } = usePageContext();
-  const [honeymoonCards, setHoneymoonCards] = useState<DestinationShape[]>([]);
-  const [additionalCards, setAdditionalCards] = useState<DestinationShape[]>(
-    []
-  );
+  
+  // New structure for dynamic sections
+  interface SectionWithData {
+    pageSectionId: string;
+    title: string;
+    contentType: string;
+    data: DestinationShape[];
+  }
+  
+  const [dynamicSections, setDynamicSections] = useState<SectionWithData[]>([]);
   const [isSectionsLoading, setIsSectionsLoading] = useState<boolean>(false);
+  const dynamicCarouselRefs = useRef<Map<string, HolidayCarouselRef>>(new Map());
 
   useEffect(() => {
     let cancelled = false;
@@ -100,7 +103,7 @@ const HolidaysPage = () => {
         const pageId = getPageIdWithFallback("holidays");
         if (!pageId) throw new Error("Missing holidays pageId");
 
-        // 1) Get sections for the holidays page
+        // 1) Get all sections for the holidays page
         const sectionsRes = await fetch("/api/cms/pages-sections", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -112,97 +115,116 @@ const HolidaysPage = () => {
           ? sectionsJson.data
           : [];
 
-        // 2) Find the HOLIDAY section titled "Honeymoon Freebies Special"
-        const targetSection = sectionsArr.find(
-          (s: any) =>
-            (s?.title || "").toLowerCase() === "honeymoon freebies special" &&
-            (s?.contentType || "").toUpperCase() === "HOLIDAY"
+        console.log("Fetched sections for holidays page:", sectionsArr);
+
+        // 2) Filter sections by HOLIDAY contentType
+        const holidaySections = sectionsArr.filter(
+          (section: any) => section.contentType === "HOLIDAY"
         );
-        const pageSectionId = targetSection?.pageSectionId;
-        if (!pageSectionId)
-          throw new Error("Missing pageSectionId for target section");
 
-        // 3) Fetch holiday cards for that section
-        const cardsRes = await fetch("/api/cms/sections-holiday-cards", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pageSectionId, limitValue: 10 }),
-        });
-        if (!cardsRes.ok)
-          throw new Error("Failed to load sections-holiday-cards");
-        const cardsJson = await cardsRes.json();
-        const items: CardApiItem[] = Array.isArray(cardsJson?.data)
-          ? cardsJson.data
-          : [];
+        console.log("Holiday sections:", holidaySections);
 
-        // Map to DestinationCard shape
-        const mapped: DestinationShape[] = items.map((item) => {
-          const days = Number(item.noOfDays ?? item.cardJson?.days ?? 0) || 0;
-          const nights =
-            Number(item.noOfNights ?? item.cardJson?.nights ?? 0) || 0;
-          const ratingRaw =
-            item.packageRating ?? item.cardJson?.packageRating ?? 0;
-          const rating =
-            typeof ratingRaw === "string"
-              ? Number(ratingRaw) || 0
-              : ratingRaw || 0;
-          const currency = item.currency || "";
-          const originalPrice =
-            Number((item.oldPrice || "0").replace(/[, ]/g, "")) || 0;
-          const finalPrice =
-            Number((item.newPrice || "0").replace(/[, ]/g, "")) || 0;
+        // 3) Fetch cards for each section in parallel
+        if (holidaySections.length > 0) {
+          const sectionsWithData = await Promise.all(
+            holidaySections.map(async (section: any) => {
+              const cardsRes = await fetch("/api/cms/sections-holiday-cards", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  pageSectionId: section.pageSectionId,
+                  limitValue: 10,
+                }),
+              });
 
-          const getCount = (label: string) => {
-            const match = (item.cardJson?.itineraryIcons || []).find((i) =>
-              (i.text || "").toLowerCase().includes(label)
-            );
-            const m = match?.text?.match(/(\d+)/);
-            return m ? Number(m[1]) : 0;
-          };
+              if (!cardsRes.ok) {
+                console.error("Failed to load cards for section:", section.pageSectionId);
+                return {
+                  pageSectionId: section.pageSectionId,
+                  title: section.title,
+                  contentType: section.contentType,
+                  data: [],
+                };
+              }
 
-          const flights = getCount("flight");
-          const hotels = getCount("accomodation") || getCount("hotel");
-          const transfers = getCount("car") || getCount("transfer");
-          const activities = getCount("activit");
+              const cardsJson = await cardsRes.json();
+              const items: CardApiItem[] = Array.isArray(cardsJson?.data)
+                ? cardsJson.data
+                : [];
 
-          const imageName = item.cardJson?.heroImage || "";
-          const image = imageName
-            ? `/api/cms/file-download?image=${encodeURIComponent(imageName)}`
-            : "/images/holidays/hero-sunset.jpg";
+              // Map to DestinationCard shape
+              const mapped: DestinationShape[] = items.map((item) => {
+                const days = Number(item.noOfDays ?? item.cardJson?.days ?? 0) || 0;
+                const nights =
+                  Number(item.noOfNights ?? item.cardJson?.nights ?? 0) || 0;
+                const ratingRaw =
+                  item.packageRating ?? item.cardJson?.packageRating ?? 0;
+                const rating =
+                  typeof ratingRaw === "string"
+                    ? Number(ratingRaw) || 0
+                    : ratingRaw || 0;
+                const currency = item.currency || "";
+                const originalPrice =
+                  Number((item.oldPrice || "0").replace(/[, ]/g, "")) || 0;
+                const finalPrice =
+                  Number((item.newPrice || "0").replace(/[, ]/g, "")) || 0;
 
-          return {
-            id: item.holidayId,
-            name: item.title || item.cardJson?.packageName || "",
-            image,
-            rating,
-            days,
-            nights,
-            flights,
-            hotels,
-            transfers,
-            activities,
-            features: item.cardJson?.inclusions || [],
-            currency,
-            originalPrice,
-            finalPrice,
-            priceContent: item.cardJson?.priceContent,
-            itineraryIcons: item.cardJson?.itineraryIcons || [],
-          };
-        });
+                const getCount = (label: string) => {
+                  const match = (item.cardJson?.itineraryIcons || []).find((i) =>
+                    (i.text || "").toLowerCase().includes(label)
+                  );
+                  const m = match?.text?.match(/(\d+)/);
+                  return m ? Number(m[1]) : 0;
+                };
 
-        // Split equally between two sections
-        const half = Math.ceil(mapped.length / 2);
-        const firstHalf = mapped.slice(0, half);
-        const secondHalf = mapped.slice(half);
+                const flights = getCount("flight");
+                const hotels = getCount("accomodation") || getCount("hotel");
+                const transfers = getCount("car") || getCount("transfer");
+                const activities = getCount("activit");
 
-        if (!cancelled) {
-          setHoneymoonCards(firstHalf);
-          setAdditionalCards(secondHalf);
+                const imageName = item.cardJson?.heroImage || "";
+                const image = imageName
+                  ? `/api/cms/file-download?image=${encodeURIComponent(imageName)}`
+                  : "/images/holidays/hero-sunset.jpg";
+
+                return {
+                  id: item.holidayId,
+                  name: item.title || item.cardJson?.packageName || "",
+                  image,
+                  rating,
+                  days,
+                  nights,
+                  flights,
+                  hotels,
+                  transfers,
+                  activities,
+                  features: item.cardJson?.inclusions || [],
+                  currency,
+                  originalPrice,
+                  finalPrice,
+                  priceContent: item.cardJson?.priceContent,
+                  itineraryIcons: item.cardJson?.itineraryIcons || [],
+                };
+              });
+
+              return {
+                pageSectionId: section.pageSectionId,
+                title: section.title,
+                contentType: section.contentType,
+                data: mapped,
+              };
+            })
+          );
+
+          if (!cancelled) {
+            console.log("Sections with data:", sectionsWithData);
+            setDynamicSections(sectionsWithData);
+          }
         }
-      } catch (_) {
+      } catch (err) {
+        console.error("Error loading section cards:", err);
         if (!cancelled) {
-          setHoneymoonCards([]);
-          setAdditionalCards([]);
+          setDynamicSections([]);
         }
       } finally {
         if (!cancelled) setIsSectionsLoading(false);
@@ -442,71 +464,58 @@ const HolidaysPage = () => {
           </div>
         </section>
 
-        {/* Honeymoon Freebies Special Section */}
-        <section className="mt-4 max-w-8xl mx-auto">
-          <div className="mb-6">
-            <SectionHeader
-              title="Honeymoon Freebies Special"
-              showPagination
-              totalDots={2}
-              activeIndex={0}
-            />
-          </div>
-
-          {isSectionsLoading ? (
+        {/* Dynamic Holiday Sections */}
+        {isSectionsLoading ? (
+          <section className="mt-4 max-w-8xl mx-auto">
             <div className="text-center text-gray-600 text-sm bg-gray-50 rounded-2xl p-12">
               <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-              <p className="font-medium">Loading packages...</p>
+              <p className="font-medium">Loading sections...</p>
             </div>
-          ) : honeymoonCards.length === 0 ? (
-            <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                No Data Available
-              </h3>
-              <p className="text-sm text-gray-600">
-                No honeymoon packages available at the moment.
-              </p>
-            </div>
-          ) : (
-            <HolidayCarousel
-              ref={honeymoonCarouselRef}
-              destinations={honeymoonCards}
-            />
-          )}
-        </section>
+          </section>
+        ) : (
+          dynamicSections.map((section, index) => (
+            <section key={section.pageSectionId} className="mt-4 max-w-8xl mx-auto">
+              <div className="mb-6">
+                <SectionHeader
+                  title={section.title}
+                  showPagination={dynamicSections.length > 1}
+                  totalDots={dynamicSections.length}
+                  activeIndex={index}
+                  onPrevious={() =>
+                    dynamicCarouselRefs.current
+                      .get(section.pageSectionId)
+                      ?.scrollPrev()
+                  }
+                  onNext={() =>
+                    dynamicCarouselRefs.current
+                      .get(section.pageSectionId)
+                      ?.scrollNext()
+                  }
+                />
+              </div>
 
-        {/* Additional Destinations Section */}
-        <section className="mt-4 max-w-8xl mx-auto">
-          <div className="mb-6">
-            <SectionHeader
-              title=""
-              showPagination
-              totalDots={2}
-              activeIndex={1}
-            />
-          </div>
-
-          {isSectionsLoading ? (
-            <div className="text-center text-gray-600 text-sm bg-gray-50 rounded-2xl p-12">
-              <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-              <p className="font-medium">Loading packages...</p>
-            </div>
-          ) : additionalCards.length === 0 ? (
-            <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                No Data Available
-              </h3>
-              <p className="text-sm text-gray-600">
-                No additional packages available at the moment.
-              </p>
-            </div>
-          ) : (
-            <HolidayCarousel
-              ref={additionalCarouselRef}
-              destinations={additionalCards}
-            />
-          )}
-        </section>
+              {section.data.length === 0 ? (
+                <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    No Data Available
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    No packages available for this section at the moment.
+                  </p>
+                </div>
+              ) : (
+                <HolidayCarousel
+                  ref={(ref) => {
+                    if (ref) {
+                      dynamicCarouselRefs.current.set(section.pageSectionId, ref);
+                    }
+                  }}
+                  destinations={section.data}
+                />
+              )}
+            </section>
+          ))
+        )}
       </main>
 
       <Footer />
