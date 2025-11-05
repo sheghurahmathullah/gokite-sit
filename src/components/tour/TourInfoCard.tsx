@@ -11,6 +11,7 @@ interface TourInfoCardProps {
     currency: string;
     rating: number;
     ratingText: string;
+    priceContent?: string;
   };
   onEnquire?: () => void; // Add this line
 }
@@ -40,8 +41,14 @@ const TourInfoCard = ({ tour, onEnquire }: TourInfoCardProps) => {
 
       <div className="text-3xl font-bold text-foreground">
         {tour.currency} {tour.price.toLocaleString()}
-        <span className="text-3xl font-bold text-foreground">/</span>
-        <span className="text-sm font-normal text-foreground/60 align-baseline">person</span>
+        {tour.priceContent && (
+          <>
+            <span className="text-3xl font-bold text-foreground">/</span>
+            <span className="text-sm font-normal text-foreground/60 align-baseline">
+              {tour.priceContent}
+            </span>
+          </>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
