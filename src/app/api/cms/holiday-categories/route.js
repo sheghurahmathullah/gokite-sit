@@ -1,60 +1,57 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export async function POST(request) {
   try {
     const body = await request.json();
     const { packageCategoryId } = body;
 
-    const claims = {
-      AUTHENTICATED: "true",
-      org_id: "0631f265-d8de-4608-9622-6b4e148793c4",
-      OTP_VERFICATION_REQD: "false",
-      USER_ID: "0af402d1-98f0-18ae-8198-f493454d0001",
-      refreshtoken: "false",
-      client_ip: "14.99.174.62",
-      USER_ID_LONG: "563",
-      USER_NAME: "codetezteam@gmail.com",
-      SESSION_ID: "88c31722-e2ef-4723-a2ce-20d797f7a1b8",
-      "authorized-domains":
-        "b603f35d-9242-11f0-b493-fea20be86931, b603edb7-9242-11f0-b493-fea20be86931, b603e748-9242-11f0-b493-fea20be86931, b603d5d9-9242-11f0-b493-fea20be86931",
-      "user-agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
-    };
+    // Get token from cookies
+    const cookieStore = await cookies();
+    const token = cookieStore.get("accesstoken")?.value || "";
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/cms/api/v2/list/custom/data/cms-holiday-categories`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          claims: JSON.stringify(claims),
-        },
-        body: JSON.stringify({
-          packageCategoryId: packageCategoryId || 1, // Default to 1 if not provided
-        }),
-      }
-    );
+    console.log("[Holiday-categories API] Access token:", token ? "Present" : "Missing");
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (!token) {
+      return NextResponse.json(
+        { error: "Missing accesstoken cookie" },
+        { status: 401 }
+      );
     }
 
-    const data = await response.json();
+    const upstreamUrl = `${process.env.NEXT_PUBLIC_API_URL}/cms/api/v2/list/custom/data/cms-holiday-categories`;
 
-    // Check if data is missing or empty
-    if (!data || !data.data || data.data.length === 0) {
-      console.log("Data is missing or empty for holiday-categories API");
-      console.log("Response data:", data);
-    }
+    console.log(`[Holiday-categories API] Fetching from: ${upstreamUrl}`);
+    console.log(`[Holiday-categories API] Package Category ID: ${packageCategoryId || 1}`);
 
-    return NextResponse.json({
-      success: true,
-      data: data,
-      message: "Holiday categories data fetched successfully",
+    const response = await fetch(upstreamUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+      },
+      body: JSON.stringify({
+        packageCategoryId: packageCategoryId || 1, // Default to 1 if not provided
+      }),
+      signal: AbortSignal.timeout(15000), // 15 second timeout
+    });
+
+    console.log(`[Holiday-categories API] Response status: ${response.status}`);
+
+    const text = await response.text();
+    console.log(`[Holiday-categories API] Response text: ${text.substring(0, 200)}...`);
+
+    const contentType = response.headers.get("content-type") || "application/json";
+
+    return new NextResponse(text, {
+      status: response.status,
+      headers: { "content-type": contentType },
     });
   } catch (error) {
-    console.error("API endpoint not working - holiday-categories:", error);
-    console.error("Error details:", {
+    console.error("[Holiday-categories API] API endpoint not working:", error.message);
+    console.error("[Holiday-categories API] Error details:", {
       name: error.name,
       message: error.message,
       stack: error.stack,
@@ -62,9 +59,9 @@ export async function POST(request) {
 
     return NextResponse.json(
       {
-        success: false,
-        message: "Failed to fetch holiday categories data",
-        error: error.message,
+        error: "API endpoint not working - holiday-categories",
+        details: error.message,
+        errorType: error.name,
       },
       { status: 500 }
     );

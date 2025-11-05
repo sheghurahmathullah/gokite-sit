@@ -169,7 +169,7 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
             {destination.originalPrice.toLocaleString()}
           </span>
           <span className="text-xl font-bold text-black">
-            {destination.currency}
+            {destination.currency + " "}
             {destination.finalPrice.toLocaleString()}
           </span>
           <span className="text-sm text-gray-600">

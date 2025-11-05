@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
-import HeroBanner from "@/components/holiday-grid/HeroBanner";
 import FilterSidebar from "@/components/holiday-grid/FilterSidebar";
 import DestinationCard from "@/components/common/DestinationCard";
 
@@ -36,26 +35,6 @@ const HolidayGridPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Currency conversion and formatting
-  const convertAndFormatCurrency = (amount: number, currency: string) => {
-    const exchangeRates: Record<string, number> = {
-      AED: 20, // 1 AED = 20 INR
-      USD: 80, // 1 USD = 80 INR
-      INR: 1,
-    };
-
-    const rate = exchangeRates[currency] || 1;
-    const convertedAmount = Math.round(parseFloat(String(amount)) * rate);
-
-    switch (currency) {
-      case "AED":
-        return `${convertedAmount.toFixed(2)} ${currency}`;
-      case "INR":
-      default:
-        return convertedAmount;
-    }
-  };
-
   // Transform holiday card data to match DestinationCard interface
   const transformHolidayData = (apiData: any[]) => {
     return apiData.map((item, index) => {
@@ -75,18 +54,25 @@ const HolidayGridPage = () => {
         return fallback;
       };
 
-      // Use holidayUniqueId as the primary ID for navigation
-      // This will be stored in sessionStorage and used by tour-details page
-      const holidayId =
-        item.holidayId || String(item.id);
+      // Use holidayId as the primary ID for navigation
+      const holidayId = item.holidayId || String(item.id);
+
+      // Get image from API or use fallback
+      const getImageUrl = (imageName?: string) => {
+        if (!imageName) return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+        return `/api/cms/file-download?image=${encodeURIComponent(imageName)}`;
+      };
+
+      const heroImage = item?.cardJson?.heroImage;
+      const imageUrl = getImageUrl(heroImage);
 
       return {
         id: holidayId, // This will be used as slug and stored in sessionStorage
-        name: item.title || "Holiday Package",
-        image: FALLBACK_IMAGES[index % FALLBACK_IMAGES.length],
-        rating: parseFloat(item.packageRating || "4.5"),
-        days: parseInt(item.noOfDays) || 3,
-        nights: parseInt(item.noOfNights) || 4,
+        name: item.title || item?.cardJson?.packageName || "Holiday Package",
+        image: imageUrl,
+        rating: parseFloat(item?.cardJson?.packageRating || item.packageRating || "0"),
+        days: parseInt(item.noOfDays || item?.cardJson?.days || "3"),
+        nights: parseInt(item.noOfNights || item?.cardJson?.nights || "4"),
         flights: getIconValue("flight", 2),
         hotels: getIconValue("hotel", 1) || getIconValue("accomodation", 1),
         transfers: getIconValue("transfer", 2) || getIconValue("car", 2),
@@ -96,12 +82,11 @@ const HolidayGridPage = () => {
           "City Tour",
           "Sightseeing",
         ],
-        currency: "₹",
-        originalPrice: convertAndFormatCurrency(
-          oldPrice,
-          item.currency || "INR"
-        ),
-        finalPrice: convertAndFormatCurrency(newPrice, item.currency || "INR"),
+        currency: item.currency || "₹",
+        originalPrice: oldPrice,
+        finalPrice: newPrice,
+        priceContent: item?.cardJson?.priceContent || "Per person",
+        itineraryIcons: itineraryIcons,
       };
     });
   };
@@ -131,6 +116,7 @@ const HolidayGridPage = () => {
         : [];
 
       const transformedDestinations = transformHolidayData(list);
+      console.log("transformedDestinations", transformedDestinations);
       setDestinations(transformedDestinations);
     } catch (err) {
       console.error("Error fetching holiday cards:", err);
@@ -152,61 +138,159 @@ const HolidayGridPage = () => {
     setSelectedCategory(category);
   };
 
+  const categories = [
+    { id: 1, icon: "/holidaygrid/beach.png", label: "Beaches" },
+    { id: 2, icon: "/holidaygrid/adventure.png", label: "Adventure" },
+    { id: 3, icon: "/holidaygrid/world wonder.png", label: "World Wonder" },
+    { id: 4, icon: "/holidaygrid/iconic city.png", label: "Iconic city" },
+    { id: 5, icon: "/holidaygrid/country side.png", label: "Countryside" },
+    { id: 6, icon: "/holidaygrid/kids wonderland.png", label: "Kids Wonderland" },
+    { id: 7, icon: "/holidaygrid/skiing.png", label: "Skiing" },
+    { id: 8, icon: "/holidaygrid/wildlife.png", label: "Wildlife" },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
 
-      <div className="relative w-full px-2 sm:px-4 max-w-[1400px] mx-auto">
-        <HeroBanner onCategorySelect={handleCategorySelect} />
-      </div>
+      {/* Hero Section */}
+      <main className="px-6 lg:px-12 py-8">
+        {/* Trip Packages Section */}
+        <section className="mt-8 max-w-8xl mx-auto">
+          {/* Background Container - extends to cover half of the cards */}
+          <div className="relative">
+            <div className="bg-gradient-to-r from-teal-900/40 to-teal-700/40 rounded-3xl overflow-hidden relative">
+              {/* Background Image - extends to cover half of cards */}
+              <div
+                className="absolute inset-0 bg-cover bg-center opacity-90"
+                style={{
+                  backgroundImage: "url('/holidaygrid/banner.jpg')",
+                  backgroundBlendMode: "overlay",
+                  height: "calc(100% + 400px)",
+                }}
+              />
 
-      <main className="container mx-auto px-4 sm:px-5 py-8 sm:py-10 max-w-[1400px]">
-        <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
-          {/* Tour Cards Grid - 70% width */}
-          <div className="w-full lg:w-[70%]">
-            {loading ? (
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">
-                    Loading holiday destinations...
-                  </p>
+              <div className="relative z-10 p-6 lg:p-8">
+                {/* Header */}
+                <div className="mb-8">
+                  <p className="text-white/90 text-sm mb-4">Trip Packages</p>
+                  <div className="flex items-start justify-between gap-8">
+                    <h2 className="text-4xl font-bold text-white max-w-md flex-shrink-0">
+                      Best Recommendation Destination For You
+                    </h2>
+                    <p className="text-white/80 text-sm leading-relaxed flex-1">
+                      Discover your next adventure with our curated list of the
+                      best recommendation destinations that offer unforgettable
+                      trip experiences. Whether you fancy touring around or
+                      immerse yourself in the beauty of exploration, let us
+                      guide you to unforgettable destinations that will create
+                      lasting memories
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ) : error ? (
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                  <p className="text-red-500 mb-2">
-                    Error loading destinations
-                  </p>
-                  <p className="text-sm text-muted-foreground">{error}</p>
-                </div>
-              </div>
-            ) : destinations.length === 0 ? (
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                  <p className="text-muted-foreground">
-                    No destinations found for {selectedCategory}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {destinations.map((destination, index) => (
-                  <DestinationCard
-                    key={`${destination.id}-${index}`}
-                    destination={destination}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* Filter Sidebar - 30% width */}
-          <div className="w-full lg:w-[30%]">
-            <FilterSidebar />
+                {/* Category Tabs */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl sm:rounded-3xl px-3 sm:px-6 py-3 sm:py-4 mb-8 border border-white/20">
+                  <div className="flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide">
+                    {categories.map((category) => {
+                      const isActive = category.label === selectedCategory;
+                      return (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => handleCategorySelect(category.label)}
+                          className={`group flex-1 flex flex-col items-center justify-center px-1.5 sm:px-2 md:px-3 py-2 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-300 min-w-0 flex-shrink-0 ${
+                            isActive
+                              ? "text-white"
+                              : "text-white/70 hover:text-white hover:bg-white/5"
+                          }`}
+                        >
+                          <div className="flex flex-col items-center gap-1 sm:gap-2">
+                            <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 flex items-center justify-center">
+                              <img
+                                src={category.icon}
+                                alt={category.label}
+                                className="w-full h-full object-contain filter brightness-0 invert"
+                              />
+                            </div>
+                            <span className="text-xs sm:text-sm font-medium whitespace-nowrap text-center">
+                              {category.label}
+                            </span>
+                          </div>
+                          {isActive && (
+                            <div className="mt-1 sm:mt-2 w-5 sm:w-6 md:w-8 h-0.5 sm:h-1 bg-white rounded-full" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Section Title */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-3xl font-bold text-white">
+                      {selectedCategory}
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Spacer to increase banner height */}
+                <div className="h-28"></div>
+              </div>
+            </div>
+
+            {/* Content Container - Positioned to overlap with banner */}
+            <div className="relative -mt-32 px-6 lg:px-8 pb-6">
+              <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
+                {/* Tour Cards Grid - 70% width */}
+                <div className="w-full lg:w-[70%]">
+                  {loading ? (
+                    <div className="flex items-center justify-center min-h-[400px]">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                        <p className="text-muted-foreground">
+                          Loading holiday destinations...
+                        </p>
+                      </div>
+                    </div>
+                  ) : error ? (
+                    <div className="flex items-center justify-center min-h-[400px]">
+                      <div className="text-center">
+                        <p className="text-red-500 mb-2">
+                          Error loading destinations
+                        </p>
+                        <p className="text-sm text-muted-foreground">{error}</p>
+                      </div>
+                    </div>
+                  ) : destinations.length === 0 ? (
+                    <div className="flex items-center justify-center min-h-[400px]">
+                      <div className="text-center">
+                        <p className="text-muted-foreground">
+                          No destinations found for {selectedCategory}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {destinations.map((destination, index) => (
+                        <DestinationCard
+                          key={`${destination.id}-${index}`}
+                          destination={destination}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Filter Sidebar - 30% width */}
+                <div className="w-full lg:w-[30%]">
+                  <FilterSidebar />
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
       </main>
 
       <Footer />

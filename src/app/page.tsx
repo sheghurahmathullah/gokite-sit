@@ -22,6 +22,7 @@ interface HolidayCardItem {
     heroImage?: string;
     inclusions?: string[];
     priceContent?: string;
+    packageRating?: number;
   };
   packageRating: string;
   noOfDays: string;
@@ -175,7 +176,9 @@ const Index = () => {
         id: item.holidayCardId,
         name: item.title,
         image: getImageUrl(item?.cardJson?.heroImage),
-        rating: parseFloat(item.packageRating || "0"),
+        rating: item.cardJson?.packageRating 
+          ? parseFloat(String(item.cardJson.packageRating)) 
+          : parseFloat(item.packageRating || "0"),
         days: parseInt(item.noOfDays || "0"),
         nights: parseInt(item.noOfNights || "0"),
         flights: 2,

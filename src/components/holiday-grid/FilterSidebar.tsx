@@ -21,7 +21,7 @@ const FilterSidebar = () => {
   const [pickupAvailable, setPickupAvailable] = useState(false);
 
   return (
-    <div className="sticky top-24 bg-white rounded-xl shadow-md p-6">
+    <div className="bg-white rounded-xl shadow-md p-6">
       {/* Header */}
       <div className="flex items-center gap-2 pb-4 border-b border-border mb-6">
         <Filter className="w-5 h-5 text-foreground" />

@@ -158,7 +158,7 @@ const HolidaysPage = () => {
                 const nights =
                   Number(item.noOfNights ?? item.cardJson?.nights ?? 0) || 0;
                 const ratingRaw =
-                  item.packageRating ?? item.cardJson?.packageRating ?? 0;
+                  item.cardJson?.packageRating ?? item.packageRating ?? 0;
                 const rating =
                   typeof ratingRaw === "string"
                     ? Number(ratingRaw) || 0
@@ -268,7 +268,7 @@ const HolidaysPage = () => {
           const nights =
             Number(item.noOfNights ?? item.cardJson?.nights ?? 0) || 0;
           const ratingRaw =
-            item.packageRating ?? item.cardJson?.packageRating ?? 0;
+            item.cardJson?.packageRating ?? item.packageRating ?? 0;
           const rating =
             typeof ratingRaw === "string"
               ? Number(ratingRaw) || 0
