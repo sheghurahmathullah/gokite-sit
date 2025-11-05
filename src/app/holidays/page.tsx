@@ -415,12 +415,21 @@ const HolidaysPage = () => {
             <div className="relative -mt-32 px-6 lg:px-8 pb-6">
               <div className="bg-white rounded-2xl p-4">
                 {isLoading ? (
-                  <div className="text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
-                    Loading...
+                  <div className="text-center text-gray-600 text-sm bg-gray-50 rounded-2xl p-12">
+                    <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p className="font-medium">Loading packages...</p>
                   </div>
                 ) : destinations.length === 0 ? (
-                  <div className="text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
-                    No packages found.
+                  <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      No Data Available
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      No packages found for{" "}
+                      {categories.find((c) => c.id === selectedCategoryId)
+                        ?.label || "this category"}
+                      . Please try another category.
+                    </p>
                   </div>
                 ) : (
                   <HolidayCarousel
@@ -434,7 +443,7 @@ const HolidaysPage = () => {
         </section>
 
         {/* Honeymoon Freebies Special Section */}
-        <section className="mt-20 max-w-8xl mx-auto">
+        <section className="mt-4 max-w-8xl mx-auto">
           <div className="mb-6">
             <SectionHeader
               title="Honeymoon Freebies Special"
@@ -445,12 +454,18 @@ const HolidaysPage = () => {
           </div>
 
           {isSectionsLoading ? (
-            <div className="text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
-              Loading...
+            <div className="text-center text-gray-600 text-sm bg-gray-50 rounded-2xl p-12">
+              <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+              <p className="font-medium">Loading packages...</p>
             </div>
           ) : honeymoonCards.length === 0 ? (
-            <div className="text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
-              No packages found.
+            <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                No Data Available
+              </h3>
+              <p className="text-sm text-gray-600">
+                No honeymoon packages available at the moment.
+              </p>
             </div>
           ) : (
             <HolidayCarousel
@@ -461,7 +476,7 @@ const HolidaysPage = () => {
         </section>
 
         {/* Additional Destinations Section */}
-        <section className="mt-20 max-w-8xl mx-auto">
+        <section className="mt-4 max-w-8xl mx-auto">
           <div className="mb-6">
             <SectionHeader
               title=""
@@ -472,12 +487,18 @@ const HolidaysPage = () => {
           </div>
 
           {isSectionsLoading ? (
-            <div className="text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
-              Loading...
+            <div className="text-center text-gray-600 text-sm bg-gray-50 rounded-2xl p-12">
+              <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+              <p className="font-medium">Loading packages...</p>
             </div>
           ) : additionalCards.length === 0 ? (
-            <div className="text-center text-white/80 text-sm bg-white/10 backdrop-blur-sm rounded-2xl p-8">
-              No packages found.
+            <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                No Data Available
+              </h3>
+              <p className="text-sm text-gray-600">
+                No additional packages available at the moment.
+              </p>
             </div>
           ) : (
             <HolidayCarousel
