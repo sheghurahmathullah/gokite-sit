@@ -39,6 +39,8 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
         stopOnInteraction: false,
         stopOnMouseEnter: true,
         stopOnFocusIn: false,
+        playOnInit: true, // Start playing immediately
+        rootNode: (emblaRoot) => emblaRoot.parentElement,
       })
     );
 
@@ -79,7 +81,8 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
             dragFree: false,
             slidesToScroll: 1, // Scroll one card at a time
             skipSnaps: false,
-            containScroll: false, // Allow full looping without containment
+            duration: 25, // Smooth transition duration
+            watchDrag: true,
           }}
           plugins={[autoplayRef.current]}
           className="w-full"
@@ -87,19 +90,17 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
           onMouseLeave={() => autoplayRef.current.play()}
         >
           <CarouselContent className="-ml-4">
-            {/* Duplicate destinations array to create seamless infinite loop */}
-            {[...destinations, ...destinations, ...destinations].map(
-              (destination, index) => (
-                <CarouselItem
-                  key={`${destination.id}-${index}`}
-                  className="pl-4 md:basis-1/2 lg:basis-1/4 xl:basis-1/4 transition-all duration-700 ease-in-out"
-                >
-                  <div className="max-w-sm mx-auto">
-                    <VisaCard destination={destination} />
-                  </div>
-                </CarouselItem>
-              )
-            )}
+            {/* Render destinations directly - loop handled by Embla */}
+            {destinations.map((destination, index) => (
+              <CarouselItem
+                key={`${destination.id}-${index}`}
+                className="pl-4 md:basis-1/2 lg:basis-1/4 xl:basis-1/4"
+              >
+                <div className="max-w-sm mx-auto">
+                  <VisaCard destination={destination} />
+                </div>
+              </CarouselItem>
+            ))}
           </CarouselContent>
         </Carousel>
       </div>

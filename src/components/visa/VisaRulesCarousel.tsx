@@ -40,11 +40,11 @@ const VisaRuleCard = ({ rule, onClick }: VisaRuleCardProps) => {
 
   return (
     <div
-      className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative w-full cursor-pointer hover:shadow-md transition-all"
+      className="bg-white rounded-2xl border border-gray-200 overflow-hidden relative w-full h-[280px] cursor-pointer hover:shadow-md transition-all flex flex-col"
       onClick={onClick}
     >
       {/* Flag and Country Name */}
-      <div className="flex flex-col items-start gap-2 px-6 pt-6 pb-4">
+      <div className="flex flex-col items-start gap-2 px-6 pt-6 pb-4 flex-shrink-0">
         <span className="block w-10 h-7 rounded overflow-hidden shadow-sm">
           {rule.flagImageUrl ? (
             <img
@@ -64,7 +64,9 @@ const VisaRuleCard = ({ rule, onClick }: VisaRuleCardProps) => {
             style={{ display: rule.flagImageUrl ? "none" : "block" }}
           />
         </span>
-        <h3 className="font-bold text-2xl text-gray-900">{rule.country}</h3>
+        <h3 className="font-bold text-2xl text-gray-900 line-clamp-1">
+          {rule.country}
+        </h3>
       </div>
 
       {/* Card/Document Image - Top Right */}
@@ -77,8 +79,8 @@ const VisaRuleCard = ({ rule, onClick }: VisaRuleCardProps) => {
       </div>
 
       {/* Main Content */}
-      <div className="px-6 pb-16 pt-2">
-        <p className="text-gray-700 text-[15px] leading-relaxed">
+      <div className="px-6 pb-16 pt-2 flex-1 overflow-hidden">
+        <p className="text-gray-700 text-[15px] leading-relaxed line-clamp-4">
           {rule.description}
         </p>
       </div>
@@ -117,6 +119,8 @@ const VisaRulesCarousel = forwardRef<
       stopOnInteraction: false,
       stopOnMouseEnter: true,
       stopOnFocusIn: false,
+      playOnInit: true, // Start playing immediately
+      rootNode: (emblaRoot) => emblaRoot.parentElement,
     })
   );
 
@@ -156,7 +160,8 @@ const VisaRulesCarousel = forwardRef<
           dragFree: false,
           slidesToScroll: 1,
           skipSnaps: false,
-          containScroll: false,
+          duration: 25, // Smooth transition duration
+          watchDrag: true,
         }}
         plugins={[autoplayRef.current]}
         className="w-full"
@@ -164,12 +169,13 @@ const VisaRulesCarousel = forwardRef<
         onMouseLeave={() => autoplayRef.current.play()}
       >
         <CarouselContent className="-ml-6">
-          {[...rules, ...rules, ...rules].map((rule, index) => (
+          {/* Render rules directly - loop handled by Embla */}
+          {rules.map((rule, index) => (
             <CarouselItem
               key={`${rule.uniqueId || rule.id}-${index}`}
-              className="pl-6 md:basis-1/2 lg:basis-1/3 transition-all duration-700 ease-in-out"
+              className="pl-6 md:basis-1/2 lg:basis-1/3"
             >
-              <div className="max-w-sm">
+              <div className="w-full max-w-[380px]">
                 <VisaRuleCard rule={rule} onClick={() => onCardClick?.(rule)} />
               </div>
             </CarouselItem>

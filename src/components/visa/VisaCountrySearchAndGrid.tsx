@@ -143,6 +143,8 @@ export default function VisaCountrySearchAndGrid() {
       stopOnInteraction: false,
       stopOnMouseEnter: true,
       stopOnFocusIn: false,
+      playOnInit: true, // Start playing immediately
+      rootNode: (emblaRoot) => emblaRoot.parentElement,
     })
   );
 
@@ -389,7 +391,8 @@ export default function VisaCountrySearchAndGrid() {
                   dragFree: false,
                   slidesToScroll: 1,
                   skipSnaps: false,
-                  containScroll: false,
+                  duration: 25, // Smooth transition duration
+                  watchDrag: true,
                 }}
                 plugins={[autoplayRef.current]}
                 className="w-full"
@@ -397,15 +400,11 @@ export default function VisaCountrySearchAndGrid() {
                 onMouseLeave={() => autoplayRef.current.play()}
               >
                 <CarouselContent className="-ml-4">
-                  {/* Duplicate countries array for seamless infinite loop */}
-                  {[
-                    ...filteredCountries,
-                    ...filteredCountries,
-                    ...filteredCountries,
-                  ].map((country, index) => (
+                  {/* Render countries directly - loop handled by Embla */}
+                  {filteredCountries.map((country, index) => (
                     <CarouselItem
                       key={`${country.id}-${index}`}
-                      className="pl-4 sm:basis-1/2 lg:basis-1/4 xl:basis-1/5 transition-all duration-700 ease-in-out"
+                      className="pl-4 sm:basis-1/2 lg:basis-1/4 xl:basis-1/5"
                     >
                       <VisaCountryCard country={country} />
                     </CarouselItem>

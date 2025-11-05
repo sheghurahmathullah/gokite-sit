@@ -33,12 +33,20 @@ const HolidayCarousel = forwardRef<HolidayCarouselRef, HolidayCarouselProps>(
     const [canScrollPrev, setCanScrollPrev] = useState(false);
     const [canScrollNext, setCanScrollNext] = useState(false);
 
+    // Duplicate items for seamless infinite loop if we have fewer items
+    const displayDestinations =
+      destinations.length < 8
+        ? [...destinations, ...destinations, ...destinations]
+        : destinations;
+
     const autoplayRef = useRef(
       Autoplay({
         delay: 4000,
         stopOnInteraction: false,
         stopOnMouseEnter: true,
         stopOnFocusIn: false,
+        playOnInit: true, // Start playing immediately
+        rootNode: (emblaRoot) => emblaRoot.parentElement,
       })
     );
 
@@ -79,7 +87,8 @@ const HolidayCarousel = forwardRef<HolidayCarouselRef, HolidayCarouselProps>(
             dragFree: false,
             slidesToScroll: 1, // Scroll one card at a time
             skipSnaps: false,
-            containScroll: false, // Allow full looping without containment
+            duration: 25, // Smooth transition duration
+            watchDrag: true,
           }}
           plugins={[autoplayRef.current]}
           className="w-full"
@@ -87,19 +96,17 @@ const HolidayCarousel = forwardRef<HolidayCarouselRef, HolidayCarouselProps>(
           onMouseLeave={() => autoplayRef.current.play()}
         >
           <CarouselContent className="-ml-6">
-            {/* Duplicate destinations array to create seamless infinite loop */}
-            {[...destinations, ...destinations, ...destinations].map(
-              (destination, index) => (
-                <CarouselItem
-                  key={`${destination.id}-${index}`}
-                  className="pl-6 md:basis-1/2 lg:basis-1/4 xl:basis-1/4 transition-all duration-700 ease-in-out"
-                >
-                  <div className="h-full">
-                    <DestinationCard destination={destination} />
-                  </div>
-                </CarouselItem>
-              )
-            )}
+            {/* Render destinations for seamless loop */}
+            {displayDestinations.map((destination, index) => (
+              <CarouselItem
+                key={`${destination.id || destination.name}-${index}`}
+                className="pl-6 md:basis-1/2 lg:basis-1/4 xl:basis-1/4"
+              >
+                <div className="h-full">
+                  <DestinationCard destination={destination} />
+                </div>
+              </CarouselItem>
+            ))}
           </CarouselContent>
         </Carousel>
       </div>

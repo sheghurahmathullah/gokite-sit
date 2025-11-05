@@ -145,6 +145,8 @@ const VisaCountryCarousel = forwardRef<
       stopOnInteraction: false,
       stopOnMouseEnter: true,
       stopOnFocusIn: false,
+      playOnInit: true, // Start playing immediately
+      rootNode: (emblaRoot) => emblaRoot.parentElement,
     })
   );
 
@@ -184,7 +186,8 @@ const VisaCountryCarousel = forwardRef<
           dragFree: false,
           slidesToScroll: 1,
           skipSnaps: false,
-          containScroll: false,
+          duration: 25, // Smooth transition duration
+          watchDrag: true,
         }}
         plugins={[autoplayRef.current]}
         className="w-full"
@@ -192,10 +195,11 @@ const VisaCountryCarousel = forwardRef<
         onMouseLeave={() => autoplayRef.current.play()}
       >
         <CarouselContent className="-ml-4">
-          {[...countries, ...countries, ...countries].map((country, index) => (
+          {/* Render countries directly - loop handled by Embla */}
+          {countries.map((country, index) => (
             <CarouselItem
               key={`${country.id}-${index}`}
-              className="pl-4 basis-auto transition-all duration-700 ease-in-out"
+              className="pl-4 basis-auto"
             >
               <div className="w-[260px]">
                 <VisaCard
