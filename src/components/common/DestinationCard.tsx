@@ -17,6 +17,7 @@ interface Destination {
   currency: string;
   originalPrice: number;
   finalPrice: number;
+  priceContent?: string;
   itineraryIcons?: { text?: string; image?: string }[];
 }
 
@@ -84,10 +85,10 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-bold text-black">{destination.name}</h3>
           <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 fill-black text-black" />
             <span className="text-sm font-medium text-black">
-              {destination.rating}
+              {destination.rating > 0 ? destination.rating.toFixed(1) : "N/A"}
             </span>
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
           </div>
         </div>
 
@@ -171,7 +172,9 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
             {destination.currency}
             {destination.finalPrice.toLocaleString()}
           </span>
-          <span className="text-sm text-gray-600">Per person</span>
+          <span className="text-sm text-gray-600">
+            {destination.priceContent || "Per person"}
+          </span>
         </div>
       </div>
     </div>

@@ -77,6 +77,7 @@ const HolidaysPage = () => {
     currency: string;
     originalPrice: number;
     finalPrice: number;
+    priceContent?: string;
     itineraryIcons?: { text?: string; image?: string }[];
   };
 
@@ -184,6 +185,7 @@ const HolidaysPage = () => {
             currency,
             originalPrice,
             finalPrice,
+            priceContent: item.cardJson?.priceContent,
             itineraryIcons: item.cardJson?.itineraryIcons || [],
           };
         });
@@ -289,6 +291,7 @@ const HolidaysPage = () => {
             currency,
             originalPrice,
             finalPrice,
+            priceContent: item.cardJson?.priceContent,
             itineraryIcons: item.cardJson?.itineraryIcons || [],
           };
         });

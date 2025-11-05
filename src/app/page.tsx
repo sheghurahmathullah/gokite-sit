@@ -21,6 +21,7 @@ interface HolidayCardItem {
   cardJson: {
     heroImage?: string;
     inclusions?: string[];
+    priceContent?: string;
   };
   packageRating: string;
   noOfDays: string;
@@ -178,6 +179,7 @@ const Index = () => {
         originalPrice: parseFloat(item.oldPrice || "0"),
         finalPrice: parseFloat(item.newPrice || "0"),
         currency: item.currency || "₹",
+        priceContent: item.cardJson?.priceContent,
       };
     });
   };
