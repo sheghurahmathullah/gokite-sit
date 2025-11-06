@@ -240,7 +240,7 @@ const CountrySlider = ({
 
   if (error) {
     return (
-      <section className="w-full px-6 py-6">
+      <section className="w-full px-6 py-1">
         <div>
           Error loading {title}: {error}
         </div>
@@ -249,7 +249,7 @@ const CountrySlider = ({
   }
 
   return (
-    <section className="w-full px-6 py-6">
+    <section className="w-full px-6 py-1">
       <div className="max-w-[85rem] mx-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900">{title}</h2>

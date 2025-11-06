@@ -70,13 +70,20 @@ const VisaRuleCard = ({ rule, onClick }: VisaRuleCardProps) => {
       </div>
 
       {/* Card/Document Image - Top Right */}
-      <div className="absolute -top-2 right-6">
-        <img
-          src="/visa/visa-card.png"
-          alt="Digital Card"
-          className="w-32 h-32 object-contain"
-        />
-      </div>
+      {rule.cardImage && (
+        <div className="absolute -top-2 right-6">
+          <img
+            src={`/api/cms/file-download?image=${encodeURIComponent(
+              rule.cardImage
+            )}`}
+            alt="Digital Card"
+            className="w-32 h-32 object-contain"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="px-6 pb-16 pt-2 flex-1 overflow-hidden">

@@ -109,7 +109,7 @@ const HeroBanner = () => {
   }, [bannerImages?.length]);
 
   return (
-    <section className="w-full px-6 lg:px-12">
+    <section className="w-full px-6 lg:px-12 pb-5">
       <div className="hero-gradient rounded-[2.5rem] overflow-hidden relative min-h-[500px] lg:min-h-[600px] flex items-center justify-center">
         {/* Background image with carousel */}
         <div className="absolute inset-0">
