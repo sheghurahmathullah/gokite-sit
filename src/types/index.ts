@@ -19,6 +19,8 @@ export interface VisaDestination {
   id: string;
   country: string;
   image: string;
+  processing_days?: string;
+  processing_time?: string;
   fastTrack:
     | string
     | {
@@ -33,9 +35,11 @@ export interface VisaDestination {
     max: number;
   };
   price: number;
+  currency: string;
+  expiryDate?: string;
   departureDate: string;
   departureTime: string;
-  flightsAvailable: number;
+  flightsAvailable?: number;
   getOn?: {
     date: string;
     price: string;

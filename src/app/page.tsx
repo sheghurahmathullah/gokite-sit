@@ -38,7 +38,10 @@ interface VisaCardItem {
   visaCardJson: {
     image?: string;
     processing_days?: string;
+    processing_time?: string;
   };
+  form_fee: string;
+  processing_fee: string;
   oldPrice: string;
   newPrice: string;
   currency: string;
@@ -196,61 +199,32 @@ const Index = () => {
 
   // Transform visa card data
   const transformVisaData = (apiData: VisaCardItem[]) => {
-    const EXTRA_CHARGES = 8500; // Fixed extra charges
-
     return apiData.map((item) => {
-      // Calculate get on date based on processing days
-      const getOnDate = new Date();
-      getOnDate.setDate(
-        getOnDate.getDate() +
-          parseInt(item.visaCardJson.processing_days || "10")
-      );
-
-      // Calculate total price
-      const basePrice = parseFloat(item.newPrice);
-      const oldPrice = parseFloat(item.oldPrice);
-      const totalPrice = basePrice + EXTRA_CHARGES;
-
       // Generate image URL using the proxy endpoint
       const getImageUrl = (imageName?: string) => {
         if (!imageName) return FALLBACK_IMAGE;
         return `/api/cms/file-download?image=${encodeURIComponent(imageName)}`;
       };
 
+      // Simply map values from API response
+      const formFee = parseFloat(item.form_fee || "0");
+      const processingFee = parseFloat(item.processing_fee || "0");
+
       return {
         id: item.visaCardId,
         image: getImageUrl(item?.visaCardJson?.image),
         country: item.visaCardTitle,
-        fastTrack: {
-          originalPrice: `₹${Math.round(oldPrice)}`, // Remove decimal places
-          extraCharges: `₹${EXTRA_CHARGES}`,
-          totalPrice: `₹${Math.round(totalPrice)}`, // Remove decimal places
-          date: getOnDate.toLocaleString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        },
-        getOn: {
-          date: getOnDate.toLocaleString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          price: `₹${Math.round(basePrice)}`, // Remove decimal places
-        },
-        currency: item.currency,
-        expiryDate: item.expiryDate,
+        processing_days: item.visaCardJson?.processing_days,
+        processing_time: item.visaCardJson?.processing_time,
+        fastTrack: item.visaCardTitle, // Simple string mapping
         priceRange: {
           currency: item.currency || "₹",
-          min: parseFloat(item.oldPrice || "0"),
-          max: parseFloat(item.newPrice || "0"),
+          min: formFee,
+          max: processingFee,
         },
-        price: parseFloat(item.newPrice || "0"),
+        price: formFee + processingFee,
+        currency: item.currency,
+        expiryDate: item.expiryDate,
         departureDate: "Upcoming",
         departureTime: "Flexible",
       };

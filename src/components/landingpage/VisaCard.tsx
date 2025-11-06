@@ -5,9 +5,28 @@ interface VisaCardProps {
   destination: VisaDestination;
 }
 
-const formatDate = (dateString: string) => {
-  // Parse the date and format as "DD MMM, HH:MMAM/PM"
-  const date = new Date(dateString);
+const formatDate = (
+  processingDays?: string | number,
+  processingTime?: string | number
+) => {
+  // Start from current date/time
+  const date = new Date();
+
+  // Add processing_days to current date if provided
+  if (processingDays) {
+    const daysToAdd = parseInt(String(processingDays), 10);
+    if (!isNaN(daysToAdd)) {
+      date.setDate(date.getDate() + daysToAdd);
+    }
+  }
+
+  // Add processing_time (hours) to current time if provided
+  if (processingTime) {
+    const hoursToAdd = parseInt(String(processingTime), 10);
+    if (!isNaN(hoursToAdd)) {
+      date.setHours(date.getHours() + hoursToAdd);
+    }
+  }
 
   const day = date.getDate();
   const month = date.toLocaleDateString("en-US", { month: "short" });
@@ -27,15 +46,16 @@ const formatDate = (dateString: string) => {
 const VisaCard = ({ destination }: VisaCardProps) => {
   const router = useRouter();
 
-  // If fastTrack is an object, extract the relevant information
-  const fastTrackText =
-    typeof destination.fastTrack === "object"
-      ? formatDate(destination.fastTrack.date)
-      : destination.fastTrack;
+  // Format the fast track date using processing_days and processing_time
+  const fastTrackText = formatDate(
+    destination.processing_days,
+    destination.processing_time
+  );
 
-  // Format the get on date
+  // Format the get on date using processing_days and processing_time
   const getOnDate = formatDate(
-    destination.getOn?.date || destination.departureDate
+    destination.processing_days,
+    destination.processing_time
   );
 
   // Handle card click - fetch country ID and store in session storage
@@ -102,12 +122,12 @@ const VisaCard = ({ destination }: VisaCardProps) => {
             </span>
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {destination.priceRange.currency}
+            {destination.priceRange.currency + " "}
             {destination.priceRange.min.toLocaleString()} +{" "}
-            {destination.priceRange.currency}
+            {destination.priceRange.currency + " "}
             {destination.priceRange.max.toLocaleString()} ={" "}
-            {destination.priceRange.currency}
-            {destination.priceRange.max.toLocaleString()}
+            {destination.priceRange.currency + " "}
+            {destination.price.toLocaleString()}
           </p>
         </div>
       </div>
@@ -123,7 +143,7 @@ const VisaCard = ({ destination }: VisaCardProps) => {
         </p>
         {/* Price */}
         <div className="text-2xl text-black font-semibold">
-          {destination.priceRange.currency}
+          {destination.priceRange.currency + " "}
           {destination.price.toLocaleString()}
         </div>
       </div>
