@@ -272,11 +272,16 @@ export default function VisaCountrySearchAndGrid() {
     return (
       <div className="min-h-screen bg-[#e1effa]">
         <div className="px-6 py-8">
-          <div className="max-w-[1400px] mx-auto text-center">
-            <p className="text-lg text-gray-600">Loading countries...</p>
-            <p className="text-sm text-gray-500 mt-2">
-              Please wait while we fetch the latest visa destinations
-            </p>
+          <div className="max-w-[1400px] mx-auto">
+            <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
+              <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                Loading Countries
+              </h3>
+              <p className="text-sm text-gray-600">
+                Please wait while we fetch the latest visa destinations
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -287,15 +292,41 @@ export default function VisaCountrySearchAndGrid() {
     return (
       <div className="min-h-screen bg-[#e1effa]">
         <div className="px-6 py-8">
-          <div className="max-w-[1400px] mx-auto text-center">
-            <p className="text-lg text-red-600 mb-2">Error loading countries</p>
-            <p className="text-sm text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={fetchCountriesData}
-              className="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
-            >
-              Try Again
-            </button>
+          <div className="max-w-[1400px] mx-auto">
+            <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
+              <div className="text-5xl mb-4">⚠️</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                Error Loading Countries
+              </h3>
+              <p className="text-sm text-gray-600 mb-6">{error}</p>
+              <button
+                onClick={fetchCountriesData}
+                className="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors font-medium"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show no data message if no countries loaded at all
+  if (countriesData.length === 0 && !loading && !error) {
+    return (
+      <div className="min-h-screen bg-[#e1effa]">
+        <div className="px-6 py-8">
+          <div className="max-w-[1400px] mx-auto">
+            <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
+              <div className="text-5xl mb-4">🌍</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                No Countries Available
+              </h3>
+              <p className="text-sm text-gray-600">
+                No visa destinations are currently available. Please check back later.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -414,11 +445,11 @@ export default function VisaCountrySearchAndGrid() {
             </div>
           ) : (
             <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
-              <div className="text-5xl mb-4">✈️</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <div className="text-5xl mb-4">🌍</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
                 No Destinations Found
               </h3>
-              <p className="text-gray-600">
+              <p className="text-sm text-gray-600">
                 {searchQuery.trim() !== ""
                   ? `No visa destinations found matching "${searchQuery}" in "${selectedFilter}" category.`
                   : `No visa destinations available for "${selectedFilter}" category.`}

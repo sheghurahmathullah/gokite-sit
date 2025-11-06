@@ -182,23 +182,7 @@ const CountrySlider = ({
       } catch (err: any) {
         console.error("Error loading data:", err);
         setError(err.message);
-
-        // Fallback data
-        setCountries([
-          {
-            id: "US",
-            country: "United States",
-            countryCode: "US",
-            price: 160500,
-            currency: "₹",
-            visaType: "Tourist Visa",
-            visaTime: "30 days",
-            image: "",
-            perAdult: true,
-            eVisa: false,
-            priceContent: "per adult",
-          },
-        ]);
+        setCountries([]);
       } finally {
         setLoading(false);
       }
@@ -233,7 +217,13 @@ const CountrySlider = ({
   if (loading) {
     return (
       <section className="w-full px-6 py-6">
-        <div>Loading {title}...</div>
+        <div className="max-w-[85rem] mx-auto">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">{title}</h2>
+          <div className="text-center py-12 bg-gray-50 rounded-2xl">
+            <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            <p className="font-medium text-gray-600">Loading {title}...</p>
+          </div>
+        </div>
       </section>
     );
   }
@@ -241,8 +231,34 @@ const CountrySlider = ({
   if (error) {
     return (
       <section className="w-full px-6 py-1">
-        <div>
-          Error loading {title}: {error}
+        <div className="max-w-[85rem] mx-auto">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">{title}</h2>
+          <div className="text-center py-12 bg-gray-50 rounded-2xl">
+            <div className="text-5xl mb-4">⚠️</div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              Error Loading Data
+            </h3>
+            <p className="text-sm text-gray-600">{error}</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (countries.length === 0) {
+    return (
+      <section className="w-full px-6 py-1">
+        <div className="max-w-[85rem] mx-auto">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">{title}</h2>
+          <div className="text-center py-12 bg-gray-50 rounded-2xl">
+            <div className="text-5xl mb-4">🌍</div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              No Destinations Available
+            </h3>
+            <p className="text-sm text-gray-600">
+              No visa destinations available for this section at the moment.
+            </p>
+          </div>
         </div>
       </section>
     );

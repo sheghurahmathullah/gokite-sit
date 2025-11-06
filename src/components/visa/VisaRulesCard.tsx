@@ -164,7 +164,13 @@ const VisaRulesCard = () => {
     return (
       <section className="w-full px-6 py-8 lg:py-12">
         <div className="max-w-[85rem] mx-auto">
-          <p>Loading visa rules...</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Visa Rules & Announcements
+          </h2>
+          <div className="text-center py-12 bg-gray-50 rounded-2xl">
+            <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+            <p className="font-medium text-gray-600">Loading visa rules...</p>
+          </div>
         </div>
       </section>
     );
@@ -174,7 +180,16 @@ const VisaRulesCard = () => {
     return (
       <section className="w-full px-6 py-8 lg:py-12">
         <div className="max-w-[85rem] mx-auto">
-          <p>Error loading visa rules: {error}</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Visa Rules & Announcements
+          </h2>
+          <div className="text-center py-12 bg-gray-50 rounded-2xl">
+            <div className="text-5xl mb-4">⚠️</div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              Error Loading Data
+            </h3>
+            <p className="text-sm text-gray-600">{error}</p>
+          </div>
         </div>
       </section>
     );
@@ -184,7 +199,19 @@ const VisaRulesCard = () => {
     return (
       <section className="w-full px-6 py-8 lg:py-12">
         <div className="max-w-[85rem] mx-auto">
-          <p>No visa rules announcements available at the moment.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Visa Rules & Announcements
+          </h2>
+          <div className="text-center py-12 bg-gray-50 rounded-2xl">
+            <div className="text-5xl mb-4">📋</div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              No Announcements Available
+            </h3>
+            <p className="text-sm text-gray-600">
+              No visa rules announcements available at the moment. Please check
+              back later.
+            </p>
+          </div>
         </div>
       </section>
     );
