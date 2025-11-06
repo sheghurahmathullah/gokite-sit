@@ -54,22 +54,22 @@ const VisaCard = ({
 
   return (
     <div
-      className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all cursor-pointer flex-shrink-0"
+      className="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-md transition-all cursor-pointer flex-shrink-0"
       onClick={onClick}
     >
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
         <div
           className={
             type === "trending"
-              ? "flex items-center justify-between mb-1"
-              : "mb-1"
+              ? "flex items-center justify-between mb-0.5"
+              : "mb-0.5"
           }
         >
           {visa.flagImageUrl ? (
             <img
               src={visa.flagImageUrl}
               alt={`${visa.country} flag`}
-              className="w-12 h-12 rounded object-cover"
+              className="w-10 h-10 rounded object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = "none";
                 const nextSibling = e.currentTarget
@@ -80,7 +80,7 @@ const VisaCard = ({
           ) : null}
           {FlagComponent && (
             <FlagComponent
-              className="w-12 h-12 rounded"
+              className="w-10 h-10 rounded"
               style={{ display: visa.flagImageUrl ? "none" : "block" }}
             />
           )}
@@ -97,11 +97,13 @@ const VisaCard = ({
             {visa.country}
           </h3>
           {type === "popular" ? (
-            <p className="text-xs text-gray-500 mb-3">{visa.visaType}</p>
+            <p className="text-xs text-gray-500 mb-2">{visa.visaType}</p>
           ) : (
-            subtitle && <p className="text-xs text-gray-500 mb-3">{subtitle}</p>
+            subtitle && <p className="text-xs text-gray-500 mb-2">{subtitle}</p>
           )}
         </div>
+        {/* Horizontal separator line */}
+        <div className="border-t border-gray-200"></div>
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-1">
             <span className="text-base font-semibold text-gray-900">
