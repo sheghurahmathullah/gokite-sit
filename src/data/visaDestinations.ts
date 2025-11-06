@@ -14,6 +14,7 @@ export const visaDestinations: VisaDestination[] = [
     departureDate: "25 Mar",
     departureTime: "11:02PM",
     price: 6500,
+    currency: "₹",
     flightsAvailable: 30
   },
   {
@@ -29,6 +30,7 @@ export const visaDestinations: VisaDestination[] = [
     departureDate: "25 Mar",
     departureTime: "11:02PM",
     price: 3500,
+    currency: "₹",
     flightsAvailable: 30
   },
   {
@@ -44,6 +46,7 @@ export const visaDestinations: VisaDestination[] = [
     departureDate: "25 Mar",
     departureTime: "11:02PM",
     price: 6500,
+    currency: "₹",
     flightsAvailable: 30
   },
   {
@@ -59,6 +62,7 @@ export const visaDestinations: VisaDestination[] = [
     departureDate: "25 Mar",
     departureTime: "11:02PM",
     price: 6500,
+    currency: "₹",
     flightsAvailable: 30
   }
 ];
