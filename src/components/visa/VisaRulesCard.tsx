@@ -214,7 +214,7 @@ const VisaRulesCard = () => {
   };
 
   return (
-    <section className="w-full px-6 py-8 lg:py-12">
+    <section className="w-full px-6 py-1 lg:pb-12">
       <div className="max-w-[85rem] mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">

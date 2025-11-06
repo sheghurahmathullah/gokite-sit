@@ -54,7 +54,7 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
       onClick={handleCardClick}
     >
       {/* Image */}
-      <div className="relative h-42 overflow-hidden rounded-sm mb-4">
+      <div className="relative h-[170px] overflow-hidden rounded-sm mb-4">
         <img
           src={destination.image}
           alt={destination.name}
