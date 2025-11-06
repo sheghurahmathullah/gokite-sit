@@ -22,11 +22,7 @@ const categories = [
   { id: "wildlife", label: "Wildlife", icon: Dog },
 ];
 
-interface HeroBannerProps {
-  onCategorySelect?: (category: string) => void;
-}
-
-const HeroBanner = ({ onCategorySelect }: HeroBannerProps) => {
+const HeroBanner = () => {
   const [activeCategory, setActiveCategory] = useState("beaches");
   const [selectedDestination, setSelectedDestination] = useState<string | null>(null);
   const pathname = usePathname();
@@ -39,13 +35,6 @@ const HeroBanner = ({ onCategorySelect }: HeroBannerProps) => {
       setSelectedDestination(destination);
     }
   }, [isHolidayListRoute]);
-
-  // Notify parent on initial mount
-  useEffect(() => {
-    if (onCategorySelect && !isHolidayListRoute) {
-      onCategorySelect("Beaches");
-    }
-  }, [onCategorySelect, isHolidayListRoute]);
 
   return (
     <div
@@ -106,10 +95,7 @@ const HeroBanner = ({ onCategorySelect }: HeroBannerProps) => {
                   <button
                     key={category.id}
                     onClick={() => {
-                      setActiveCategory(category.id);
-                      if (onCategorySelect) {
-                        onCategorySelect(category.label);
-                      }
+                      setActiveCategory(category.id); 
                     }}
                     className={`flex flex-col items-center gap-1 sm:gap-2 min-w-fit transition-all ${
                       isActive ? "opacity-100" : "opacity-70 hover:opacity-90"

@@ -31,7 +31,6 @@ const CATEGORY_ID_MAP: Record<string, number> = {
 };
 
 const HolidayListPage = () => {
-  const [selectedCategory, setSelectedCategory] = useState("Beaches");
   const [destinations, setDestinations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,15 +74,19 @@ const HolidayListPage = () => {
         return fallback;
       };
 
-      // Use holidayUniqueId as the primary ID for navigation
-      // This will be stored in sessionStorage and used by tour-details page
-      const holidayId =
-        item.holidayId || String(item.id);
+      // Use holidayId as the primary ID for navigation
+      const holidayId = item.holidayId || String(item.id);
+
+      // Get image URL from API or use fallback
+      const getImageUrl = (imageName?: string) => {
+        if (!imageName) return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+        return `/api/cms/file-download?image=${encodeURIComponent(imageName)}`;
+      };
 
       return {
         id: holidayId, // This will be used as slug and stored in sessionStorage
         name: item.title || "Holiday Package",
-        image: FALLBACK_IMAGES[index % FALLBACK_IMAGES.length],
+        image: getImageUrl(item?.cardJson?.heroImage),
         rating: parseFloat(item.packageRating || "4.5"),
         days: parseInt(item.noOfDays) || 3,
         nights: parseInt(item.noOfNights) || 4,
@@ -143,28 +146,30 @@ const HolidayListPage = () => {
   };
 
   // Fetch holiday itinerary details by country ID
-  const fetchHolidayItineraryDetails = async (holidayId: string) => {
+  const fetchHolidayItineraryDetails = async (countryId: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("/api/cms/holiday-itinerary-details", {
+      const response = await fetch("/api/cms/holiday-country-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ holidayId }),
+        body: JSON.stringify({ countryId: countryId }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch holiday itinerary details");
+        throw new Error("Failed to fetch holiday country search");
       }
 
       const data = await response.json();
+      console.log("holiday country search response", data);
+      
       const list = Array.isArray(data?.data) ? data.data : [];
 
       const transformedDestinations = transformHolidayData(list);
       setDestinations(transformedDestinations);
     } catch (err) {
-      console.error("Error fetching holiday itinerary details:", err);
+      console.error("Error fetching holiday country search:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
       setDestinations([]);
     } finally {
@@ -230,20 +235,16 @@ const HolidayListPage = () => {
     }
     
     // Fallback to category-based search
-    const categoryId = CATEGORY_ID_MAP[selectedCategory] || 1;
-    fetchHolidayCardsByCategory(categoryId);
-  }, [selectedCategory]);
+    
+  }, []);
 
-  const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
-  };
 
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
       
       <div className="relative w-full px-2 sm:px-4 max-w-[1400px] mx-auto">
-        <HeroBanner onCategorySelect={handleCategorySelect} />
+        <HeroBanner />
       </div>
 
       <main className="container mx-auto px-4 sm:px-5 py-8 sm:py-10 max-w-[1400px]">
@@ -272,7 +273,7 @@ const HolidayListPage = () => {
               <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
                   <p className="text-muted-foreground">
-                    No destinations found for {selectedCategory}
+                    No destinations found for selected destination
                   </p>
                 </div>
               </div>
