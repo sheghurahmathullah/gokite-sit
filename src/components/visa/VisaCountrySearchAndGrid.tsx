@@ -270,8 +270,8 @@ export default function VisaCountrySearchAndGrid() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#e1effa]">
-        <div className="px-6 py-8">
+      <div className="bg-[#e1effa]">
+        <div className="px-6 py-4">
           <div className="max-w-[1400px] mx-auto">
             <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
               <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
@@ -290,8 +290,8 @@ export default function VisaCountrySearchAndGrid() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#e1effa]">
-        <div className="px-6 py-8">
+      <div className="bg-[#e1effa]">
+        <div className="px-6 py-4">
           <div className="max-w-[1400px] mx-auto">
             <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
               <div className="text-5xl mb-4">⚠️</div>
@@ -315,8 +315,8 @@ export default function VisaCountrySearchAndGrid() {
   // Show no data message if no countries loaded at all
   if (countriesData.length === 0 && !loading && !error) {
     return (
-      <div className="min-h-screen bg-[#e1effa]">
-        <div className="px-6 py-8">
+      <div className="bg-[#e1effa]">
+        <div className="px-6 py-4">
           <div className="max-w-[1400px] mx-auto">
             <div className="text-center py-16 bg-white rounded-2xl shadow-sm">
               <div className="text-5xl mb-4">🌍</div>
@@ -324,7 +324,8 @@ export default function VisaCountrySearchAndGrid() {
                 No Countries Available
               </h3>
               <p className="text-sm text-gray-600">
-                No visa destinations are currently available. Please check back later.
+                No visa destinations are currently available. Please check back
+                later.
               </p>
             </div>
           </div>
@@ -334,7 +335,7 @@ export default function VisaCountrySearchAndGrid() {
   }
 
   return (
-    <div className="min-h-screen bg-[#e1effa]">
+    <div className="bg-[#e1effa]">
       {/* Header Section */}
       <div className="bg-[#e1effa] py-4 px-6">
         <div className="max-w-[1400px] mx-auto">
@@ -409,7 +410,7 @@ export default function VisaCountrySearchAndGrid() {
       </div>
 
       {/* Country Carousel */}
-      <div className="px-6 py-8">
+      <div className="px-6 pb-4">
         <div className="max-w-[1400px] mx-auto">
           {filteredCountries.length > 0 ? (
             <div className="relative">

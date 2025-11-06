@@ -76,7 +76,7 @@ const socialIcons = {
 const Footer = () => {
   return (
     <footer
-      className="w-full px-6 lg:px-12 py-12 mt-20 border-t-2"
+      className="w-full px-6 lg:px-12 py-6 mt-20 border-t-2"
       style={{
         backgroundColor: "#C8E5ED",
         borderTopColor: "#A0D4E0",

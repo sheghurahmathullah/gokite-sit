@@ -185,7 +185,7 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
             {/* Left Content */}
             <div className="space-y-4">
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground leading-tight">
-                {title}
+                {visaDetails?.detailsJson?.title || title}
               </h1>
               <p className="text-base lg:text-lg text-muted-foreground">
                 {subtitle}

@@ -6,8 +6,8 @@ const stepsData = [
 
 const StepsGetVisa = () => {
   return (
-    <section className="w-full min-h-[60vh] flex items-center justify-center p-5">
-      <div className="w-full max-w-[1400px] min-h-[360px] sm:min-h-auto bg-[#e1effa] rounded-[18px] p-4 sm:px-9 sm:py-8 lg:px-12 lg:pt-8 lg:pb-7 relative overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.08)] flex flex-col sm:flex-row justify-between items-center sm:items-start mt-2 sm:mt-3">
+    <section className="w-full flex items-center justify-center px-5 pt-16">
+      <div className="w-full max-w-[1400px] min-h-[300px] sm:min-h-auto bg-[#e1effa] rounded-[18px] p-4 sm:px-9 sm:py-8 lg:px-12 lg:pt-8 lg:pb-7 relative overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.08)] flex flex-col sm:flex-row justify-between items-center sm:items-start">
         {/* Left Content */}
         <div className="flex-1 pr-0 sm:pr-10 text-center sm:text-left z-10">
           {/* Top Titles */}
