@@ -21,6 +21,7 @@ export interface VisaCountry {
   eVisa?: boolean;
   flagImageUrl?: string;
   subtitle?: string;
+  priceContent?: string;
 }
 
 interface CountrySliderProps {
@@ -145,6 +146,7 @@ const CountrySlider = ({
         flagImageUrl:
           getFlagImageUrl(item.visaCardJson?.flagImage) || undefined,
         subtitle: item.subtitle || "Get your Visa by 24 hours",
+        priceContent: item.visaCardJson?.priceContent || undefined,
       };
     });
   };
@@ -194,6 +196,7 @@ const CountrySlider = ({
             image: "",
             perAdult: true,
             eVisa: false,
+            priceContent: "per adult",
           },
         ]);
       } finally {

@@ -31,6 +31,7 @@ interface VisaCountry {
   eVisa?: boolean;
   flagImageUrl?: string;
   subtitle?: string;
+  priceContent?: string;
 }
 
 interface VisaCardProps {
@@ -104,11 +105,10 @@ const VisaCard = ({
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-1">
             <span className="text-base font-semibold text-gray-900">
-              {visa.currency}
-              {visa.price.toLocaleString()}
+              {visa.currency} {visa.price.toLocaleString()}
             </span>
-            {visa.perAdult && (
-              <span className="text-xs text-gray-500">per adult</span>
+            {visa.priceContent && (
+              <span className="text-xs text-gray-500">{visa.priceContent}</span>
             )}
           </div>
           <ChevronRight className="w-4 h-4 text-yellow-500 flex-shrink-0" />
