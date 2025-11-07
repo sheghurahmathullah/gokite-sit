@@ -196,7 +196,7 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
       {/* HERO SECTION */}
       {/* ============================================ */}
       <section className="relative w-full bg-[#dbf3ff] overflow-hidden pb-0 mb-0">
-        <div className="px-6 lg:px-20 py-1 lg:py-2">
+        <div className="px-6 lg:px-20 pt-1 lg:pt-2">
           <div className="grid lg:grid-cols-2 gap-8 items-center">
             {/* Left Content */}
             <div className="space-y-4">

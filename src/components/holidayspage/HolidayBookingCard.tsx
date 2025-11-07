@@ -172,9 +172,7 @@ const HolidayBookingCard = () => {
           <input
             type="text"
             placeholder={
-              searchType === "city"
-                ? "Select City"
-                : "Select Country"
+              searchType === "city" ? "Select City" : "Select Country"
             }
             value={searchQuery}
             onChange={handleSearchInputChange}
@@ -184,7 +182,7 @@ const HolidayBookingCard = () => {
 
           {/* Autocomplete Dropdown */}
           {showDropdown && (
-            <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+            <div className="absolute top-full left-0 w-[50%] z-50 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
               {isLoading ? (
                 <div className="p-4 text-sm text-gray-500 text-center">
                   Loading...
@@ -194,9 +192,11 @@ const HolidayBookingCard = () => {
                   <div
                     key={item.id}
                     onClick={() => handleSelectSuggestion(item)}
-                    className="p-3 hover:bg-gray-100 cursor-pointer transition-colors"
+                    className="p-3 hover:bg-gray-100 cursor-pointer transition-colors text-left"
                   >
-                    <span className="text-sm text-gray-900">{item.label}</span>
+                    <span className="text-sm text-gray-900 block text-left">
+                      {item.label}
+                    </span>
                   </div>
                 ))
               ) : (
