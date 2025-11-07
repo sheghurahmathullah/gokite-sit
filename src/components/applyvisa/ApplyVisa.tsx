@@ -103,45 +103,48 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
   // ============================================
 
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      setScrollPosition(window.scrollY);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrollPosition(window.scrollY);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   const detectActiveTabByScroll = () => {
-    const viewportHeight = window.innerHeight;
-    const scrollTop = window.scrollY;
+    const tabsHeight = 80; // Height of sticky tabs navigation
+    const offset = 100; // Additional offset for better UX
 
-    const tabSections = tabs
-      .map((tab) => {
-        const sectionElement = document.getElementById(tab.sectionId);
-        if (!sectionElement) return null;
+    // Find which section is currently in view
+    for (const tab of tabs) {
+      const sectionElement = document.getElementById(tab.sectionId);
+      if (!sectionElement) continue;
 
-        const rect = sectionElement.getBoundingClientRect();
-        const visiblePixels = Math.min(
-          Math.max(0, viewportHeight - Math.max(0, rect.top)),
-          rect.height
-        );
+      const rect = sectionElement.getBoundingClientRect();
+      const sectionTop = rect.top;
+      const sectionBottom = rect.bottom;
 
-        return {
-          tab: tab.id,
-          visiblePixels,
-        };
-      })
-      .filter((section) => section !== null);
+      // Check if section is in the viewport (accounting for sticky tabs)
+      // A section is considered active if its top is within the upper half of viewport
+      if (
+        sectionTop <= tabsHeight + offset &&
+        sectionBottom > tabsHeight + offset
+      ) {
+        return tab.id;
+      }
+    }
 
-    if (tabSections.length === 0) return activeTab;
-
-    const mostVisibleSection = tabSections.reduce((prev, current) =>
-      prev.visiblePixels > current.visiblePixels ? prev : current
-    );
-
-    return mostVisibleSection.tab as VisaTab;
+    return activeTab;
   };
 
   useEffect(() => {
@@ -149,6 +152,7 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
     if (detectedTab !== activeTab) {
       setActiveTab(detectedTab);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scrollPosition]);
 
   const handleTabClick = (tab: VisaTab) => {
@@ -158,10 +162,14 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
     );
 
     if (sectionElement) {
-      sectionElement.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      const tabsHeight = 60; // Approximate height of sticky tabs
+      const yOffset = -tabsHeight - 20; // Add some padding
+      const y =
+        sectionElement.getBoundingClientRect().top +
+        window.pageYOffset +
+        yOffset;
+
+      window.scrollTo({ top: y, behavior: "smooth" });
     }
   };
 
@@ -217,7 +225,7 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
       {/* ============================================ */}
       {/* STICKY TABS NAVIGATION */}
       {/* ============================================ */}
-      <div className="w-full bg-[#f0f0f0] border-b border-border py-2 sticky top-0 z-50">
+      <div className="w-full bg-[#f0f0f0] border-b border-border py-2 sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-3 lg:px-8">
           <div className="flex items-center justify-center gap-16 py-0">
             {tabs.map((tab) => (
@@ -225,7 +233,7 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
                 className={`
-                  relative px-2 py-3 text-[13px] lg:text-[15px] font-semibold transition-colors
+                  relative px-2 py-3 text-[13px] lg:text-[15px] font-semibold transition-all duration-300
                   focus:outline-none whitespace-nowrap
                   ${
                     activeTab === tab.id
@@ -236,9 +244,13 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
                 aria-current={activeTab === tab.id ? "page" : undefined}
               >
                 {tab.label}
-                {activeTab === tab.id && (
-                  <span className="absolute left-1/2 -bottom-0.5 -translate-x-1/2 w-[80%] h-[3px] bg-[#e2b300] rounded-t-sm"></span>
-                )}
+                <span
+                  className={`absolute left-1/2 -bottom-0.5 -translate-x-1/2 w-[80%] h-[3px] bg-[#e2b300] rounded-t-sm transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? "opacity-100 scale-100"
+                      : "opacity-0 scale-75"
+                  }`}
+                ></span>
               </button>
             ))}
           </div>
