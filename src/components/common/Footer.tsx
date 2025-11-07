@@ -93,13 +93,13 @@ const Footer = () => {
               Contact our Travel agent
             </p>
             <p className="text-sm text-gray-700 mb-1">
-              Monday-Friday (9Am-5Pm)
+              Monday-Friday (9:00 am - 5:00 pm)
             </p>
             <p className="text-sm font-semibold text-gray-900">
               +91 7620370639
             </p>
             <p className="text-sm text-gray-700 mt-3">
-              Email : Support@gokite.com
+              Email : support@gokite.com
             </p>
 
             {/* Social Icons */}
