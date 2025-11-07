@@ -160,7 +160,7 @@ const HolidayBookingCard = () => {
   }, []);
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6">
+    <div className="w-full max-w-7xl mx-auto bg-white rounded-2xl shadow-xl p-6">
       <h2 className="text-xl font-bold mb-4 text-left">Book Holiday</h2>
 
       <div className="bg-gray-50 rounded-lg p-4 flex flex-col lg:flex-row items-center gap-4">
