@@ -30,8 +30,13 @@ export interface VisaCarouselRef {
 const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
   ({ destinations }, ref) => {
     const [api, setApi] = useState<CarouselApi>();
-    const [canScrollPrev, setCanScrollPrev] = useState(false);
-    const [canScrollNext, setCanScrollNext] = useState(false);
+    const [canScrollPrev, setCanScrollPrev] = useState(true);
+    const [canScrollNext, setCanScrollNext] = useState(true);
+
+    // Duplicate destinations for seamless infinite loop
+    const loopedDestinations = destinations.length > 0 
+      ? [...destinations, ...destinations, ...destinations] 
+      : destinations;
 
     const autoplayRef = useRef(
       Autoplay({
@@ -39,7 +44,7 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
         stopOnInteraction: false,
         stopOnMouseEnter: true,
         stopOnFocusIn: false,
-        playOnInit: true, // Start playing immediately
+        playOnInit: true,
         rootNode: (emblaRoot) => emblaRoot.parentElement,
       })
     );
@@ -50,8 +55,9 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
       }
 
       const onSelect = () => {
-        setCanScrollPrev(api.canScrollPrev());
-        setCanScrollNext(api.canScrollNext());
+        // Always allow scrolling in loop mode
+        setCanScrollPrev(true);
+        setCanScrollNext(true);
       };
 
       onSelect();
@@ -60,6 +66,7 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
 
       return () => {
         api.off("select", onSelect);
+        api.off("reInit", onSelect);
       };
     }, [api]);
 
@@ -67,8 +74,8 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
     useImperativeHandle(ref, () => ({
       scrollNext: () => api?.scrollNext(),
       scrollPrev: () => api?.scrollPrev(),
-      canScrollNext,
-      canScrollPrev,
+      canScrollNext: true,
+      canScrollPrev: true,
     }));
 
     return (
@@ -79,10 +86,11 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
             align: "start",
             loop: true,
             dragFree: false,
-            slidesToScroll: 1, // Scroll one card at a time
+            slidesToScroll: 1,
             skipSnaps: false,
-            duration: 25, // Smooth transition duration
+            duration: 30,
             watchDrag: true,
+            containScroll: false,
           }}
           plugins={[autoplayRef.current]}
           className="w-full"
@@ -90,8 +98,7 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
           onMouseLeave={() => autoplayRef.current.play()}
         >
           <CarouselContent className="-ml-4">
-            {/* Render destinations directly - loop handled by Embla */}
-            {destinations.map((destination, index) => (
+            {loopedDestinations.map((destination, index) => (
               <CarouselItem
                 key={`${destination.id}-${index}`}
                 className="pl-4 md:basis-1/2 lg:basis-1/4 xl:basis-1/4"

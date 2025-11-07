@@ -82,7 +82,7 @@ const HolidaysPage = () => {
 
   // CMS-driven sections: Dynamic Holiday Sections
   const { getPageIdWithFallback } = usePageContext();
-  
+
   // New structure for dynamic sections
   interface SectionWithData {
     pageSectionId: string;
@@ -90,10 +90,12 @@ const HolidaysPage = () => {
     contentType: string;
     data: DestinationShape[];
   }
-  
+
   const [dynamicSections, setDynamicSections] = useState<SectionWithData[]>([]);
   const [isSectionsLoading, setIsSectionsLoading] = useState<boolean>(false);
-  const dynamicCarouselRefs = useRef<Map<string, HolidayCarouselRef>>(new Map());
+  const dynamicCarouselRefs = useRef<Map<string, HolidayCarouselRef>>(
+    new Map()
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -138,7 +140,10 @@ const HolidaysPage = () => {
               });
 
               if (!cardsRes.ok) {
-                console.error("Failed to load cards for section:", section.pageSectionId);
+                console.error(
+                  "Failed to load cards for section:",
+                  section.pageSectionId
+                );
                 return {
                   pageSectionId: section.pageSectionId,
                   title: section.title,
@@ -154,7 +159,8 @@ const HolidaysPage = () => {
 
               // Map to DestinationCard shape
               const mapped: DestinationShape[] = items.map((item) => {
-                const days = Number(item.noOfDays ?? item.cardJson?.days ?? 0) || 0;
+                const days =
+                  Number(item.noOfDays ?? item.cardJson?.days ?? 0) || 0;
                 const nights =
                   Number(item.noOfNights ?? item.cardJson?.nights ?? 0) || 0;
                 const ratingRaw =
@@ -170,8 +176,8 @@ const HolidaysPage = () => {
                   Number((item.newPrice || "0").replace(/[, ]/g, "")) || 0;
 
                 const getCount = (label: string) => {
-                  const match = (item.cardJson?.itineraryIcons || []).find((i) =>
-                    (i.text || "").toLowerCase().includes(label)
+                  const match = (item.cardJson?.itineraryIcons || []).find(
+                    (i) => (i.text || "").toLowerCase().includes(label)
                   );
                   const m = match?.text?.match(/(\d+)/);
                   return m ? Number(m[1]) : 0;
@@ -184,7 +190,9 @@ const HolidaysPage = () => {
 
                 const imageName = item.cardJson?.heroImage || "";
                 const image = imageName
-                  ? `/api/cms/file-download?image=${encodeURIComponent(imageName)}`
+                  ? `/api/cms/file-download?image=${encodeURIComponent(
+                      imageName
+                    )}`
                   : "/images/holidays/hero-sunset.jpg";
 
                 return {
@@ -259,8 +267,27 @@ const HolidaysPage = () => {
           body: JSON.stringify({ packageCategoryId: selectedCategoryId }),
         });
         const json = await res.json();
-        const upstream = json?.data; // proxy wraps upstream at data
-        const items: CardApiItem[] = upstream?.data ?? [];
+
+        // Debug logging
+        console.log("Holiday Categories API Response:", json);
+        console.log("Selected Category ID:", selectedCategoryId);
+
+        // Handle multiple possible response structures
+        let items: CardApiItem[] = [];
+
+        if (Array.isArray(json?.data?.data)) {
+          // Structure: { data: { data: [...] } }
+          items = json.data.data;
+        } else if (Array.isArray(json?.data)) {
+          // Structure: { data: [...] }
+          items = json.data;
+        } else if (Array.isArray(json)) {
+          // Structure: [...]
+          items = json;
+        }
+
+        console.log("Extracted items count:", items.length);
+        console.log("First item:", items[0]);
 
         const mapped: DestinationShape[] = (items || []).map((item) => {
           // numbers and fallbacks
@@ -318,8 +345,19 @@ const HolidaysPage = () => {
           };
         });
 
-        if (!isCancelled) setDestinations(mapped);
-      } catch (_) {
+        console.log("Mapped destinations count:", mapped.length);
+        console.log("First mapped destination:", mapped[0]);
+
+        if (!isCancelled) {
+          setDestinations(mapped);
+          console.log(
+            "Destinations state updated with",
+            mapped.length,
+            "items"
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching holiday categories:", error);
         if (!isCancelled) setDestinations([]);
       } finally {
         if (!isCancelled) setIsLoading(false);
@@ -436,29 +474,44 @@ const HolidaysPage = () => {
             {/* Destination Cards - Positioned to overlap with banner */}
             <div className="relative -mt-32 px-6 lg:px-8 pb-6">
               <div className="bg-white rounded-2xl p-4">
-                {isLoading ? (
-                  <div className="text-center text-gray-600 text-sm bg-gray-50 rounded-2xl p-12">
-                    <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-                    <p className="font-medium">Loading packages...</p>
-                  </div>
-                ) : destinations.length === 0 ? (
-                  <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                      No Data Available
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      No packages found for{" "}
-                      {categories.find((c) => c.id === selectedCategoryId)
-                        ?.label || "this category"}
-                      . Please try another category.
-                    </p>
-                  </div>
-                ) : (
-                  <HolidayCarousel
-                    ref={categoryCarouselRef}
-                    destinations={destinations}
-                  />
-                )}
+                {(() => {
+                  console.log(
+                    "Render state - isLoading:",
+                    isLoading,
+                    "destinations.length:",
+                    destinations.length
+                  );
+                  return isLoading ? (
+                    <div className="text-center text-gray-600 text-sm bg-gray-50 rounded-2xl p-12">
+                      <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                      <p className="font-medium">Loading packages...</p>
+                    </div>
+                  ) : destinations.length === 0 ? (
+                    <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                        No Data Available
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        No packages found for{" "}
+                        {categories.find((c) => c.id === selectedCategoryId)
+                          ?.label || "this category"}
+                        . Please try another category.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {console.log(
+                        "Rendering HolidayCarousel with",
+                        destinations.length,
+                        "destinations"
+                      )}
+                      <HolidayCarousel
+                        ref={categoryCarouselRef}
+                        destinations={destinations}
+                      />
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -474,7 +527,10 @@ const HolidaysPage = () => {
           </section>
         ) : (
           dynamicSections.map((section, index) => (
-            <section key={section.pageSectionId} className="mt-4 max-w-8xl mx-auto">
+            <section
+              key={section.pageSectionId}
+              className="mt-4 max-w-8xl mx-auto"
+            >
               <div className="mb-6">
                 <SectionHeader
                   title={section.title}
@@ -507,7 +563,10 @@ const HolidaysPage = () => {
                 <HolidayCarousel
                   ref={(ref) => {
                     if (ref) {
-                      dynamicCarouselRefs.current.set(section.pageSectionId, ref);
+                      dynamicCarouselRefs.current.set(
+                        section.pageSectionId,
+                        ref
+                      );
                     }
                   }}
                   destinations={section.data}
