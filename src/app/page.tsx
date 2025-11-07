@@ -61,14 +61,10 @@ interface SectionWithData {
   data: any[];
 }
 
-// Helper to read cookie on client
-function getCookie(name: string): string {
-  if (typeof document === "undefined") return "";
-  const match = document.cookie
-    .split(";")
-    .map((c) => c.trim())
-    .find((c) => c.startsWith(`${name}=`));
-  return match ? decodeURIComponent(match.split("=")[1]) : "";
+interface BannerSection {
+  pageSectionId: string;
+  title: string;
+  contentType: string;
 }
 
 const FALLBACK_IMAGE = "/landingpage/hero.png";
@@ -77,27 +73,26 @@ const Index = () => {
   const router = useRouter();
   const [holidaySections, setHolidaySections] = useState<SectionWithData[]>([]);
   const [visaSections, setVisaSections] = useState<SectionWithData[]>([]);
+  const [bannerSection, setBannerSection] = useState<BannerSection | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const dataFetchedRef = useRef(false); // Track if data has been fetched
   const holidayCarouselRefs = useRef<Map<string, HolidayCarouselRef>>(
     new Map()
   );
   const visaCarouselRefs = useRef<Map<string, VisaCarouselRef>>(new Map());
 
-  const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
-
-  const getAuthHeaders = () => {
-    const token = getCookie("accesstoken");
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (token) headers["Authorization"] = `Bearer ${token}`;
-    return headers;
-  };
+  const { 
+    getPageIdWithFallback, 
+    loading: pageLoading, 
+    isAuthenticated,
+    initialAuthCheckDone
+  } = usePageContext();
 
   // Fetch sections data
   const fetchSectionsData = async (): Promise<Section[]> => {
     try {
+      console.log("[API Call] Fetching /api/cms/pages-sections");
       const sectionsResponse = await fetch("/api/cms/pages-sections", {
         method: "POST",
         body: JSON.stringify({
@@ -110,6 +105,7 @@ const Index = () => {
       }
 
       const sectionsData = await sectionsResponse.json();
+      console.log("[API Call] Received pages-sections data");
       return sectionsData.data || [];
     } catch (err) {
       console.error("Error fetching sections:", err);
@@ -122,9 +118,12 @@ const Index = () => {
     sectionId: string
   ): Promise<HolidayCardItem[]> => {
     try {
+      console.log(`[API Call] Fetching /api/cms/sections-holiday-cards for section: ${sectionId}`);
       const response = await fetch("/api/cms/sections-holiday-cards", {
         method: "POST",
-        headers: getAuthHeaders(),
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           pageSectionId: sectionId,
           limitValue: 10,
@@ -136,6 +135,7 @@ const Index = () => {
       }
 
       const data = await response.json();
+      console.log(`[API Call] Received holiday cards for section: ${sectionId}`);
       return Array.isArray(data?.data) ? data.data : [];
     } catch (err) {
       console.error("Error fetching holiday cards:", err);
@@ -148,9 +148,12 @@ const Index = () => {
     sectionId: string
   ): Promise<VisaCardItem[]> => {
     try {
+      console.log(`[API Call] Fetching /api/cms/sections-visa-cards for section: ${sectionId}`);
       const response = await fetch("/api/cms/sections-visa-cards", {
         method: "POST",
-        headers: getAuthHeaders(),
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           pageSectionId: sectionId,
           limitValue: 10,
@@ -162,6 +165,7 @@ const Index = () => {
       }
 
       const data = await response.json();
+      console.log(`[API Call] Received visa cards for section: ${sectionId}`);
       return Array.isArray(data?.data) ? data.data : [];
     } catch (err) {
       console.error("Error fetching visa cards:", err);
@@ -233,18 +237,58 @@ const Index = () => {
     });
   };
 
-  // Load data on component mount
+  // Load data on component mount - only once and only if authenticated
   useEffect(() => {
-    if (pageLoading) return;
+    console.log(`[HomePage useEffect] Called - isAuthenticated: ${isAuthenticated}, pageLoading: ${pageLoading}, dataFetched: ${dataFetchedRef.current}`);
+    
+    // Early exit if data already fetched or still loading context
+    if (dataFetchedRef.current) {
+      console.log("[HomePage useEffect] Skipping - data already fetched");
+      return;
+    }
+    
+    if (pageLoading) {
+      console.log("[HomePage useEffect] Skipping - page context still loading");
+      return;
+    }
+
+    // If not authenticated, reset state and wait
+    if (!isAuthenticated) {
+      console.log("[HomePage useEffect] Skipping - user not authenticated");
+      setHolidaySections([]);
+      setVisaSections([]);
+      setBannerSection(null);
+      setLoading(false);
+      return;
+    }
+
+    // Mark as fetching immediately to prevent race conditions
+    console.log("[HomePage useEffect] Proceeding with data fetch");
+    dataFetchedRef.current = true;
 
     const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
 
+        console.log("Starting data fetch - this should only happen once");
+
         // Fetch sections first
         const sections = await fetchSectionsData();
         console.log("Fetched sections:", sections);
+
+        // Find banner section
+        const bannerFiltered = sections.find(
+          (section) => section.contentType === "BANNER"
+        );
+        if (bannerFiltered) {
+          console.log("Banner section found:", bannerFiltered);
+          setBannerSection({
+            pageSectionId: bannerFiltered.pageSectionId,
+            title: bannerFiltered.title,
+            contentType: bannerFiltered.contentType,
+          });
+        }
 
         // Find all holiday destinations sections
         const holidayFiltered = sections.filter(
@@ -258,59 +302,116 @@ const Index = () => {
         console.log("Holiday sections:", holidayFiltered);
         console.log("Visa sections:", visaFiltered);
 
-        // Fetch and transform holiday cards from all holiday sections
-        if (holidayFiltered.length > 0) {
-          const holidaySectionsWithData = await Promise.all(
-            holidayFiltered.map(async (section) => {
-              const cardsData = await fetchHolidayCardsData(
-                section.pageSectionId
-              );
-              const transformedData = transformHolidayData(cardsData);
-              return {
-                pageSectionId: section.pageSectionId,
-                title: section.title,
-                contentType: section.contentType,
-                data: transformedData,
-              };
-            })
-          );
-          setHolidaySections(holidaySectionsWithData);
-        }
+        // Fetch and transform holiday cards from all holiday sections in parallel
+        const holidayPromises = holidayFiltered.map(async (section) => {
+          const cardsData = await fetchHolidayCardsData(section.pageSectionId);
+          const transformedData = transformHolidayData(cardsData);
+          return {
+            pageSectionId: section.pageSectionId,
+            title: section.title,
+            contentType: section.contentType,
+            data: transformedData,
+          };
+        });
 
-        // Fetch and transform visa cards from all visa sections
-        if (visaFiltered.length > 0) {
-          const visaSectionsWithData = await Promise.all(
-            visaFiltered.map(async (section) => {
-              const cardsData = await fetchVisaCardsData(section.pageSectionId);
-              const transformedData = transformVisaData(cardsData);
-              return {
-                pageSectionId: section.pageSectionId,
-                title: section.title,
-                contentType: section.contentType,
-                data: transformedData,
-              };
-            })
-          );
-          console.log("Visa sections with data:", visaSectionsWithData);
-          setVisaSections(visaSectionsWithData);
-        }
+        // Fetch and transform visa cards from all visa sections in parallel
+        const visaPromises = visaFiltered.map(async (section) => {
+          const cardsData = await fetchVisaCardsData(section.pageSectionId);
+          const transformedData = transformVisaData(cardsData);
+          return {
+            pageSectionId: section.pageSectionId,
+            title: section.title,
+            contentType: section.contentType,
+            data: transformedData,
+          };
+        });
+
+        // Execute all holiday and visa fetches in parallel
+        const [holidaySectionsWithData, visaSectionsWithData] = await Promise.all([
+          Promise.all(holidayPromises),
+          Promise.all(visaPromises),
+        ]);
+
+        console.log("Holiday sections with data:", holidaySectionsWithData);
+        console.log("Visa sections with data:", visaSectionsWithData);
+
+        // Update state once with all data
+        setHolidaySections(holidaySectionsWithData);
+        setVisaSections(visaSectionsWithData);
+        
+        console.log("Data fetch completed successfully");
       } catch (err: unknown) {
         console.error("Error loading data:", err);
         setError(err instanceof Error ? err.message : String(err));
+        // Reset the flag on error so user can retry
+        dataFetchedRef.current = false;
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [pageLoading]);
+  }, [isAuthenticated, pageLoading]); // Dependencies in stable order
 
-  if (loading) {
-    return <div>Loading...</div>;
+  // Determine if we should show loading
+  const shouldShowLoading = 
+    !initialAuthCheckDone || // Auth check not complete
+    pageLoading || // Page context is loading
+    loading; // Component is fetching data
+
+  // Show loading state
+  if (shouldShowLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TopNav />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
+  // Show error state
   if (error) {
-    return <div>Error: {error}</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <TopNav />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center text-red-600 bg-red-50 rounded-2xl p-12 max-w-md">
+            <h3 className="text-xl font-semibold mb-2">Error Loading Data</h3>
+            <p className="text-sm">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show sign-in prompt only if we've confirmed user is not authenticated
+  if (initialAuthCheckDone && !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TopNav />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center bg-blue-50 rounded-2xl p-12 max-w-md">
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              Please Sign In
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              You need to sign in to view holiday and visa packages.
+            </p>
+            <Button
+              onClick={() => router.push("/sign-in")}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
+            >
+              Go to Sign In
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -319,7 +420,7 @@ const Index = () => {
 
       <main>
         {/* Hero Section */}
-        <HeroBanner />
+        <HeroBanner bannerSection={bannerSection} />
 
         {/* Holiday Sections - Dynamic */}
         {holidaySections.length === 0 ? (

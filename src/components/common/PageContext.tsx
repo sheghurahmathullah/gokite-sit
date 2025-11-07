@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 
 // Define types for better type safety
 interface Page {
@@ -14,6 +14,8 @@ interface PageContextType {
   pageIds: Record<string, string>;
   loading: boolean;
   error: string | null;
+  isAuthenticated: boolean;
+  initialAuthCheckDone: boolean;
   getPageId: (pageType: string) => string | null;
   getPageIdWithFallback: (
     pageType: string,
@@ -43,48 +45,118 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
   const [pageIds, setPageIds] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [initialAuthCheckDone, setInitialAuthCheckDone] = useState(false);
+  const isAuthenticatedRef = useRef(false); // Ref to track auth status for event handlers
+  const hasFetchedRef = useRef(false); // Ref to prevent duplicate fetches
 
-  // Attempt fetching pages; if unauthorized (401), retry with capped exponential backoff
+  // Sync ref with state
   useEffect(() => {
-    let retryTimeout: NodeJS.Timeout;
-    let attempt = 0;
-    const maxAttempts = 8; // ~ up to ~2 minutes with exponential backoff
+    isAuthenticatedRef.current = isAuthenticated;
+  }, [isAuthenticated]);
 
-    const tryFetch = async () => {
+  // Check authentication status and fetch pages only if authenticated
+  useEffect(() => {
+    let mounted = true;
+
+    const checkAuthAndFetch = async () => {
+      console.log("[PageContext] checkAuthAndFetch called, hasFetched:", hasFetchedRef.current);
+      
+      // If already fetched successfully, skip
+      if (hasFetchedRef.current) {
+        console.log("[PageContext] Skipping - pages already fetched");
+        return;
+      }
+      
       try {
+        // Mark as attempting to fetch
+        hasFetchedRef.current = true;
+        
+        // Just try to fetch pages - if it works, user is authenticated
         await fetchPages();
-      } catch (err: any) {
-        const message = String(err && err.message ? err.message : err);
-        if (message === "UNAUTHORIZED_401" && attempt < maxAttempts) {
-          attempt += 1;
-          setLoading(true);
-          const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 30000); // 1s,2s,4s,... capped at 30s
-          retryTimeout = setTimeout(tryFetch, delayMs);
+        if (mounted) {
+          console.log("[PageContext] Setting authenticated to true");
+          setIsAuthenticated(true);
+          setInitialAuthCheckDone(true);
+        }
+      } catch (err) {
+        // Reset flag on error so we can retry
+        hasFetchedRef.current = false;
+        
+        if (mounted) {
+          // Fetch failed, user is not authenticated
+          console.log("[PageContext] Setting authenticated to false");
+          setIsAuthenticated(false);
+          setInitialAuthCheckDone(true);
+          setLoading(false);
+          setPages([]);
+          setPageIds({});
         }
       }
     };
-    tryFetch();
-    return () => {
-      if (retryTimeout) clearTimeout(retryTimeout);
+
+    // Initial check
+    console.log("[PageContext] Initial mount - calling checkAuthAndFetch");
+    checkAuthAndFetch();
+
+    // Also check when window gains focus (user returns from another tab/window)
+    const handleFocus = () => {
+      console.log("[PageContext] Window focused, isAuthenticated:", isAuthenticatedRef.current, "hasFetched:", hasFetchedRef.current);
+      // Only recheck if not authenticated AND haven't successfully fetched yet
+      // This is for sign-in detection, not for regular navigation
+      if (!isAuthenticatedRef.current && !hasFetchedRef.current) {
+        console.log("[PageContext] Not authenticated and not fetched, rechecking...");
+        setInitialAuthCheckDone(false);
+        checkAuthAndFetch();
+      } else {
+        console.log("[PageContext] Already authenticated or fetched, skipping focus recheck");
+      }
     };
-  }, []);
+
+    // Check when page becomes visible (useful for tab switching)
+    const handleVisibilityChange = () => {
+      console.log("[PageContext] Visibility changed, state:", document.visibilityState, "isAuthenticated:", isAuthenticatedRef.current, "hasFetched:", hasFetchedRef.current);
+      // Only recheck if page is visible, not authenticated, AND haven't successfully fetched yet
+      // This is for sign-in detection, not for regular navigation
+      if (document.visibilityState === 'visible' && !isAuthenticatedRef.current && !hasFetchedRef.current) {
+        console.log("[PageContext] Page visible, not authenticated and not fetched, rechecking...");
+        setInitialAuthCheckDone(false);
+        checkAuthAndFetch();
+      } else {
+        console.log("[PageContext] Already authenticated or fetched, skipping visibility recheck");
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []); // Only run on mount
 
   const fetchPages = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      console.log("[PageContext] Fetching /api/cms/pages");
       const response = await fetch("/api/cms/pages");
 
       if (!response.ok) {
         if (response.status === 401) {
+          // User is no longer authenticated
+          console.log("[PageContext] Unauthorized - user not authenticated");
+          setIsAuthenticated(false);
           throw new Error("UNAUTHORIZED_401");
         }
         throw new Error(`Failed to fetch pages: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("Fetched pages:", data);
+      console.log("[PageContext] Successfully fetched pages:", data);
 
       setPages(data.data || []);
 
@@ -140,10 +212,6 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
     } catch (err: any) {
       console.error("Error fetching pages:", err);
       const message = String(err && err.message ? err.message : err);
-      if (message === "UNAUTHORIZED_401") {
-        // Keep loading; caller effect will retry
-        throw err;
-      }
       setError(message);
     } finally {
       setLoading(false);
@@ -176,16 +244,26 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
     return Object.keys(pageIds).filter((key) => !key.startsWith("id_"));
   };
 
+  // Wrapper for manual refetch - resets the flag to allow refetching
+  const refetchPages = async () => {
+    console.log("[PageContext] Manual refetch requested");
+    hasFetchedRef.current = false;
+    await fetchPages();
+    hasFetchedRef.current = true;
+  };
+
   const value = {
     pages,
     pageIds,
     loading,
     error,
+    isAuthenticated,
+    initialAuthCheckDone,
     getPageId,
     getPageIdWithFallback,
     getPageInfo,
     getAvailablePageTypes,
-    refetchPages: fetchPages,
+    refetchPages,
   };
 
   return <PageContext.Provider value={value}>{children}</PageContext.Provider>;

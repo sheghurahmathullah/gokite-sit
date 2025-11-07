@@ -81,7 +81,7 @@ const HolidaysPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // CMS-driven sections: Dynamic Holiday Sections
-  const { getPageIdWithFallback } = usePageContext();
+  const { getPageIdWithFallback, loading: pageLoading, isAuthenticated } = usePageContext();
 
   // New structure for dynamic sections
   interface SectionWithData {
@@ -91,21 +91,62 @@ const HolidaysPage = () => {
     data: DestinationShape[];
   }
 
+  interface BannerSection {
+    pageSectionId: string;
+    title: string;
+    contentType: string;
+  }
+
   const [dynamicSections, setDynamicSections] = useState<SectionWithData[]>([]);
+  const [bannerSection, setBannerSection] = useState<BannerSection | null>(null);
   const [isSectionsLoading, setIsSectionsLoading] = useState<boolean>(false);
+  const dataFetchedRef = useRef(false); // Track if data has been fetched
   const dynamicCarouselRefs = useRef<Map<string, HolidayCarouselRef>>(
     new Map()
   );
 
   useEffect(() => {
     let cancelled = false;
+    
     async function loadSectionCards() {
+      console.log("[HolidaysPage useEffect] Called - isAuthenticated:", isAuthenticated, "pageLoading:", pageLoading, "dataFetched:", dataFetchedRef.current);
+      
+      // Wait for PageContext to finish loading
+      if (pageLoading) {
+        console.log("[HolidaysPage useEffect] Skipping - page context still loading");
+        return;
+      }
+      
+      // Early exit if data already fetched
+      if (dataFetchedRef.current) {
+        console.log("[HolidaysPage useEffect] Skipping - data already fetched");
+        return;
+      }
+      
+      // Check authentication
+      if (!isAuthenticated) {
+        console.log("[HolidaysPage useEffect] Skipping - user not authenticated");
+        setDynamicSections([]);
+        setBannerSection(null);
+        setIsSectionsLoading(false);
+        return;
+      }
+      
+      // Mark as fetching immediately to prevent race conditions
+      dataFetchedRef.current = true;
       setIsSectionsLoading(true);
+      
       try {
         const pageId = getPageIdWithFallback("holidays");
-        if (!pageId) throw new Error("Missing holidays pageId");
+        if (!pageId) {
+          console.error("[HolidaysPage] Missing holidays pageId");
+          throw new Error("Missing holidays pageId");
+        }
+
+        console.log("[HolidaysPage] Starting data fetch - this should only happen once");
 
         // 1) Get all sections for the holidays page
+        console.log("[API Call] Fetching /api/cms/pages-sections for holidays page");
         const sectionsRes = await fetch("/api/cms/pages-sections", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -117,7 +158,23 @@ const HolidaysPage = () => {
           ? sectionsJson.data
           : [];
 
+        console.log("[API Call] Received pages-sections data");
         console.log("Fetched sections for holidays page:", sectionsArr);
+
+        // Extract banner section
+        const bannerFiltered = sectionsArr.find(
+          (section: any) => section.contentType === "BANNER"
+        );
+        if (bannerFiltered) {
+          console.log("Banner section found:", bannerFiltered);
+          if (!cancelled) {
+            setBannerSection({
+              pageSectionId: bannerFiltered.pageSectionId,
+              title: bannerFiltered.title,
+              contentType: bannerFiltered.contentType,
+            });
+          }
+        }
 
         // 2) Filter sections by HOLIDAY contentType
         const holidaySections = sectionsArr.filter(
@@ -130,6 +187,7 @@ const HolidaysPage = () => {
         if (holidaySections.length > 0) {
           const sectionsWithData = await Promise.all(
             holidaySections.map(async (section: any) => {
+              console.log(`[API Call] Fetching /api/cms/sections-holiday-cards for section: ${section.pageSectionId}`);
               const cardsRes = await fetch("/api/cms/sections-holiday-cards", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -153,6 +211,7 @@ const HolidaysPage = () => {
               }
 
               const cardsJson = await cardsRes.json();
+              console.log(`[API Call] Received holiday cards for section: ${section.pageSectionId}`);
               const items: CardApiItem[] = Array.isArray(cardsJson?.data)
                 ? cardsJson.data
                 : [];
@@ -229,10 +288,15 @@ const HolidaysPage = () => {
             setDynamicSections(sectionsWithData);
           }
         }
+        
+        console.log("[HolidaysPage] Data fetch completed successfully");
       } catch (err) {
         console.error("Error loading section cards:", err);
+        // Reset the flag on error so user can retry
+        dataFetchedRef.current = false;
         if (!cancelled) {
           setDynamicSections([]);
+          setBannerSection(null);
         }
       } finally {
         if (!cancelled) setIsSectionsLoading(false);
@@ -243,7 +307,7 @@ const HolidaysPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [getPageIdWithFallback]);
+  }, [pageLoading, isAuthenticated]); // Run when pageLoading or authentication changes
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -261,12 +325,14 @@ const HolidaysPage = () => {
     async function fetchCategory() {
       setIsLoading(true);
       try {
+        console.log(`[API Call] Fetching /api/cms/holiday-categories for category: ${selectedCategoryId}`);
         const res = await fetch("/api/cms/holiday-categories", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ packageCategoryId: selectedCategoryId }),
         });
         const json = await res.json();
+        console.log("[API Call] Received holiday categories data");
 
         // Debug logging
         console.log("Holiday Categories API Response:", json);
@@ -376,7 +442,7 @@ const HolidaysPage = () => {
 
       {/* Hero Section */}
       <main className="px-6 lg:px-12 py-8">
-        <HolidayHeroBanner />
+        <HolidayHeroBanner bannerSection={bannerSection} />
 
         {/* Trip Packages Section */}
         <section className="mt-16 max-w-8xl mx-auto">

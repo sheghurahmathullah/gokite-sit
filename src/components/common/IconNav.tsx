@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 const iconNavItems = [
   {
@@ -60,17 +61,41 @@ const TopNav = () => {
     <nav className="w-full px-6 lg:px-12 py-4 flex items-center justify-between">
       {/* Logo */}
       <div className="flex items-center gap-2">
-        <a href="/" className="cursor-pointer">
+        <Link href="/" className="cursor-pointer">
           <img src="/logo.svg" alt="GoKite" className="h-12" />
-        </a>
+        </Link>
       </div>
 
       {/* Icon navigation */}
       <div className="flex gap-4 lg:gap-12 flex-1 mx-8 ml-16">
         {iconNavItems.map((item) => {
           const active = isActive(item);
-          return (
-            <a
+          const isHashLink = item.redirectUrl === "#";
+          
+          return isHashLink ? (
+            <button
+              key={item.id}
+              onClick={(e) => e.preventDefault()}
+              className="flex flex-col items-center gap-2 group transition-transform hover:-translate-y-1"
+            >
+              <div className="w-8 h-8 lg:w-8 lg:h-8 rounded-full bg-white shadow-lg flex  group-hover:shadow-xl transition-shadow">
+                <img
+                  src={item.imgSrc}
+                  alt={item.label}
+                  className="w-6 h-6 lg:w-12 lg:h-12 object-contain"
+                />
+              </div>
+              <div className="relative">
+                <span className="text-sm font-medium text-foreground">
+                  {item.label}
+                </span>
+                {active && (
+                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-full h-1 bg-yellow-400 rounded-full"></div>
+                )}
+              </div>
+            </button>
+          ) : (
+            <Link
               key={item.id}
               href={item.redirectUrl}
               className="flex flex-col items-center gap-2 group transition-transform hover:-translate-y-1"
@@ -90,7 +115,7 @@ const TopNav = () => {
                   <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-full h-1 bg-yellow-400 rounded-full"></div>
                 )}
               </div>
-            </a>
+            </Link>
           );
         })}
       </div>

@@ -28,6 +28,7 @@ interface CountrySliderProps {
   title: string;
   type?: "popular" | "trending";
   sectionTitle: string; // New prop to identify section
+  countries?: VisaCountry[]; // Optional - if provided, skip API calls
 }
 
 // Helper function to get flag component
@@ -43,13 +44,15 @@ const CountrySlider = ({
   title,
   type = "popular",
   sectionTitle,
+  countries: countriesProp,
 }: CountrySliderProps) => {
-  const [countries, setCountries] = useState<VisaCountry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [countries, setCountries] = useState<VisaCountry[]>(countriesProp || []);
+  const [loading, setLoading] = useState(!countriesProp);
   const [error, setError] = useState<string | null>(null);
   const carouselRef = useRef<VisaCountryCarouselRef>(null);
   const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
   const router = useRouter();
+  const dataFetchedRef = useRef(false);
 
   // Read cookie helper
   const getCookie = (name: string) => {
@@ -151,14 +154,43 @@ const CountrySlider = ({
     });
   };
 
-  // Load data on component mount
+  // Update countries when prop changes
   useEffect(() => {
-    if (pageLoading) return;
+    if (countriesProp) {
+      console.log(`[CountrySlider ${sectionTitle}] Using countries from props, skipping API calls`);
+      setCountries(countriesProp);
+      setLoading(false);
+    }
+  }, [countriesProp, sectionTitle]);
+
+  // Load data on component mount - only if countries not provided via props
+  useEffect(() => {
+    // If countries provided via props, skip API calls
+    if (countriesProp) {
+      console.log(`[CountrySlider ${sectionTitle}] Skipping API calls - using prop data`);
+      return;
+    }
+
+    if (pageLoading) {
+      console.log(`[CountrySlider ${sectionTitle}] Skipping - page context still loading`);
+      return;
+    }
+
+    // Early exit if data already fetched
+    if (dataFetchedRef.current) {
+      console.log(`[CountrySlider ${sectionTitle}] Skipping - data already fetched`);
+      return;
+    }
+
+    // Mark as fetching
+    dataFetchedRef.current = true;
 
     const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
+
+        console.log(`[CountrySlider ${sectionTitle}] Fetching data via API (fallback)`);
 
         // Fetch sections
         const sections = await fetchSectionsData();
@@ -183,13 +215,14 @@ const CountrySlider = ({
         console.error("Error loading data:", err);
         setError(err.message);
         setCountries([]);
+        dataFetchedRef.current = false; // Reset on error
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [pageLoading, sectionTitle]);
+  }, [pageLoading, sectionTitle, countriesProp]);
 
   // Handle card click - store countryId and navigate
   const handleCardClick = (visa: VisaCountry) => {

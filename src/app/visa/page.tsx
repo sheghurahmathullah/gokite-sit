@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
 import HeroVisaBanner from "@/components/visa/HeroVisaBanner";
@@ -15,90 +15,292 @@ interface Section {
   contentType: string;
 }
 
+interface BannerSection {
+  pageSectionId: string;
+  title: string;
+  contentType: string;
+}
+
+interface VisaCountry {
+  id: string;
+  country: string;
+  countryCode: string;
+  price: number;
+  currency: string;
+  visaType: string;
+  visaTime: string;
+  image: string;
+  perAdult?: boolean;
+  offer?: string;
+  eVisa?: boolean;
+  flagImageUrl?: string;
+  subtitle?: string;
+  priceContent?: string;
+}
+
+interface VisaRuleAnnouncement {
+  id: string;
+  country: string;
+  countryCode: string;
+  title?: string;
+  description: string;
+  date?: string;
+  logoImage?: string;
+  cardImage?: string;
+  flagImageUrl?: string;
+  uniqueId?: string;
+}
+
+interface SectionWithVisaData {
+  pageSectionId: string;
+  title: string;
+  contentType: string;
+  data: VisaCountry[];
+}
+
 const VisaPage = () => {
-  const [visaSections, setVisaSections] = useState<Section[]>([]);
+  const [visaSectionsWithData, setVisaSectionsWithData] = useState<SectionWithVisaData[]>([]);
+  const [bannerSection, setBannerSection] = useState<BannerSection | null>(null);
+  const [visaRulesData, setVisaRulesData] = useState<VisaRuleAnnouncement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
+  const dataFetchedRef = useRef(false); // Track if data has been fetched
+  const { getPageIdWithFallback, loading: pageLoading, isAuthenticated } = usePageContext();
 
-  // Read cookie helper
-  const getCookie = (name: string) => {
-    if (typeof document === "undefined") return "";
-    const match = document.cookie
-      .split(";")
-      .map((c) => c.trim())
-      .find((c) => c.startsWith(`${name}=`));
-    return match ? decodeURIComponent(match.split("=")[1]) : "";
+  // Helper function to get flag image URL
+  const getFlagImageUrl = (imageName?: string) => {
+    if (!imageName) return undefined;
+    return `/api/cms/file-download?image=${encodeURIComponent(imageName)}`;
   };
 
-  const getAuthHeaders = () => {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    const token = getCookie("accesstoken");
-    if (token) headers["Authorization"] = `Bearer ${token}`;
-    return headers;
+  // Transform API data to component format
+  const transformVisaData = (apiData: any[]): VisaCountry[] => {
+    return apiData.map((item) => {
+      const countryCode =
+        item.visaCardJson?.countryCode ||
+        item.visaCardCountryId ||
+        item.countryCode ||
+        "US";
+
+      return {
+        id: item.visaCardCountryId || item.id,
+        country: item.visaCardTitle || item.country,
+        countryCode: countryCode,
+        price: parseFloat(item.newPrice || item.price || "0"),
+        currency: item.currency || "₹",
+        visaType: item.visaCardJson?.subTitle || "Tourist Visa",
+        visaTime: item.visaCardJson?.visaTime || "",
+        image: item.visaCardJson?.image || "",
+        perAdult: item.visaCardJson?.perAdult || true,
+        eVisa: item.visaCardJson?.eVisa || false,
+        flagImageUrl: getFlagImageUrl(item.visaCardJson?.flagImage),
+        subtitle: item.subtitle || "Get your Visa by 24 hours",
+        priceContent: item.visaCardJson?.priceContent || undefined,
+      };
+    });
   };
 
-  // Fetch sections data
-  const fetchSectionsData = async (): Promise<Section[]> => {
-    try {
-      const pageId = getPageIdWithFallback("visa-landing-page");
-      
-      const sectionsResponse = await fetch("/api/cms/pages-sections", {
-        method: "POST",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ pageId }),
-      });
+  // Transform visa rules API data
+  const transformVisaRulesData = (apiData: any[]): VisaRuleAnnouncement[] => {
+    return apiData.map((item) => {
+      const countryCode =
+        item.visaCardJson?.countryCode ||
+        item.visaCardCountryId ||
+        item.countryCode ||
+        "US";
 
-      if (!sectionsResponse.ok) {
-        throw new Error("Failed to fetch sections data");
-      }
-
-      const sectionsData = await sectionsResponse.json();
-      return sectionsData.data || [];
-    } catch (err) {
-      console.error("Error fetching sections:", err);
-      throw err;
-    }
+      return {
+        id: item.sectionVisaCardUniqueId || item.id,
+        country: item.visaCardTitle || "Unknown Country",
+        countryCode: countryCode,
+        title: item.title || item.visaCardJson?.title,
+        description: item.visaCardJson?.description || "",
+        cardImage: item.visaCardJson?.cardImage || "",
+        flagImageUrl: getFlagImageUrl(item.visaCardJson?.flagImage),
+        uniqueId: item.sectionVisaCardUniqueId,
+      };
+    });
   };
 
   useEffect(() => {
-    if (pageLoading) return;
-
     const loadData = async () => {
+      console.log("[VisaPage useEffect] Called - isAuthenticated:", isAuthenticated, "pageLoading:", pageLoading, "dataFetched:", dataFetchedRef.current);
+      
+      // Wait for PageContext to finish loading
+      if (pageLoading) {
+        console.log("[VisaPage useEffect] Skipping - page context still loading");
+        return;
+      }
+      
+      // Early exit if data already fetched
+      if (dataFetchedRef.current) {
+        console.log("[VisaPage useEffect] Skipping - data already fetched");
+        return;
+      }
+      
+      // Check authentication
+      if (!isAuthenticated) {
+        console.log("[VisaPage useEffect] Skipping - user not authenticated");
+        setVisaSectionsWithData([]);
+        setBannerSection(null);
+        setVisaRulesData([]);
+        setLoading(false);
+        return;
+      }
+      
+      // Mark as fetching immediately to prevent race conditions
+      dataFetchedRef.current = true;
+      
       try {
         setLoading(true);
         setError(null);
 
+        const pageId = getPageIdWithFallback("visaLanding");
+        if (!pageId) {
+          console.error("[VisaPage] Missing visa landing pageId");
+          throw new Error("Missing visa landing pageId");
+        }
+
+        console.log("[VisaPage] Starting data fetch - this should only happen once");
+
         // Fetch sections
-        const sections = await fetchSectionsData();
+        console.log("[API Call] Fetching /api/cms/pages-sections for visa page");
+        const sectionsResponse = await fetch("/api/cms/pages-sections", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ pageId }),
+        });
+
+        if (!sectionsResponse.ok) {
+          throw new Error("Failed to fetch sections data");
+        }
+
+        const sectionsData = await sectionsResponse.json();
+        const sections = sectionsData.data || [];
+        console.log("[API Call] Received pages-sections data");
         console.log("Fetched visa sections:", sections);
+
+        // Extract banner section
+        const bannerFiltered = sections.find(
+          (section: Section) => section.contentType === "BANNER"
+        );
+        if (bannerFiltered) {
+          console.log("Banner section found:", bannerFiltered);
+          setBannerSection({
+            pageSectionId: bannerFiltered.pageSectionId,
+            title: bannerFiltered.title,
+            contentType: bannerFiltered.contentType,
+          });
+        }
 
         // Filter sections by VISA contentType
         const visaFiltered = sections.filter(
-          (section) => section.contentType === "VISA"
+          (section: Section) => section.contentType === "VISA"
         );
 
         console.log("Filtered visa sections:", visaFiltered);
-        setVisaSections(visaFiltered);
+
+        // Find the Visa Rules Announcement section
+        const visaRulesSection = visaFiltered.find(
+          (section: Section) => section.title === "Visa Rules Announcement"
+        );
+
+        console.log("Visa Rules section:", visaRulesSection);
+
+        // Filter out regular visa sections (exclude rules section)
+        const regularVisaSections = visaFiltered.filter(
+          (section: Section) => section.title !== "Visa Rules Announcement"
+        );
+
+        // Fetch visa cards for all regular sections in parallel
+        if (regularVisaSections.length > 0) {
+          const visaSectionsDataPromises = regularVisaSections.map(async (section: Section) => {
+            console.log(`[API Call] Fetching /api/cms/sections-visa-cards for section: ${section.pageSectionId}`);
+            const response = await fetch("/api/cms/sections-visa-cards", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ pageSectionId: section.pageSectionId }),
+            });
+
+            if (!response.ok) {
+              console.error("Failed to fetch visa cards for section:", section.pageSectionId);
+              return {
+                pageSectionId: section.pageSectionId,
+                title: section.title,
+                contentType: section.contentType,
+                data: [],
+              };
+            }
+
+            const data = await response.json();
+            console.log(`[API Call] Received visa cards for section: ${section.pageSectionId}`);
+            const visaCards = Array.isArray(data?.data) ? data.data : [];
+
+            // Transform data
+            const transformedData = transformVisaData(visaCards);
+
+            return {
+              pageSectionId: section.pageSectionId,
+              title: section.title,
+              contentType: section.contentType,
+              data: transformedData,
+            };
+          });
+
+          const visaSectionsWithDataResult = await Promise.all(visaSectionsDataPromises);
+          setVisaSectionsWithData(visaSectionsWithDataResult);
+        }
+
+        // Fetch visa rules data if section exists
+        if (visaRulesSection) {
+          console.log(`[API Call] Fetching /api/cms/sections-visa-cards-rules for section: ${visaRulesSection.pageSectionId}`);
+          const rulesResponse = await fetch("/api/cms/sections-visa-cards-rules", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ pageSectionId: visaRulesSection.pageSectionId }),
+          });
+
+          if (rulesResponse.ok) {
+            const rulesData = await rulesResponse.json();
+            console.log(`[API Call] Received visa rules data`);
+            const rulesArray = Array.isArray(rulesData?.data) ? rulesData.data : [];
+            const transformedRules = transformVisaRulesData(rulesArray);
+            setVisaRulesData(transformedRules);
+          } else {
+            console.error("Failed to fetch visa rules data");
+            setVisaRulesData([]);
+          }
+        }
+        
+        console.log("[VisaPage] Data fetch completed successfully");
       } catch (err: unknown) {
         console.error("Error loading data:", err);
         setError(err instanceof Error ? err.message : String(err));
+        // Reset the flag on error so user can retry
+        dataFetchedRef.current = false;
+        setVisaSectionsWithData([]);
+        setBannerSection(null);
+        setVisaRulesData([]);
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [pageLoading]);
+  }, [pageLoading, isAuthenticated]);
 
   return (
     <div className="min-h-screen bg-white">
       <TopNav />
 
       <main>
-        <HeroVisaBanner />
+        <HeroVisaBanner bannerSection={bannerSection} />
 
         {/* Dynamic Visa Sections */}
         {loading ? (
@@ -114,13 +316,14 @@ const VisaPage = () => {
               Error: {error}
             </div>
           </section>
-        ) : visaSections.length > 0 ? (
-          visaSections.map((section) => (
+        ) : visaSectionsWithData.length > 0 ? (
+          visaSectionsWithData.map((section) => (
             <CountrySlider
               key={section.pageSectionId}
               title={section.title}
               sectionTitle={section.title}
               type="popular"
+              countries={section.data}
             />
           ))
         ) : (
@@ -136,7 +339,7 @@ const VisaPage = () => {
           </section>
         )}
 
-        <VisaRulesCard />
+        <VisaRulesCard visaRulesData={visaRulesData} />
 
         <VisaCountrySearchAndGrid />
 

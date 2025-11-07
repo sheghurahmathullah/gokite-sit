@@ -22,15 +22,20 @@ interface VisaRuleAnnouncement {
   uniqueId?: string;
 }
 
-const VisaRulesCard = () => {
+interface VisaRulesCardProps {
+  visaRulesData?: VisaRuleAnnouncement[]; // Optional - if provided, skip API calls
+}
+
+const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ visaRulesData: visaRulesDataProp }) => {
   const [visaRulesData, setVisaRulesData] = useState<VisaRuleAnnouncement[]>(
-    []
+    visaRulesDataProp || []
   );
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!visaRulesDataProp);
   const [error, setError] = useState<string | null>(null);
   const carouselRef = useRef<VisaRulesCarouselRef>(null);
   const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
   const router = useRouter();
+  const dataFetchedRef = useRef(false);
 
   // Read cookie helper
   const getCookie = (name: string) => {
@@ -124,14 +129,43 @@ const VisaRulesCard = () => {
     });
   };
 
-  // Load data
+  // Update visa rules when prop changes
   useEffect(() => {
-    if (pageLoading) return;
+    if (visaRulesDataProp) {
+      console.log("[VisaRulesCard] Using visa rules from props, skipping API calls");
+      setVisaRulesData(visaRulesDataProp);
+      setLoading(false);
+    }
+  }, [visaRulesDataProp]);
+
+  // Load data - only if rules not provided via props
+  useEffect(() => {
+    // If data provided via props, skip API calls
+    if (visaRulesDataProp) {
+      console.log("[VisaRulesCard] Skipping API calls - using prop data");
+      return;
+    }
+
+    if (pageLoading) {
+      console.log("[VisaRulesCard] Skipping - page context still loading");
+      return;
+    }
+
+    // Early exit if data already fetched
+    if (dataFetchedRef.current) {
+      console.log("[VisaRulesCard] Skipping - data already fetched");
+      return;
+    }
+
+    // Mark as fetching
+    dataFetchedRef.current = true;
 
     const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
+
+        console.log("[VisaRulesCard] Fetching data via API (fallback)");
 
         const sections = await fetchSectionsData();
 
@@ -152,13 +186,14 @@ const VisaRulesCard = () => {
       } catch (err: any) {
         console.error("Error loading visa rules:", err);
         setError(err.message);
+        dataFetchedRef.current = false; // Reset on error
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [pageLoading]);
+  }, [pageLoading, visaRulesDataProp]);
 
   if (loading) {
     return (

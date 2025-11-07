@@ -1,18 +1,19 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import VisaBookingCard from "@/components/landingpage/VisaBookingCard";
-import { usePageContext } from "@/components/common/PageContext";
 
 const FALLBACK_IMAGE = "/landingpage/hero.png";
 
-function getCookie(name: string): string {
-  if (typeof document === "undefined") return "";
-  const match = document.cookie
-    .split(";")
-    .map((c) => c.trim())
-    .find((c) => c.startsWith(`${name}=`));
-  return match ? decodeURIComponent(match.split("=")[1]) : "";
+interface BannerSection {
+  pageSectionId: string;
+  title: string;
+  contentType: string;
+}
+
+interface HeroBannerProps {
+  bannerSection: BannerSection | null;
 }
 
 const iconNavItems = [
@@ -60,12 +61,13 @@ const iconNavItems = [
   },
 ];
 
-const HeroBanner = () => {
+const HeroBanner: React.FC<HeroBannerProps> = ({ bannerSection }) => {
   const pathname = usePathname();
   const [bannerImages, setBannerImages] = useState<string[]>([FALLBACK_IMAGE]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { getPageIdWithFallback } = usePageContext();
+  const bannerFetchedRef = useRef(false); // Track if banner has been fetched
+  const lastFetchedSectionIdRef = useRef<string | null>(null); // Track which section was fetched
 
   const isActive = (item: typeof iconNavItems[0]) => {
     if (item.redirectUrl === "/") {
@@ -74,52 +76,45 @@ const HeroBanner = () => {
     return pathname.startsWith(item.redirectUrl) && item.redirectUrl !== "#";
   };
 
-  const getAuthHeaders = () => {
-    const token = getCookie("accesstoken");
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (token) headers["Authorization"] = `Bearer ${token}`;
-    return headers;
-  };
-
   useEffect(() => {
     const loadBanner = async () => {
       try {
-        setLoading(true);
+        console.log("[HeroBanner useEffect] Called - bannerSection:", bannerSection, "alreadyFetched:", bannerFetchedRef.current);
 
-        // Fetch sections to find BANNER section for the page
-        const sectionsRes = await fetch("/api/cms/pages-sections", {
-          method: "POST",
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ pageId: getPageIdWithFallback("landing") }),
-        });
-
-        if (!sectionsRes.ok) throw new Error("Failed to load sections");
-
-        const sectionsJson = await sectionsRes.json();
-        const sections = Array.isArray(sectionsJson?.data)
-          ? sectionsJson.data
-          : [];
-        const bannerSection = sections.find(
-          (s: any) => s.contentType === "BANNER"
-        );
-
+        // If no banner section provided, use fallback
         if (!bannerSection?.pageSectionId) {
+          console.log("[HeroBanner] No banner section, using fallback");
           setBannerImages([FALLBACK_IMAGE]);
+          setLoading(false);
           return;
         }
 
+        // Check if we've already fetched this section's data
+        if (bannerFetchedRef.current && lastFetchedSectionIdRef.current === bannerSection.pageSectionId) {
+          console.log("[HeroBanner] Skipping - banner already fetched for section:", bannerSection.pageSectionId);
+          return;
+        }
+
+        // Mark as fetched immediately to prevent race conditions
+        console.log("[HeroBanner] Proceeding with banner fetch");
+        bannerFetchedRef.current = true;
+        lastFetchedSectionIdRef.current = bannerSection.pageSectionId;
+        setLoading(true);
+
         // Fetch banner details for that section
+        console.log("[API Call] Fetching /api/cms/section-banners for section:", bannerSection.pageSectionId);
         const bannerRes = await fetch("/api/cms/section-banners", {
           method: "POST",
-          headers: getAuthHeaders(),
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({ pageSectionId: bannerSection.pageSectionId }),
         });
 
         if (!bannerRes.ok) throw new Error("Failed to load banner");
 
         const bannerJson = await bannerRes.json();
+        console.log("[API Call] Received banner data");
         const bannersArr = Array.isArray(bannerJson?.data)
           ? bannerJson.data
           : [];
@@ -135,13 +130,16 @@ const HeroBanner = () => {
       } catch (e) {
         console.error("Failed to load banner:", e);
         setBannerImages([FALLBACK_IMAGE]);
+        // Reset the flag on error so user can retry
+        bannerFetchedRef.current = false;
+        lastFetchedSectionIdRef.current = null;
       } finally {
         setLoading(false);
       }
     };
 
     loadBanner();
-  }, [getPageIdWithFallback]);
+  }, [bannerSection]);
 
   // Auto-rotate banner images
   useEffect(() => {
@@ -192,7 +190,7 @@ const HeroBanner = () => {
             {iconNavItems.map((item) => {
               const active = isActive(item);
               return (
-                <a
+                <Link
                   key={item.id}
                   href={item.redirectUrl}
                   className="flex flex-col items-center gap-2 group transition-transform hover:-translate-y-1"
@@ -207,7 +205,7 @@ const HeroBanner = () => {
                   <span className="text-sm font-medium text-white">
                     {item.label}
                   </span>
-                </a>
+                </Link>
               );
             })}
           </div>
