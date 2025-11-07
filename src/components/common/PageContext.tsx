@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 
 // Define types for better type safety
 interface Page {
@@ -41,6 +42,7 @@ interface PageProviderProps {
 }
 
 export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
+  const pathname = usePathname();
   const [pages, setPages] = useState<Page[]>([]);
   const [pageIds, setPageIds] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -55,12 +57,25 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
     isAuthenticatedRef.current = isAuthenticated;
   }, [isAuthenticated]);
 
+  // Check if current page is sign-in page
+  const isSignInPage = pathname === "/sign-in";
+
   // Check authentication status and fetch pages only if authenticated
   useEffect(() => {
     let mounted = true;
 
     const checkAuthAndFetch = async () => {
-      console.log("[PageContext] checkAuthAndFetch called, hasFetched:", hasFetchedRef.current);
+      console.log("[PageContext] checkAuthAndFetch called, hasFetched:", hasFetchedRef.current, "isSignInPage:", isSignInPage);
+      
+      // Skip API call if on sign-in page
+      if (isSignInPage) {
+        console.log("[PageContext] On sign-in page - skipping API call");
+        if (mounted) {
+          setLoading(false);
+          setInitialAuthCheckDone(true);
+        }
+        return;
+      }
       
       // If already fetched successfully, skip
       if (hasFetchedRef.current) {
@@ -101,7 +116,12 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
 
     // Also check when window gains focus (user returns from another tab/window)
     const handleFocus = () => {
-      console.log("[PageContext] Window focused, isAuthenticated:", isAuthenticatedRef.current, "hasFetched:", hasFetchedRef.current);
+      console.log("[PageContext] Window focused, isAuthenticated:", isAuthenticatedRef.current, "hasFetched:", hasFetchedRef.current, "isSignInPage:", isSignInPage);
+      // Skip if on sign-in page
+      if (isSignInPage) {
+        console.log("[PageContext] On sign-in page - skipping focus recheck");
+        return;
+      }
       // Only recheck if not authenticated AND haven't successfully fetched yet
       // This is for sign-in detection, not for regular navigation
       if (!isAuthenticatedRef.current && !hasFetchedRef.current) {
@@ -115,7 +135,12 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
 
     // Check when page becomes visible (useful for tab switching)
     const handleVisibilityChange = () => {
-      console.log("[PageContext] Visibility changed, state:", document.visibilityState, "isAuthenticated:", isAuthenticatedRef.current, "hasFetched:", hasFetchedRef.current);
+      console.log("[PageContext] Visibility changed, state:", document.visibilityState, "isAuthenticated:", isAuthenticatedRef.current, "hasFetched:", hasFetchedRef.current, "isSignInPage:", isSignInPage);
+      // Skip if on sign-in page
+      if (isSignInPage) {
+        console.log("[PageContext] On sign-in page - skipping visibility recheck");
+        return;
+      }
       // Only recheck if page is visible, not authenticated, AND haven't successfully fetched yet
       // This is for sign-in detection, not for regular navigation
       if (document.visibilityState === 'visible' && !isAuthenticatedRef.current && !hasFetchedRef.current) {
@@ -135,7 +160,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []); // Only run on mount
+  }, [isSignInPage]); // Re-run when pathname changes (sign-in -> other page)
 
   const fetchPages = async () => {
     try {
