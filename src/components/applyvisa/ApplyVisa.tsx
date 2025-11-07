@@ -90,6 +90,14 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
   const [selectedOption, setSelectedOption] = useState<VisaOption | null>(null);
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
 
+  const processSteps = visaDetails?.detailsJson?.visaProcess?.steps ?? [];
+  const stepsGridStyle =
+    processSteps.length > 0
+      ? {
+          gridTemplateColumns: `repeat(${processSteps.length}, minmax(0, 1fr))`,
+        }
+      : undefined;
+
   // ============================================
   // SCROLL HANDLING FOR TABS
   // ============================================
@@ -420,136 +428,123 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
       {/* ============================================ */}
       {/* VISA PROCESS SECTION - THREE STEP TIMELINE */}
       {/* ============================================ */}
-      <section id="process-section" className="w-full py-12 bg-white">
+      <section id="process-section" className="w-full py-8 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           {/* Heading */}
-          <h2 className="text-4xl font-bold text-center text-foreground mb-2">
+          <h2 className="text-3xl font-bold text-center text-foreground mb-2">
             {visaDetails?.detailsJson?.visaProcess?.mainHeading ||
               "GET YOUR UAE VISA IN 3 EASY STEPS"}
           </h2>
-          <p className="text-center text-muted-foreground mb-10">
+          <p className="text-center text-muted-foreground mb-6 text-sm">
             {visaDetails?.detailsJson?.visaProcess?.subHeading ||
               "Our Visa expert review and procee the Visa to the embassy on your behalf"}
           </p>
           {/* Timeline container */}
-          <div className="relative flex items-center justify-between bg-[#F8F8F8] rounded-full px-6 py-8 shadow">
+          <div className="relative bg-[#F8F8F8] rounded-full px-6 py-4 shadow">
             {/* Timeline connection line */}
             <div
               className="absolute top-1/2 left-[5%] right-[5%] h-2 bg-gray-200 rounded-full -z-10"
               style={{ transform: "translateY(-50%)" }}
             ></div>
 
-            {/* Dynamic Steps or Default Steps */}
-            {visaDetails?.detailsJson?.visaProcess?.steps ? (
-              visaDetails.detailsJson.visaProcess.steps.map(
-                (step: any, index: number) => {
-                  const isFirstStep = index === 0;
-                  const isLastStep =
-                    index ===
-                    visaDetails.detailsJson.visaProcess.steps.length - 1;
-                  const iconColors = [
-                    "#FFC700",
-                    "#0EA5E9",
-                    "#9C27B0",
-                    "#32CD32",
-                  ];
-                  const bgColor = isFirstStep
-                    ? "#FFC700"
-                    : isLastStep
-                    ? "#32CD32"
-                    : "#0EA5E9";
+            <div
+              className="relative grid items-center justify-items-center gap-4"
+              style={stepsGridStyle}
+            >
+              {processSteps.map((step: any, index: number) => {
+                const isFirstStep = index === 0;
+                const isLastStep = index === processSteps.length - 1;
 
-                  return (
+                // Define background colors for each step position
+                const bgColor = isFirstStep
+                  ? "#FFC700"
+                  : isLastStep
+                  ? "#32CD32"
+                  : "#0EA5E9";
+
+                // Get icon URL from backend - adjust the base URL according to your backend setup
+                const getIconUrl = (iconUuid: string) => {
+                  if (!iconUuid) return null;
+
+                  // Option 1: If your backend serves files at /api/files/{uuid}
+                  // return `/api/files/${iconUuid}`;
+
+                  // Option 2: If your backend has a different endpoint
+                  return `${
+                    process.env.NEXT_PUBLIC_API_URL || ""
+                  }/files/${iconUuid}`;
+
+                  // Option 3: If icons are stored in public folder with UUID as filename
+                  // return `/icons/${iconUuid}.png`;
+                };
+
+                const iconUrl = step.icon ? getIconUrl(step.icon) : null;
+
+                return (
+                  <div
+                    key={step.icon || step.id || index}
+                    className="flex flex-col items-center z-10"
+                  >
+                    {/* Icon Circle */}
                     <div
-                      key={index}
-                      className="flex flex-col items-center z-10 min-w-[130px]"
+                      className="w-10 h-10 rounded-full flex items-center justify-center shadow"
+                      style={{ backgroundColor: bgColor }}
                     >
-                      <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center mb-1 shadow"
-                        style={{ backgroundColor: bgColor }}
-                      >
-                        {isFirstStep ? (
-                          <Calendar className="w-6 h-6 text-white" />
-                        ) : isLastStep ? (
-                          <CheckCircle className="w-6 h-6 text-white" />
-                        ) : index === 1 ? (
-                          <FileText className="w-6 h-6 text-white" />
-                        ) : (
-                          <RefreshCw className="w-6 h-6 text-white" />
-                        )}
-                      </div>
-                      <div
-                        className={`${
-                          isFirstStep || isLastStep ? "text-xl" : "text-base"
-                        } font-semibold text-foreground mt-2`}
-                      >
-                        {step.title}
-                      </div>
-                      <div
-                        className={`text-sm ${
-                          isFirstStep || isLastStep
-                            ? "text-[#637485]"
-                            : "text-muted-foreground"
-                        } mt-1 text-center`}
-                      >
-                        {step.subtitle}
-                      </div>
+                      {iconUrl ? (
+                        <img
+                          src={iconUrl}
+                          alt={step.title}
+                          className="w-5 h-5 object-contain"
+                          onError={(e) => {
+                            // Fallback to default icon if image fails to load
+                            e.currentTarget.style.display = "none";
+                            const parent = e.currentTarget.parentElement;
+                            if (parent && !parent.querySelector("svg")) {
+                              // Add fallback Lucide icon
+                              const iconElement = isFirstStep
+                                ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>'
+                                : isLastStep
+                                ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+                                : '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
+                              parent.innerHTML += iconElement;
+                            }
+                          }}
+                        />
+                      ) : (
+                        // Fallback to Lucide icons if no icon URL
+                        <>
+                          {isFirstStep ? (
+                            <Calendar className="w-5 h-5 text-white" />
+                          ) : isLastStep ? (
+                            <CheckCircle className="w-5 h-5 text-white" />
+                          ) : index === 1 ? (
+                            <FileText className="w-5 h-5 text-white" />
+                          ) : (
+                            <RefreshCw className="w-5 h-5 text-white" />
+                          )}
+                        </>
+                      )}
                     </div>
-                  );
-                }
-              )
-            ) : (
-              // Default static steps
-              <>
-                {/* Step 1 */}
-                <div className="flex flex-col items-center z-10 min-w-[130px]">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-1 bg-yellow-400 shadow">
-                    <Calendar className="w-6 h-6 text-white" />
                   </div>
-                  <div className="text-base text-foreground mt-2">Today</div>
-                  <div className="text-lg font-bold text-foreground mt-1">
-                    31 May 2025
-                  </div>
-                </div>
-                {/* Step 2 */}
-                <div className="flex flex-col items-center z-10 min-w-[130px]">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-1 bg-[hsl(var(--visa-accent,#0EA5E9))] shadow">
-                    <FileText className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-base font-semibold text-foreground mt-2">
-                    Submit Information
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-1 text-center">
-                    Share travel details and your information
-                  </div>
-                </div>
-                {/* Step 3 */}
-                <div className="flex flex-col items-center z-10 min-w-[130px]">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-1 bg-[hsl(var(--visa-accent,#0EA5E9))] shadow">
-                    <RefreshCw className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-base font-semibold text-foreground mt-2">
-                    Completing Visa Process
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-1 text-center">
-                    Relax as we deliver your Visa Stress Free
-                  </div>
-                </div>
-                {/* Step 4 */}
-                <div className="flex flex-col items-center z-10 min-w-[130px]">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center mb-1 bg-green-400 shadow">
-                    <CheckCircle className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-xl font-semibold text-[#637485] mt-2">
-                    8 June 2025
-                  </div>
-                  <span className="text-[15px] text-muted-foreground mt-1">
-                    Get Visa By
-                  </span>
-                </div>
-              </>
-            )}
+                );
+              })}
+            </div>
           </div>
+
+          {processSteps.length > 0 && (
+            <div className="mt-6 grid gap-6 text-center" style={stepsGridStyle}>
+              {processSteps.map((step: any, index: number) => (
+                <div key={step.icon || step.id || index}>
+                  <div className="text-base font-semibold text-foreground">
+                    {step.title}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {step.subtitle}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
