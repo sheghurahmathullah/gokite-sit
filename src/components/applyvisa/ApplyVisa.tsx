@@ -196,7 +196,7 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
       {/* HERO SECTION */}
       {/* ============================================ */}
       <section className="relative w-full bg-[#dbf3ff] overflow-hidden pb-0 mb-0">
-        <div className="px-6 lg:px-20 py-12 lg:py-16">
+        <div className="px-6 lg:px-20 py-1 lg:py-2">
           <div className="grid lg:grid-cols-2 gap-8 items-center">
             {/* Left Content */}
             <div className="space-y-4">
@@ -625,7 +625,7 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
         <div className="container mx-auto px-6 lg:px-20">
           {/* Header */}
           <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-8">
-            Frequently Asked Questions
+            FAQ
           </h2>
 
           {/* Accordion */}
