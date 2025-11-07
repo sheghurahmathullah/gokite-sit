@@ -167,14 +167,14 @@ const HolidayBookingCard = () => {
         {/* Left side - Search Input with Autocomplete */}
         <div className="flex-1 flex flex-col relative w-full" ref={dropdownRef}>
           <label className="text-xs text-muted-foreground text-left mb-1">
-            Where are you {searchType === "city" ? "Staying" : "Going"}?
+            Where are you {searchType === "city" ? "Going" : "Going"}?
           </label>
           <input
             type="text"
             placeholder={
               searchType === "city"
-                ? "Select City / Hotel"
-                : "Select Country / Destination"
+                ? "Select City"
+                : "Select Country"
             }
             value={searchQuery}
             onChange={handleSearchInputChange}
@@ -251,7 +251,7 @@ const HolidayBookingCard = () => {
           className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 text-base font-semibold rounded-lg"
         >
           <Search className="w-5 h-5 mr-2" />
-          {searchType === "city" ? "Hotel" : "Destination"}
+          {searchType === "city" ? "Search" : "Search"}
         </Button>
       </div>
 
