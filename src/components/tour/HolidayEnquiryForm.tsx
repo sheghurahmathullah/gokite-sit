@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Country } from "country-state-city";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   Dialog,
   DialogContent,
@@ -66,6 +68,8 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
     attachment: null as File | null,
   });
 
+  const [submitting, setSubmitting] = useState(false);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -88,21 +92,144 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
     setFormData((prev) => ({ ...prev, attachment: file || null }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement form submission logic
-    console.log("Holiday Enquiry Form submitted:", formData);
-    onOpenChange(false);
+    setSubmitting(true);
+
+    try {
+      // Prepare the data for submission
+      const submissionData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        countryOfResidence: formData.countryOfResidence,
+        nationality: formData.nationality,
+        email: formData.email,
+        phoneCode: formData.phoneCode,
+        phoneNumber: formData.phoneNumber,
+        tripType: formData.tripType,
+        companyName: formData.companyName || undefined,
+        residence: formData.residence || undefined,
+        fromDate: formData.fromDate,
+        toDate: formData.toDate,
+        adults: formData.adults,
+        children: formData.children,
+        infants: formData.infants,
+        totalBudget: formData.totalBudget || undefined,
+        destination: formData.destination || undefined,
+        packageName: formData.packageName,
+        description: formData.description || undefined,
+        // Note: File attachment handling may need to be added separately
+      };
+
+      const response = await fetch("/api/enquiry", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (response.ok) {
+        toast.success("Enquiry submitted successfully! We'll contact you soon.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+
+        // Close the dialog after a short delay
+        setTimeout(() => {
+          onOpenChange(false);
+          // Reset form
+          setFormData({
+            firstName: "",
+            lastName: "",
+            countryOfResidence: "",
+            nationality: "",
+            email: "",
+            phoneCode: "",
+            phoneNumber: "",
+            tripType: "",
+            companyName: "",
+            residence: "",
+            fromDate: "",
+            toDate: "",
+            adults: 1,
+            children: 0,
+            infants: 0,
+            totalBudget: "",
+            destination: "",
+            packageName: "",
+            description: "",
+            attachment: null,
+          });
+        }, 1500);
+      } else {
+        const errorData = await response.json();
+        
+        if (response.status === 401) {
+          toast.error("Session expired. Please sign in again.", {
+            position: "top-right",
+            autoClose: 4000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        } else {
+          toast.error(
+            errorData.error || "Failed to submit enquiry. Please try again.",
+            {
+              position: "top-right",
+              autoClose: 4000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+            }
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Error submitting enquiry:", err);
+      toast.error("Network error! Unable to submit enquiry. Please try again.", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[98vw] w-full p-2 max-h-[98vh] overflow-hidden">
-        <DialogHeader className="p-1">
-          <DialogTitle className="text-xs mb-0 text-center font-semibold">
-            Holiday Enquiry Form
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-[98vw] w-full p-2 max-h-[98vh] overflow-hidden">
+          <DialogHeader className="p-1">
+            <DialogTitle className="text-xs mb-0 text-center font-semibold">
+              Holiday Enquiry Form
+            </DialogTitle>
+          </DialogHeader>
 
         <form
           onSubmit={handleSubmit}
@@ -510,17 +637,23 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                 type="button"
                 variant="outline"
                 className="px-6 h-8 text-xs"
+                disabled={submitting}
               >
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" className="px-6 h-8 text-xs">
-              Submit Enquiry
+            <Button 
+              type="submit" 
+              className="px-6 h-8 text-xs"
+              disabled={submitting}
+            >
+              {submitting ? "Submitting..." : "Submit Enquiry"}
             </Button>
           </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
