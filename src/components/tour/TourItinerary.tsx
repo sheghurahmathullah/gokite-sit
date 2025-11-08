@@ -61,12 +61,10 @@ const TourItinerary = ({ itinerary, itineraryMainDescription }: TourItineraryPro
       )}
 
       <div className="space-y-4 relative">
-        {/* Timeline line */}
-        <div className="absolute left-[7px] top-4 bottom-4 w-[2px] bg-border" />
-
         {itinerary.map((item, index) => {
           const itemId = item.id || `item-${index}`;
           const isOpen = openItems.includes(itemId);
+          const isLast = index === itinerary.length - 1;
 
           return (
             <Collapsible
@@ -76,7 +74,12 @@ const TourItinerary = ({ itinerary, itineraryMainDescription }: TourItineraryPro
             >
               <div className="relative pl-8">
                 {/* Timeline dot */}
-                <div className="absolute left-0 top-2 w-4 h-4 rounded-full bg-foreground border-4 border-background" />
+                <div className="absolute left-0 top-[26px] w-4 h-4 rounded-full bg-foreground border-4 border-background z-10" />
+                
+                {/* Timeline line - starts from center of current dot and extends down */}
+                {!isLast && (
+                  <div className="absolute left-[7px] top-[38px] bottom-[-16px] w-[2px] h-full bg-border" />
+                )}
 
                 <CollapsibleTrigger className="w-full text-left group">
                   <div className="flex items-center justify-between p-4 border-b border-border hover:bg-muted/20 transition-colors">

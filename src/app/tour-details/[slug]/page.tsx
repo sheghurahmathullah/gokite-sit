@@ -190,8 +190,8 @@ const TourDetailPageInner = () => {
     } Nights`,
     price: parseFloat(holidayDetails.newPrice || "0"),
     currency: holidayDetails.currency || "₹",
-    rating: parseFloat(holidayDetails.packageRating || "0"),
-    ratingText: `${holidayDetails.packageRating || "0"}/5`,
+    rating: parseFloat(holidayDetails.cardJson.packageRating || "0"),
+    ratingText: `${holidayDetails.cardJson.packageRating || "0"}/5`,
     priceContent: holidayDetails?.cardJson?.priceContent,
     // Overview data
     description: holidayDetails?.cardJson?.overview || "",

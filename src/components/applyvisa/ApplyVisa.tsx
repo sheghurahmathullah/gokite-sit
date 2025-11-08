@@ -270,20 +270,6 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
               // Check if this is API data or static data
               const isApiData = option.fields && option.companyPricing;
 
-              // Helper to calculate total fee for API data
-              const getTotalFee = (companyPricing: any) => {
-                const cp = Array.isArray(companyPricing)
-                  ? companyPricing[0]
-                  : companyPricing;
-                const pricingItems = cp?.pricing || [];
-                const currency = cp?.currency || "₹";
-                const total = pricingItems.reduce((sum: number, item: any) => {
-                  const numeric = Number(item?.value) || 0;
-                  return sum + numeric;
-                }, 0);
-                return { currency, total };
-              };
-
               return (
                 <div
                   key={option.id || idx}
@@ -380,17 +366,6 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
                               </div>
                             </div>
                           ))}
-                          <div className="text-center">
-                            <div className="text-xs text-gray-500">Total</div>
-                            <div className="text-sm font-bold text-black">
-                              {(() => {
-                                const { currency, total } = getTotalFee(
-                                  option.companyPricing
-                                );
-                                return `${currency} ${total.toLocaleString()}`;
-                              })()}
-                            </div>
-                          </div>
                         </div>
                       ) : (
                         // Render static pricing structure
