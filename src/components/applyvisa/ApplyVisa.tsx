@@ -449,20 +449,10 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
                   ? "#32CD32"
                   : "#0EA5E9";
 
-                // Get icon URL from backend - adjust the base URL according to your backend setup
-                const getIconUrl = (iconUuid: string) => {
-                  if (!iconUuid) return null;
-
-                  // Option 1: If your backend serves files at /api/files/{uuid}
-                  // return `/api/files/${iconUuid}`;
-
-                  // Option 2: If your backend has a different endpoint
-                  return `${
-                    process.env.NEXT_PUBLIC_API_URL || ""
-                  }/files/${iconUuid}`;
-
-                  // Option 3: If icons are stored in public folder with UUID as filename
-                  // return `/icons/${iconUuid}.png`;
+                // Get icon URL from backend using the file-download API
+                const getIconUrl = (iconFilename: string) => {
+                  if (!iconFilename) return null;
+                  return `/api/cms/file-download?image=${encodeURIComponent(iconFilename)}`;
                 };
 
                 const iconUrl = step.icon ? getIconUrl(step.icon) : null;
