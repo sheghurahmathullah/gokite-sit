@@ -22,15 +22,14 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
-// Trip Types
-const TRIP_TYPES = [
-  "Leisure",
-  "Business",
-  "Adventure",
-  "Family",
-  "Honeymoon",
+// Customer Types (matching API enum)
+const CUSTOMER_TYPES = [
+  "Corporate",
   "Group",
   "Solo",
+  "Student",
+  "Cruise",
+  "Others",
 ];
 
 interface HolidayEnquiryFormProps {
@@ -42,8 +41,13 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
   open,
   onOpenChange,
 }) => {
-  // Prepare countries
+  // Prepare countries sorted by name
   const countries = useMemo(() => Country.getAllCountries(), []);
+  
+  // Prepare countries sorted by name for phone code dropdown
+  const sortedCountries = useMemo(() => {
+    return [...countries].sort((a, b) => a.name.localeCompare(b.name));
+  }, [countries]);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -99,25 +103,24 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
     try {
       // Prepare the data for submission
       const submissionData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+        enquiryType: "PACKAGE",
+        customerFirstName: formData.firstName,
+        customerLastName: formData.lastName,
         countryOfResidence: formData.countryOfResidence,
         nationality: formData.nationality,
-        email: formData.email,
-        phoneCode: formData.phoneCode,
-        phoneNumber: formData.phoneNumber,
-        tripType: formData.tripType,
+        customerPhone: `+${formData.phoneCode}${formData.phoneNumber}`,
+        customerEmail: formData.email,
+        customerType: formData.tripType,
         companyName: formData.companyName || undefined,
         residence: formData.residence || undefined,
-        fromDate: formData.fromDate,
-        toDate: formData.toDate,
         adults: formData.adults,
         children: formData.children,
         infants: formData.infants,
-        totalBudget: formData.totalBudget || undefined,
-        destination: formData.destination || undefined,
-        packageName: formData.packageName,
-        description: formData.description || undefined,
+        budget: formData.totalBudget ? parseFloat(formData.totalBudget) : undefined,
+        enquiryDesc: formData.description || undefined,
+        packageId: formData.packageName ? parseInt(formData.packageName) : undefined,
+        fromDate: formData.fromDate,
+        toDate: formData.toDate,
         // Note: File attachment handling may need to be added separately
       };
 
@@ -129,8 +132,10 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
         body: JSON.stringify(submissionData),
       });
 
-      if (response.ok) {
-        toast.success("Enquiry submitted successfully! We'll contact you soon.", {
+      const responseData = await response.json();
+
+      if (responseData.success === true) {
+        toast.success(responseData.message || "Enquiry submitted successfully! We'll contact you soon.", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -167,30 +172,17 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
           });
         }, 1500);
       } else {
-        const errorData = await response.json();
-        
-        if (response.status === 401) {
-          toast.error("Session expired. Please sign in again.", {
+        toast.error(
+          responseData.message || responseData.data || "Failed to submit enquiry. Please try again.",
+          {
             position: "top-right",
             autoClose: 4000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
             draggable: true,
-          });
-        } else {
-          toast.error(
-            errorData.error || "Failed to submit enquiry. Please try again.",
-            {
-              position: "top-right",
-              autoClose: 4000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-            }
-          );
-        }
+          }
+        );
       }
     } catch (err) {
       console.error("Error submitting enquiry:", err);
@@ -283,9 +275,9 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                   <SelectValue placeholder="Choose country" />
                 </SelectTrigger>
                 <SelectContent>
-                  {countries.map((country) => (
+                  {countries.map((country, index) => (
                     <SelectItem
-                      key={country.isoCode}
+                      key={`tour-holiday-residence-${index}`}
                       value={country.isoCode}
                       className="text-xs"
                     >
@@ -308,9 +300,9 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                   <SelectValue placeholder="Choose nationality" />
                 </SelectTrigger>
                 <SelectContent>
-                  {countries.map((country) => (
+                  {countries.map((country, index) => (
                     <SelectItem
-                      key={country.isoCode}
+                      key={`tour-holiday-nationality-${index}`}
                       value={country.isoCode}
                       className="text-xs"
                     >
@@ -352,9 +344,9 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                   <SelectValue placeholder="Code" />
                 </SelectTrigger>
                 <SelectContent>
-                  {countries.map((country) => (
+                  {sortedCountries.map((country, index) => (
                     <SelectItem
-                      key={country.isoCode}
+                      key={`tour-holiday-phone-${index}`}
                       value={country.phonecode}
                       className="text-xs"
                     >
@@ -380,7 +372,7 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
               />
             </div>
             <div>
-              <Label className="text-xs font-medium">Trip Type*</Label>
+              <Label className="text-xs font-medium">Customer Type*</Label>
               <Select
                 value={formData.tripType}
                 onValueChange={(value) =>
@@ -389,10 +381,10 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                 required
               >
                 <SelectTrigger className="h-9 text-xs">
-                  <SelectValue placeholder="Choose trip type" />
+                  <SelectValue placeholder="Choose customer type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {TRIP_TYPES.map((type) => (
+                  {CUSTOMER_TYPES.map((type) => (
                     <SelectItem key={type} value={type} className="text-xs">
                       {type}
                     </SelectItem>

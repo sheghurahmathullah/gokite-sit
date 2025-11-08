@@ -415,9 +415,9 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
                       <SelectValue placeholder="Select Country" />
                     </SelectTrigger>
                     <SelectContent>
-                      {countries.map((country) => (
+                      {countries.map((country, index) => (
                         <SelectItem
-                          key={country.isoCode}
+                          key={`visa-residence-${index}`}
                           value={country.isoCode}
                           className="text-xs"
                         >
@@ -452,9 +452,9 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
                       <SelectValue placeholder="Select Nationality" />
                     </SelectTrigger>
                     <SelectContent>
-                      {countries.map((country) => (
+                      {countries.map((country, index) => (
                         <SelectItem
-                          key={country.isoCode}
+                          key={`visa-nationality-${index}`}
                           value={country.isoCode}
                           className="text-xs"
                         >
@@ -485,9 +485,9 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
                       <SelectValue placeholder="Select State" />
                     </SelectTrigger>
                     <SelectContent>
-                      {residenceStates.map((state) => (
+                      {residenceStates.map((state, index) => (
                         <SelectItem
-                          key={state.isoCode}
+                          key={`residence-state-${index}`}
                           value={state.isoCode}
                           className="text-xs"
                         >
@@ -514,9 +514,9 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
                       <SelectValue placeholder="Select City" />
                     </SelectTrigger>
                     <SelectContent>
-                      {residenceCities.map((city) => (
+                      {residenceCities.map((city, index) => (
                         <SelectItem
-                          key={city.name}
+                          key={`residence-city-${index}`}
                           value={city.name}
                           className="text-xs"
                         >
@@ -558,9 +558,9 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
                       <SelectValue placeholder="Select Destination" />
                     </SelectTrigger>
                     <SelectContent>
-                      {countries.map((country) => (
+                      {countries.map((country, index) => (
                         <SelectItem
-                          key={country.isoCode}
+                          key={`visa-destination-${index}`}
                           value={country.isoCode}
                           className="text-xs"
                         >
@@ -624,9 +624,9 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
                       <SelectValue placeholder="Select State" />
                     </SelectTrigger>
                     <SelectContent>
-                      {destinationStates.map((state) => (
+                      {destinationStates.map((state, index) => (
                         <SelectItem
-                          key={state.isoCode}
+                          key={`destination-state-${index}`}
                           value={state.isoCode}
                           className="text-xs"
                         >
@@ -653,9 +653,9 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
                       <SelectValue placeholder="Select City" />
                     </SelectTrigger>
                     <SelectContent>
-                      {destinationCities.map((city) => (
+                      {destinationCities.map((city, index) => (
                         <SelectItem
-                          key={city.name}
+                          key={`destination-city-${index}`}
                           value={city.name}
                           className="text-xs"
                         >

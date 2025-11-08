@@ -79,7 +79,7 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
     }));
 
     return (
-      <div className="relative pb-8 bg-white">
+      <div className="relative pb-8 bg-white overflow-visible px-4">
         <Carousel
           setApi={setApi}
           opts={{
@@ -93,17 +93,17 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
             containScroll: false,
           }}
           plugins={[autoplayRef.current]}
-          className="w-full"
+          className="w-full overflow-visible"
           onMouseEnter={() => autoplayRef.current.stop()}
           onMouseLeave={() => autoplayRef.current.play()}
         >
-          <CarouselContent className="-ml-4">
+          <CarouselContent className="py-2">
             {loopedDestinations.map((destination, index) => (
               <CarouselItem
                 key={`${destination.id}-${index}`}
                 className="pl-4 md:basis-1/2 lg:basis-1/4 xl:basis-1/4"
               >
-                <div className="max-w-sm mx-auto">
+                <div className="h-full py-2 px-2">
                   <VisaCard destination={destination} />
                 </div>
               </CarouselItem>

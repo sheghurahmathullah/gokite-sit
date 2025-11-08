@@ -40,8 +40,13 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
   open,
   onOpenChange,
 }) => {
-  // Prepare countries
+  // Prepare countries sorted by name
   const countries = useMemo(() => Country.getAllCountries(), []);
+  
+  // Prepare countries sorted by name for phone code dropdown
+  const sortedCountries = useMemo(() => {
+    return [...countries].sort((a, b) => a.name.localeCompare(b.name));
+  }, [countries]);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -156,42 +161,42 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                   <SelectTrigger className="h-6 text-[10px]">
                     <SelectValue placeholder="Choose country" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem
-                        key={country.isoCode}
-                        value={country.isoCode}
-                        className="text-[10px]"
-                      >
-                        {country.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-[10px]">Nationality*</Label>
-                <Select
-                  value={formData.nationality}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, nationality: value }))
-                  }
-                  required
-                >
-                  <SelectTrigger className="h-6 text-[10px]">
-                    <SelectValue placeholder="Choose nationality" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem
-                        key={country.isoCode}
-                        value={country.isoCode}
-                        className="text-[10px]"
-                      >
-                        {country.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                <SelectContent>
+                  {countries.map((country, index) => (
+                    <SelectItem
+                      key={`holiday-residence-${index}`}
+                      value={country.isoCode}
+                      className="text-[10px]"
+                    >
+                      {country.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-[10px]">Nationality*</Label>
+              <Select
+                value={formData.nationality}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, nationality: value }))
+                }
+                required
+              >
+                <SelectTrigger className="h-6 text-[10px]">
+                  <SelectValue placeholder="Choose nationality" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((country, index) => (
+                    <SelectItem
+                      key={`holiday-nationality-${index}`}
+                      value={country.isoCode}
+                      className="text-[10px]"
+                    >
+                      {country.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
                 </Select>
               </div>
             </div>
@@ -230,17 +235,17 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                   <SelectTrigger className="h-6 text-[10px]">
                     <SelectValue placeholder="Code" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem
-                        key={country.isoCode}
-                        value={country.phonecode}
-                        className="text-[10px]"
-                      >
-                        {country.name} (+{country.phonecode})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                <SelectContent>
+                  {sortedCountries.map((country, index) => (
+                    <SelectItem
+                      key={`holiday-phone-${index}`}
+                      value={country.phonecode}
+                      className="text-[10px]"
+                    >
+                      {country.name} (+{country.phonecode})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
                 </Select>
               </div>
               <div>

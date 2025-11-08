@@ -78,7 +78,7 @@ const HolidayCarousel = forwardRef<HolidayCarouselRef, HolidayCarouselProps>(
     }));
 
     return (
-      <div className="relative pb-8 bg-white">
+      <div className="relative pb-8 bg-white overflow-visible px-4">
         <Carousel
           setApi={setApi}
           opts={{
@@ -91,18 +91,18 @@ const HolidayCarousel = forwardRef<HolidayCarouselRef, HolidayCarouselProps>(
             watchDrag: true,
           }}
           plugins={[autoplayRef.current]}
-          className="w-full"
+          className="w-full overflow-visible"
           onMouseEnter={() => autoplayRef.current.stop()}
           onMouseLeave={() => autoplayRef.current.play()}
         >
-          <CarouselContent className="-ml-6">
+          <CarouselContent className="py-2">
             {/* Render destinations for seamless loop */}
             {displayDestinations.map((destination, index) => (
               <CarouselItem
                 key={`${destination.id || destination.name}-${index}`}
-                className="pl-6 md:basis-1/2 lg:basis-1/4 xl:basis-1/4"
+                className="pl-4 md:basis-1/2 lg:basis-1/4 xl:basis-1/4"
               >
-                <div className="h-full">
+                <div className="h-full py-2 px-2">
                   <DestinationCard destination={destination} />
                 </div>
               </CarouselItem>
