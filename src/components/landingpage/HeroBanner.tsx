@@ -6,6 +6,13 @@ import VisaBookingCard from "@/components/landingpage/VisaBookingCard";
 
 const FALLBACK_IMAGE = "/landingpage/hero.png";
 
+// Static slug mappings - no extra API calls needed
+const PAGE_SLUGS = {
+  home: "/master-landing-page",
+  holidays: "/holiday-home-page",
+  visa: "/visa-landing-page",
+};
+
 interface BannerSection {
   pageSectionId: string;
   title: string;
@@ -21,13 +28,13 @@ const iconNavItems = [
     id: "Home",
     label: "Home",
     imgSrc: "/landingpage/icons/home.png",
-    redirectUrl: "/",
+    redirectUrl: PAGE_SLUGS.home,
   },
   {
     id: "Flight",
     label: "Flight",
     imgSrc: "/landingpage/icons/flight.png",
-    redirectUrl: "/flight",
+    redirectUrl: "#",
   },
   {
     id: "Activities",
@@ -39,7 +46,7 @@ const iconNavItems = [
     id: "Holidays",
     label: "Holidays",
     imgSrc: "/landingpage/icons/holiday.png",
-    redirectUrl: "/holidays",
+    redirectUrl: PAGE_SLUGS.holidays,
   },
   {
     id: "Hotel",
@@ -51,7 +58,7 @@ const iconNavItems = [
     id: "Visa",
     label: "Visa",
     imgSrc: "/landingpage/icons/visa.png",
-    redirectUrl: "/visa",
+    redirectUrl: PAGE_SLUGS.visa,
   },
   {
     id: "More",
@@ -70,8 +77,14 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ bannerSection }) => {
   const lastFetchedSectionIdRef = useRef<string | null>(null); // Track which section was fetched
 
   const isActive = (item: typeof iconNavItems[0]) => {
-    if (item.redirectUrl === "/") {
-      return pathname === "/";
+    if (item.redirectUrl === PAGE_SLUGS.home) {
+      return pathname === "/" || pathname === PAGE_SLUGS.home;
+    }
+    if (item.redirectUrl === PAGE_SLUGS.holidays) {
+      return pathname === "/holidays" || pathname === PAGE_SLUGS.holidays;
+    }
+    if (item.redirectUrl === PAGE_SLUGS.visa) {
+      return pathname === "/visa" || pathname === PAGE_SLUGS.visa;
     }
     return pathname.startsWith(item.redirectUrl) && item.redirectUrl !== "#";
   };
@@ -189,7 +202,26 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ bannerSection }) => {
           <div className="flex items-center justify-center gap-4 lg:gap-8 mb-8 flex-wrap">
             {iconNavItems.map((item) => {
               const active = isActive(item);
-              return (
+              const isHashLink = item.redirectUrl === "#";
+              
+              return isHashLink ? (
+                <button
+                  key={item.id}
+                  onClick={(e) => e.preventDefault()}
+                  className="flex flex-col items-center gap-2 group transition-transform hover:-translate-y-1"
+                >
+                  <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white shadow-lg flex items-center justify-center group-hover:shadow-xl transition-shadow ${active ? "ring-4 ring-yellow-400" : ""}`}>
+                    <img
+                      src={item.imgSrc}
+                      alt={item.label}
+                      className="w-6 h-6 lg:w-12 lg:h-12 object-contain"
+                    />
+                  </div>
+                  <span className="text-sm font-medium text-white">
+                    {item.label}
+                  </span>
+                </button>
+              ) : (
                 <Link
                   key={item.id}
                   href={item.redirectUrl}

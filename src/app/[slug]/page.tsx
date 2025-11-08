@@ -1,0 +1,106 @@
+"use client";
+import { useEffect, useState } from "react";
+import { useParams, notFound } from "next/navigation";
+
+// Import all page components
+import HomePage from "@/app/page";
+import HolidaysPage from "@/app/holidays/page";
+import VisaPage from "@/app/visa/page";
+import ApplyVisaPage from "@/app/apply-visa/page";
+import HolidayGridPage from "@/app/holiday-grid/page";
+import HolidayListPage from "@/app/holiday-list/page";
+
+// Mapping of slugs to page components
+const PAGE_COMPONENTS: Record<string, React.ComponentType<any>> = {
+  "master-landing-page": HomePage,
+  "holiday-home-page": HolidaysPage,
+  "visa-landing-page": VisaPage,
+  "apply-visa": ApplyVisaPage,
+  "holiday-grid": HolidayGridPage,
+  "holiday-list": HolidayListPage,
+};
+
+interface PageData {
+  id: string;
+  slug: string;
+  title: string;
+  seoMeta: {
+    metaTitle: string;
+    metaKeywords: string[];
+    metaDescription: string;
+  };
+}
+
+export default function DynamicPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const [pageData, setPageData] = useState<PageData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPageData() {
+      try {
+        const response = await fetch("/api/cms/pages");
+        if (!response.ok) {
+          throw new Error("Failed to fetch pages");
+        }
+        
+        const data = await response.json();
+        const page = data.data?.find((p: any) => p.slug === slug);
+        
+        if (!page) {
+          setPageData(null);
+        } else {
+          setPageData(page);
+          
+          // Update document title and meta tags
+          if (typeof window !== 'undefined') {
+            document.title = page.seoMeta?.metaTitle || page.title;
+            
+            // Update meta description
+            const metaDescription = document.querySelector('meta[name="description"]');
+            if (metaDescription) {
+              metaDescription.setAttribute('content', page.seoMeta?.metaDescription || '');
+            }
+            
+            // Update meta keywords
+            const metaKeywords = document.querySelector('meta[name="keywords"]');
+            if (metaKeywords && page.seoMeta?.metaKeywords) {
+              metaKeywords.setAttribute('content', page.seoMeta.metaKeywords.join(', '));
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching page data:", error);
+        setPageData(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPageData();
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // If page not found in API, return 404
+  if (!pageData) {
+    notFound();
+  }
+
+  // Get the corresponding page component
+  const PageComponent = PAGE_COMPONENTS[slug];
+
+  if (!PageComponent) {
+    notFound();
+  }
+
+  return <PageComponent />;
+}
+
