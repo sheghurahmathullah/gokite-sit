@@ -4,7 +4,7 @@ import {
   FileText,
   RefreshCw,
   CheckCircle,
-  ArrowRight,
+  ChevronRight,
   ChevronDown,
 } from "lucide-react";
 import {
@@ -345,7 +345,7 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
                     </div>
 
                     {/* Pricing */}
-                    <div className="border-t border-gray-200 pt-4 mb-4">
+                    <div className="border-t border-b border-gray-200 pt-4 mb-4">
                       {isApiData ? (
                         // Render API pricing structure
                         <div className="flex justify-between items-start mb-2">
@@ -402,7 +402,7 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
                       className="group/btn flex items-center justify-between w-full text-teal-600 font-bold text-base transition-all"
                     >
                       <span>{option.buttonLabel || "Enquire"}</span>
-                      <ArrowRight className="w-5 h-5 text-yellow-400 transition-transform group-hover/btn:translate-x-1" />
+                      <ChevronRight className="w-5 h-5 text-yellow-400 transition-transform group-hover/btn:translate-x-1" />
                     </button>
                   </div>
                 </div>

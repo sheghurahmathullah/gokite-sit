@@ -73,12 +73,12 @@ const TourItinerary = ({ itinerary, itineraryMainDescription }: TourItineraryPro
               onOpenChange={() => toggleItem(itemId)}
             >
               <div className="relative pl-8">
-                {/* Timeline dot */}
-                <div className="absolute left-0 top-[26px] w-4 h-4 rounded-full bg-foreground border-4 border-background z-10" />
+                {/* Timeline dot - centered with text */}
+                <div className="absolute left-0 top-[22px] w-4 h-4 rounded-full bg-foreground border-4 border-background z-10" />
                 
-                {/* Timeline line - starts from center of current dot and extends down */}
+                {/* Timeline line - connects bottom of current dot through gap to next dot */}
                 {!isLast && (
-                  <div className="absolute left-[7px] top-[38px] bottom-[-16px] w-[2px] h-full bg-border" />
+                  <div className="absolute left-[7px] top-[38px] bottom-[-38px] w-[2px] bg-border" />
                 )}
 
                 <CollapsibleTrigger className="w-full text-left group">
