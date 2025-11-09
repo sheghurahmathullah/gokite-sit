@@ -219,9 +219,12 @@ const HolidayBookingCard = () => {
         return;
       }
 
-      // Valid data found - redirect to holiday-list page
+      // Valid data found - redirect to holiday-list page (always use nested route)
       console.log("[HolidayBookingCard] Valid holiday data found, redirecting to holiday-list");
-      router.push("/holiday-list");
+      const currentPageSlug = typeof window !== "undefined" 
+        ? window.sessionStorage.getItem("currentPageSlug") 
+        : "holiday-home-page";
+      router.push(`/${currentPageSlug}/holiday-list`);
       
     } catch (error) {
       console.error("[HolidayBookingCard] Error validating holiday data:", error);

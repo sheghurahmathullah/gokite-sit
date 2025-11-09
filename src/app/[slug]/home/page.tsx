@@ -462,11 +462,8 @@ const Index = () => {
                     onClick={() => {
                       const currentPageSlug = typeof window !== "undefined" 
                         ? window.sessionStorage.getItem("currentPageSlug") 
-                        : null;
-                      const route = currentPageSlug 
-                        ? `/${currentPageSlug}/holiday-grid`
-                        : `/holiday-grid`;
-                      router.push(route);
+                        : "master-landing-page";
+                      router.push(`/${currentPageSlug}/holiday-grid`);
                     }}
                   >
                     View All
@@ -552,11 +549,8 @@ const Index = () => {
                     onClick={() => {
                       const currentPageSlug = typeof window !== "undefined" 
                         ? window.sessionStorage.getItem("currentPageSlug") 
-                        : null;
-                      const route = currentPageSlug 
-                        ? `/${currentPageSlug}/visa`
-                        : `/visa`;
-                      router.push(route);
+                        : "master-landing-page";
+                      router.push(`/${currentPageSlug}/visa`);
                     }}
                   >
                     View All

@@ -191,8 +191,11 @@ const VisaBookingCard = () => {
         window.sessionStorage.setItem("applyVisaDetails", JSON.stringify(data.data[0]));
       }
 
-      // Redirect to apply-visa page
-      router.push("/apply-visa");
+      // Redirect to apply-visa page (always use nested route)
+      const currentPageSlug = typeof window !== "undefined" 
+        ? window.sessionStorage.getItem("currentPageSlug") 
+        : "master-landing-page";
+      router.push(`/${currentPageSlug}/apply-visa`);
       
     } catch (error) {
       console.error("[VisaBookingCard] Error validating visa data:", error);

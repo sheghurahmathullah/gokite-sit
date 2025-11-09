@@ -139,8 +139,11 @@ const VisaCard = ({ destination }: VisaCardProps) => {
         }
       } catch (_) {}
 
-      // Redirect to apply-visa page
-      router.push("/apply-visa");
+      // Redirect to apply-visa page (always use nested route)
+      const currentPageSlug = typeof window !== "undefined" 
+        ? window.sessionStorage.getItem("currentPageSlug") 
+        : "master-landing-page";
+      router.push(`/${currentPageSlug}/apply-visa`);
       
     } catch (e) {
       console.error("[VisaCard] Error validating visa:", e);

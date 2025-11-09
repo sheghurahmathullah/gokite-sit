@@ -59,13 +59,13 @@ const TopNav = () => {
 
   const isActive = (item: typeof iconNavItems[0]) => {
     if (item.redirectUrl === PAGE_SLUGS.home) {
-      return pathname === "/" || pathname === PAGE_SLUGS.home;
+      return pathname === "/" || pathname === PAGE_SLUGS.home || pathname.startsWith("/master-landing-page");
     }
     if (item.redirectUrl === PAGE_SLUGS.holidays) {
-      return pathname === "/holidays" || pathname === PAGE_SLUGS.holidays;
+      return pathname === PAGE_SLUGS.holidays || pathname.startsWith("/holiday-home-page");
     }
     if (item.redirectUrl === PAGE_SLUGS.visa) {
-      return pathname === "/visa" || pathname === PAGE_SLUGS.visa;
+      return pathname === PAGE_SLUGS.visa || pathname.startsWith("/visa-landing-page");
     }
     return pathname.startsWith(item.redirectUrl) && item.redirectUrl !== "#";
   };
@@ -111,6 +111,7 @@ const TopNav = () => {
             <Link
               key={item.id}
               href={item.redirectUrl}
+              onClick={() => console.log("[IconNav] Navigating to:", item.redirectUrl)}
               className="flex flex-col items-center gap-2 group transition-transform hover:-translate-y-1"
             >
               <div className="w-8 h-8 lg:w-8 lg:h-8 rounded-full bg-white shadow-lg flex  group-hover:shadow-xl transition-shadow">

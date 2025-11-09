@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
-import FilterSidebar from "@/components/holiday-grid/FilterSidebar";
+import FilterSidebar, { FilterCriteria } from "@/components/holiday-grid/FilterSidebar";
 import DestinationCard from "@/components/common/DestinationCard";
 import { Skeleton } from "@/components/common/SkeletonLoader";
 
@@ -32,9 +32,11 @@ const CATEGORY_ID_MAP: Record<string, number> = {
 
 const HolidayGridPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("Beaches");
+  const [allDestinations, setAllDestinations] = useState<any[]>([]);
   const [destinations, setDestinations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rawApiData, setRawApiData] = useState<any[]>([]);
 
   // Transform holiday card data to match DestinationCard interface
   const transformHolidayData = (apiData: any[]) => {
@@ -116,8 +118,10 @@ const HolidayGridPage = () => {
         ? upstream
         : [];
 
+      setRawApiData(list);
       const transformedDestinations = transformHolidayData(list);
       console.log("transformedDestinations", transformedDestinations);
+      setAllDestinations(transformedDestinations);
       setDestinations(transformedDestinations);
     } catch (err) {
       console.error("Error fetching holiday cards:", err);
@@ -138,6 +142,31 @@ const HolidayGridPage = () => {
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
   };
+
+  // Extract unique cities and categories
+  const uniqueCities = Array.from(new Set(rawApiData.map(item => item.cityName).filter(Boolean)));
+  const uniqueCategories = Array.from(new Set(rawApiData.map(item => item.categoryName).filter(Boolean)));
+
+  // Filter handler - memoized to prevent infinite loop
+  const handleFilterChange = useCallback((filters: FilterCriteria) => {
+    const filteredRaw = rawApiData.filter((item) => {
+      if (filters.cityName !== "All" && item.cityName !== filters.cityName) return false;
+      if (filters.categoryName !== "All" && item.categoryName !== filters.categoryName) return false;
+      const noOfGuests = parseInt(item.noOfGuests || "0");
+      if (noOfGuests > 0 && noOfGuests < filters.minGuests) return false;
+      const price = parseFloat(item.newPrice || "0");
+      if (price < filters.minPrice || price > filters.maxPrice) return false;
+      const rating = parseFloat(item.packageRating || item.cardJson?.packageRating || "0");
+      if (rating < filters.minRating) return false;
+      if (filters.pickupRequired !== null) {
+        const hasPickup = item.pickupRequired === "1";
+        if (filters.pickupRequired && !hasPickup) return false;
+        if (!filters.pickupRequired && hasPickup) return false;
+      }
+      return true;
+    });
+    setDestinations(transformHolidayData(filteredRaw));
+  }, [rawApiData]); // Only recreate when rawApiData changes
 
   const categories = [
     { id: 1, icon: "/holidaygrid/beach.png", label: "Beaches" },
@@ -290,7 +319,11 @@ const HolidayGridPage = () => {
 
                 {/* Filter Sidebar - 30% width */}
                 <div className="w-full lg:w-[30%]">
-                  <FilterSidebar />
+                  <FilterSidebar 
+                    cities={uniqueCities}
+                    categories={uniqueCategories}
+                    onFilterChange={handleFilterChange}
+                  />
                 </div>
               </div>
             </div>

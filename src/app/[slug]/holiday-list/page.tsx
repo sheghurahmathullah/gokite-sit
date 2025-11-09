@@ -1,9 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
 import HeroBanner from "@/components/holiday-grid/HeroBanner";
-import FilterSidebar from "@/components/holiday-grid/FilterSidebar";
+import FilterSidebar, { FilterCriteria } from "@/components/holiday-grid/FilterSidebar";
 import DestinationCard from "@/components/common/DestinationCard";
 import { Skeleton } from "@/components/common/SkeletonLoader";
 
@@ -32,9 +32,11 @@ const CATEGORY_ID_MAP: Record<string, number> = {
 };
 
 const HolidayListPage = () => {
+  const [allDestinations, setAllDestinations] = useState<any[]>([]);
   const [destinations, setDestinations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rawApiData, setRawApiData] = useState<any[]>([]);
 
   // Currency conversion and formatting
   const convertAndFormatCurrency = (amount: number, currency: string) => {
@@ -134,13 +136,15 @@ const HolidayListPage = () => {
         ? upstream
         : [];
 
+      setRawApiData(list);
       const transformedDestinations = transformHolidayData(list);
+      setAllDestinations(transformedDestinations);
       setDestinations(transformedDestinations);
     } catch (err) {
       console.error("Error fetching holiday cards:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
-      // Set empty array on error
       setDestinations([]);
+      setRawApiData([]);
     } finally {
       setLoading(false);
     }
@@ -167,12 +171,15 @@ const HolidayListPage = () => {
       
       const list = Array.isArray(data?.data) ? data.data : [];
 
+      setRawApiData(list);
       const transformedDestinations = transformHolidayData(list);
+      setAllDestinations(transformedDestinations);
       setDestinations(transformedDestinations);
     } catch (err) {
       console.error("Error fetching holiday country search:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
       setDestinations([]);
+      setRawApiData([]);
     } finally {
       setLoading(false);
     }
@@ -197,12 +204,15 @@ const HolidayListPage = () => {
       const data = await response.json();
       const list = Array.isArray(data?.data) ? data.data : [];
 
+      setRawApiData(list);
       const transformedDestinations = transformHolidayData(list);
+      setAllDestinations(transformedDestinations);
       setDestinations(transformedDestinations);
     } catch (err) {
       console.error("Error fetching holiday city search:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
       setDestinations([]);
+      setRawApiData([]);
     } finally {
       setLoading(false);
     }
@@ -239,6 +249,30 @@ const HolidayListPage = () => {
     
   }, []);
 
+  // Extract unique cities and categories
+  const uniqueCities = Array.from(new Set(rawApiData.map(item => item.cityName).filter(Boolean)));
+  const uniqueCategories = Array.from(new Set(rawApiData.map(item => item.categoryName).filter(Boolean)));
+
+  // Filter handler - memoized to prevent infinite loop
+  const handleFilterChange = useCallback((filters: FilterCriteria) => {
+    const filteredRaw = rawApiData.filter((item) => {
+      if (filters.cityName !== "All" && item.cityName !== filters.cityName) return false;
+      if (filters.categoryName !== "All" && item.categoryName !== filters.categoryName) return false;
+      const noOfGuests = parseInt(item.noOfGuests || "0");
+      if (noOfGuests > 0 && noOfGuests < filters.minGuests) return false;
+      const price = parseFloat(item.newPrice || "0");
+      if (price < filters.minPrice || price > filters.maxPrice) return false;
+      const rating = parseFloat(item.packageRating || item.cardJson?.packageRating || "0");
+      if (rating < filters.minRating) return false;
+      if (filters.pickupRequired !== null) {
+        const hasPickup = item.pickupRequired === "1";
+        if (filters.pickupRequired && !hasPickup) return false;
+        if (!filters.pickupRequired && hasPickup) return false;
+      }
+      return true;
+    });
+    setDestinations(transformHolidayData(filteredRaw));
+  }, [rawApiData]); // Only recreate when rawApiData changes
 
   return (
     <div className="min-h-screen bg-background">
@@ -296,7 +330,11 @@ const HolidayListPage = () => {
 
           {/* Filter Sidebar - 30% width */}
           <div className="w-full lg:w-[30%]">
-            <FilterSidebar />
+            <FilterSidebar 
+              cities={uniqueCities}
+              categories={uniqueCategories}
+              onFilterChange={handleFilterChange}
+            />
           </div>
         </div>
       </main>

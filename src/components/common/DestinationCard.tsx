@@ -98,9 +98,12 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
         console.error("[DestinationCard] Error saving holiday details:", e);
       }
 
-      // Navigate to tour details page
+      // Navigate to tour details page (always use nested route)
       const tourSlug = destination.name.toLowerCase().replace(/\s+/g, "-");
-      router.push(`/tour-details/${tourSlug}`);
+      const currentPageSlug = typeof window !== "undefined" 
+        ? window.sessionStorage.getItem("currentPageSlug") 
+        : "master-landing-page";
+      router.push(`/${currentPageSlug}/tour-details/${tourSlug}`);
       
     } catch (error) {
       console.error("[DestinationCard] Error validating holiday data:", error);
