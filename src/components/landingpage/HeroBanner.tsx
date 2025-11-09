@@ -34,13 +34,13 @@ const iconNavItems = [
     id: "Flight",
     label: "Flight",
     imgSrc: "/landingpage/icons/flight.png",
-    redirectUrl: "#",
+    redirectUrl: "/flights",
   },
   {
     id: "Activities",
     label: "Activities",
     imgSrc: "/landingpage/icons/activity.png",
-    redirectUrl: "#",
+    redirectUrl: "/activities",
   },
   {
     id: "Holidays",
@@ -52,7 +52,7 @@ const iconNavItems = [
     id: "Hotel",
     label: "Hotel",
     imgSrc: "/landingpage/icons/hotel.png",
-    redirectUrl: "#",
+    redirectUrl: "/hotels",
   },
   {
     id: "Visa",
@@ -64,7 +64,7 @@ const iconNavItems = [
     id: "More",
     label: "More",
     imgSrc: "/landingpage/icons/more.png",
-    redirectUrl: "#",
+    redirectUrl: "/more",
   },
 ];
 

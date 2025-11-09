@@ -145,7 +145,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="#"
+                  href="/flights"
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Flight Booking
@@ -153,7 +153,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/visa"
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Visa
@@ -161,7 +161,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/activities"
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Activities
@@ -169,7 +169,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/holidays"
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Holidays
@@ -177,7 +177,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/hotels"
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Hotel
