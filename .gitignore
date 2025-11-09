@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+testSessionRefresh.ts
+SessionDebugger.tsx
 
 # next.js
 /.next/
