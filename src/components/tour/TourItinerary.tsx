@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -12,6 +12,7 @@ interface ItineraryItem {
   time: string;
   title: string;
   description: string;
+  image?: string;
 }
 
 interface TourItineraryProps {
@@ -22,6 +23,8 @@ interface TourItineraryProps {
 const TourItinerary = ({ itinerary, itineraryMainDescription }: TourItineraryProps) => {
   const [expandAll, setExpandAll] = useState(false);
   const [openItems, setOpenItems] = useState<string[]>([]);
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  const [loadingImages, setLoadingImages] = useState<Set<string>>(new Set());
 
   const handleExpandAll = () => {
     if (expandAll) {
@@ -38,6 +41,19 @@ const TourItinerary = ({ itinerary, itineraryMainDescription }: TourItineraryPro
         ? prev.filter((id) => id !== itemId)
         : [...prev, itemId]
     );
+  };
+
+  const handleImageLoad = (itemId: string) => {
+    setLoadedImages((prev) => new Set(prev).add(itemId));
+    setLoadingImages((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(itemId);
+      return newSet;
+    });
+  };
+
+  const handleImageStart = (itemId: string) => {
+    setLoadingImages((prev) => new Set(prev).add(itemId));
   };
 
   return (
@@ -102,6 +118,26 @@ const TourItinerary = ({ itinerary, itineraryMainDescription }: TourItineraryPro
 
                 <CollapsibleContent>
                   <div className="py-4 pl-4 pr-4">
+                    {item.image && (
+                      <div className="mb-4 rounded-lg overflow-hidden relative bg-gray-100">
+                        {loadingImages.has(itemId) && !loadedImages.has(itemId) && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                          </div>
+                        )}
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className={`w-full h-64 object-cover transition-opacity duration-300 ${
+                            loadedImages.has(itemId) ? 'opacity-100' : 'opacity-0'
+                          }`}
+                          loading="eager"
+                          onLoadStart={() => handleImageStart(itemId)}
+                          onLoad={() => handleImageLoad(itemId)}
+                          onError={() => handleImageLoad(itemId)}
+                        />
+                      </div>
+                    )}
                     <p className="text-foreground/70 leading-relaxed whitespace-pre-line">
                       {item.description}
                     </p>

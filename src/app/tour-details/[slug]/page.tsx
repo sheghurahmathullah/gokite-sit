@@ -227,6 +227,7 @@ const TourDetailPageInner = () => {
             ? item.descriptions.map((d: any) => d?.text || "").join(" ")
             : item.description || "",
           activities: item.activities || [],
+          image: item.image ? getImageUrl(item.image) : undefined,
         }))
       : [],
     // What's included from cardJson
