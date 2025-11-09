@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font";
 import { GeistMono } from "geist/font";
 import "./globals.css";
+import "react-toastify/dist/ReactToastify.css";
 import { Monda, Outfit } from "next/font/google";
 import { PageProvider } from "@/components/common/PageContext";
 import { Toaster } from "@/components/ui/toaster";
+import { ToastContainer } from "react-toastify";
 
 const monda = Monda({
   weight: ["400", "700"],
@@ -36,6 +38,18 @@ export default function RootLayout({
         <PageProvider>
           {children}
           <Toaster />
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+          />
         </PageProvider>
       </body>
     </html>

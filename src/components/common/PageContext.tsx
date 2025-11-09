@@ -1,6 +1,8 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useSessionMonitor } from "@/hooks/useSessionMonitor";
+import { toast } from "react-toastify";
 
 // Define types for better type safety
 interface Page {
@@ -43,6 +45,7 @@ interface PageProviderProps {
 
 export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [pages, setPages] = useState<Page[]>([]);
   const [pageIds, setPageIds] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -51,6 +54,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
   const [initialAuthCheckDone, setInitialAuthCheckDone] = useState(false);
   const isAuthenticatedRef = useRef(false); // Ref to track auth status for event handlers
   const hasFetchedRef = useRef(false); // Ref to prevent duplicate fetches
+  const sessionRefreshedRef = useRef(false); // Track if we've already shown refresh notification
 
   // Sync ref with state
   useEffect(() => {
@@ -59,6 +63,63 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
 
   // Check if current page is sign-in page
   const isSignInPage = pathname === "/sign-in";
+
+  // Session monitoring - only when authenticated
+  useSessionMonitor({
+    enabled: isAuthenticated && !isSignInPage,
+    checkInterval: 60000, // Check every minute
+    refreshThreshold: 5, // Refresh 5 minutes before expiry
+    onSessionExpired: () => {
+      console.log("[PageContext] Session expired, redirecting to sign-in");
+      setIsAuthenticated(false);
+      setPages([]);
+      setPageIds({});
+      
+      // Show notification
+      if (typeof window !== "undefined") {
+        toast.info("Your session has expired. Please sign in again.", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      }
+      
+      // Redirect to sign-in
+      const currentPath = pathname;
+      router.push(`/sign-in?redirect=${encodeURIComponent(currentPath)}`);
+    },
+    onSessionRefreshed: () => {
+      console.log("[PageContext] Session refreshed automatically");
+      
+      // Show notification only once per session refresh
+      if (!sessionRefreshedRef.current && typeof window !== "undefined") {
+        toast.success("Session renewed automatically", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        sessionRefreshedRef.current = true;
+        
+        // Reset the flag after 5 minutes
+        setTimeout(() => {
+          sessionRefreshedRef.current = false;
+        }, 5 * 60 * 1000);
+      }
+      
+      // Refetch pages to ensure we have latest data
+      hasFetchedRef.current = false;
+      fetchPages();
+    },
+    onRefreshFailed: () => {
+      console.error("[PageContext] Session refresh failed");
+      
+      // Show warning but don't force logout immediately
+      if (typeof window !== "undefined") {
+        toast.warning("Unable to refresh session. Please sign in again soon.", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      }
+    },
+  });
 
   // Check authentication status and fetch pages only if authenticated
   useEffect(() => {

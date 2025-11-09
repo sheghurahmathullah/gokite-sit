@@ -111,6 +111,21 @@ function SignInForm() {
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Store email (hashed) and session duration in sessionStorage
+        try {
+          const { storeUserEmail, storeSessionDuration } = await import("@/lib/sessionManager");
+          storeUserEmail(email);
+          
+          // Extract session duration from response if available
+          if (data.data?.sessionDuration) {
+            storeSessionDuration(data.data.sessionDuration);
+            console.log("[SignIn] Session duration stored:", data.data.sessionDuration);
+          }
+        } catch (err) {
+          console.error("[SignIn] Failed to store session data:", err);
+        }
+        
         toast.success("Login Successful! Welcome to GoKite! ", {
           position: "top-right",
           autoClose: 2000,

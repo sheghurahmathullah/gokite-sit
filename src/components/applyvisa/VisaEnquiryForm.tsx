@@ -33,6 +33,17 @@ const VISA_TYPES = [
   "Transit Visa",
 ];
 
+// Customer Types
+const CUSTOMER_TYPES = [
+  "Leisure",
+  "Business",
+  "Adventure",
+  "Family",
+  "Honeymoon",
+  "Group",
+  "Solo",
+];
+
 // ============================================
 // TYPES & INTERFACES
 // ============================================
@@ -62,6 +73,7 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
     destinationCountry: "",
     destinationState: "",
     destinationCity: "",
+    customerType: "",
     visaType: "",
     tentativeTravelDate: "",
     contactNumber: "",
@@ -211,6 +223,8 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
       newErrors.nationality = "Nationality is required";
     if (!formData.destinationCountry)
       newErrors.destinationCountry = "Destination country is required";
+    if (!formData.customerType)
+      newErrors.customerType = "Customer type is required";
     if (!formData.visaType) newErrors.visaType = "Visa type is required";
     if (!formData.contactNumber)
       newErrors.contactNumber = "Contact number is required";
@@ -284,6 +298,7 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
           destinationCountry: "",
           destinationState: "",
           destinationCity: "",
+          customerType: "",
           visaType: "",
           tentativeTravelDate: "",
           contactNumber: "",
@@ -576,6 +591,41 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
                   )}
                 </div>
                 <div>
+                  <Label className="text-xs">Customer Type*</Label>
+                  <Select
+                    value={formData.customerType}
+                    onValueChange={(value) => {
+                      setFormData((prev) => ({ ...prev, customerType: value }));
+                      if (errors.customerType) {
+                        setErrors((prev) => ({ ...prev, customerType: "" }));
+                      }
+                    }}
+                    required
+                  >
+                    <SelectTrigger
+                      className={`h-8 text-xs ${
+                        errors.customerType ? "border-red-500" : ""
+                      }`}
+                    >
+                      <SelectValue placeholder="Select Customer Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CUSTOMER_TYPES.map((type) => (
+                        <SelectItem key={type} value={type} className="text-xs">
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.customerType && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.customerType}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <Label className="text-xs">Type of Visa*</Label>
                   <Select
                     value={formData.visaType}
@@ -608,8 +658,6 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
                     </p>
                   )}
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Destination State*</Label>
                   <Select
