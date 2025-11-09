@@ -84,10 +84,19 @@ const Index = () => {
 
   const { 
     getPageIdWithFallback, 
+    getPageInfo,
     loading: pageLoading, 
     isAuthenticated,
     initialAuthCheckDone
   } = usePageContext();
+
+  // Set page title dynamically
+  useEffect(() => {
+    const pageInfo = getPageInfo("landing");
+    if (pageInfo?.title) {
+      document.title = pageInfo.title;
+    }
+  }, [getPageInfo]);
 
   // Fetch sections data
   const fetchSectionsData = async (): Promise<Section[]> => {

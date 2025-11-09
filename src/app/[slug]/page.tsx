@@ -55,7 +55,7 @@ export default function DynamicPage() {
           
           // Update document title and meta tags
           if (typeof window !== 'undefined') {
-            document.title = page.seoMeta?.metaTitle || page.title;
+            document.title = page.title || page.seoMeta?.metaTitle;
             
             // Update meta description
             const metaDescription = document.querySelector('meta[name="description"]');

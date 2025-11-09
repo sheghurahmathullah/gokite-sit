@@ -81,7 +81,15 @@ const HolidaysPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // CMS-driven sections: Dynamic Holiday Sections
-  const { getPageIdWithFallback, loading: pageLoading, isAuthenticated } = usePageContext();
+  const { getPageIdWithFallback, getPageInfo, loading: pageLoading, isAuthenticated } = usePageContext();
+
+  // Set page title dynamically
+  useEffect(() => {
+    const pageInfo = getPageInfo("holidays");
+    if (pageInfo?.title) {
+      document.title = pageInfo.title;
+    }
+  }, [getPageInfo]);
 
   // New structure for dynamic sections
   interface SectionWithData {

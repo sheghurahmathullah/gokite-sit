@@ -65,7 +65,15 @@ const VisaPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const dataFetchedRef = useRef(false); // Track if data has been fetched
-  const { getPageIdWithFallback, loading: pageLoading, isAuthenticated } = usePageContext();
+  const { getPageIdWithFallback, getPageInfo, loading: pageLoading, isAuthenticated } = usePageContext();
+
+  // Set page title dynamically
+  useEffect(() => {
+    const pageInfo = getPageInfo("visaLanding");
+    if (pageInfo?.title) {
+      document.title = pageInfo.title;
+    }
+  }, [getPageInfo]);
 
   // Helper function to get flag image URL
   const getFlagImageUrl = (imageName?: string) => {

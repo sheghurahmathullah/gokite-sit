@@ -80,7 +80,13 @@ const TourDetailPageInner = () => {
         console.log("Fetched data:", data);
 
         if (data && data.length > 0) {
-          setHolidayDetails(data[0]);
+          const details = data[0];
+          setHolidayDetails(details);
+          
+          // Set page title dynamically
+          if (details?.title) {
+            document.title = details.title;
+          }
         } else {
           setError("Holiday details not found");
         }
