@@ -58,6 +58,7 @@ export async function POST(request) {
         sameSite: "lax",
         secure: isProd,
         path: "/",
+        maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
       });
     }
     if (refresh) {
@@ -66,6 +67,7 @@ export async function POST(request) {
         sameSite: "lax",
         secure: isProd,
         path: "/",
+        maxAge: 60 * 60 * 24 * 30, // 30 days in seconds
       });
     }
 

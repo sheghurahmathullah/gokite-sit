@@ -8,6 +8,7 @@ import VisaRulesCard from "@/components/visa/VisaRulesCard";
 import VisaCountrySearchAndGrid from "@/components/visa/VisaCountrySearchAndGrid";
 import StepsGetVisa from "@/components/visa/StepsGetVisa";
 import { usePageContext } from "@/components/common/PageContext";
+import { CarouselSkeleton } from "@/components/common/SkeletonLoader";
 
 interface Section {
   pageSectionId: string;
@@ -231,20 +232,57 @@ const VisaPage = () => {
           (section: Section) => section.title !== "Visa Rules Announcement"
         );
 
-        // Fetch visa cards for all regular sections in parallel
+        // Fetch visa cards for all regular sections in parallel with timeout and error handling
         if (regularVisaSections.length > 0) {
+          console.log(`[VisaPage] Fetching ${regularVisaSections.length} sections in parallel...`);
+          
           const visaSectionsDataPromises = regularVisaSections.map(async (section: Section) => {
-            console.log(`[API Call] Fetching /api/cms/sections-visa-cards for section: ${section.pageSectionId}`);
-            const response = await fetch("/api/cms/sections-visa-cards", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ pageSectionId: section.pageSectionId }),
-            });
+            try {
+              console.log(`[API Call] Fetching /api/cms/sections-visa-cards for section: ${section.pageSectionId}`);
+              
+              // Add timeout to individual fetch requests (30 seconds)
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 30000);
+              
+              const response = await fetch("/api/cms/sections-visa-cards", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ pageSectionId: section.pageSectionId }),
+                signal: controller.signal,
+              });
 
-            if (!response.ok) {
-              console.error("Failed to fetch visa cards for section:", section.pageSectionId);
+              clearTimeout(timeoutId);
+
+              if (!response.ok) {
+                console.error(`Failed to fetch visa cards for section ${section.pageSectionId}: HTTP ${response.status}`);
+                return {
+                  pageSectionId: section.pageSectionId,
+                  title: section.title,
+                  contentType: section.contentType,
+                  data: [],
+                };
+              }
+
+              const data = await response.json();
+              console.log(`[API Call] Received ${data?.data?.length || 0} visa cards for section: ${section.pageSectionId}`);
+              const visaCards = Array.isArray(data?.data) ? data.data : [];
+
+              // Transform data
+              const transformedData = transformVisaData(visaCards);
+
+              return {
+                pageSectionId: section.pageSectionId,
+                title: section.title,
+                contentType: section.contentType,
+                data: transformedData,
+              };
+            } catch (error: any) {
+              console.error(
+                `Error fetching visa cards for section ${section.pageSectionId}:`,
+                error.name === 'AbortError' ? 'Request timeout (30s)' : error.message
+              );
               return {
                 pageSectionId: section.pageSectionId,
                 title: section.title,
@@ -252,23 +290,23 @@ const VisaPage = () => {
                 data: [],
               };
             }
-
-            const data = await response.json();
-            console.log(`[API Call] Received visa cards for section: ${section.pageSectionId}`);
-            const visaCards = Array.isArray(data?.data) ? data.data : [];
-
-            // Transform data
-            const transformedData = transformVisaData(visaCards);
-
-            return {
-              pageSectionId: section.pageSectionId,
-              title: section.title,
-              contentType: section.contentType,
-              data: transformedData,
-            };
           });
 
-          const visaSectionsWithDataResult = await Promise.all(visaSectionsDataPromises);
+          // Use Promise.allSettled so that if some sections fail, others can still load
+          const results = await Promise.allSettled(visaSectionsDataPromises);
+          
+          // Extract successful results
+          const visaSectionsWithDataResult = results
+            .filter((result) => result.status === 'fulfilled')
+            .map((result: any) => result.value);
+
+          // Log any failures
+          const failures = results.filter((result) => result.status === 'rejected');
+          if (failures.length > 0) {
+            console.error(`[VisaPage] ${failures.length} section(s) failed to load`);
+          }
+
+          console.log(`[VisaPage] Successfully loaded ${visaSectionsWithDataResult.length} out of ${regularVisaSections.length} sections`);
           setVisaSectionsWithData(visaSectionsWithDataResult);
         }
 
@@ -321,12 +359,7 @@ const VisaPage = () => {
 
         {/* Dynamic Visa Sections */}
         {loading ? (
-          <section className="w-full px-6 py-6">
-            <div className="max-w-[85rem] mx-auto text-center text-gray-600">
-              <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-              <p className="font-medium">Loading visa sections...</p>
-            </div>
-          </section>
+          <CarouselSkeleton />
         ) : error ? (
           <section className="w-full px-6 py-6">
             <div className="max-w-[85rem] mx-auto text-center text-red-600">

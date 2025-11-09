@@ -11,6 +11,7 @@ import TourItinerary from "@/components/tour/TourItinerary";
 import WhatsIncluded from "@/components/tour/WhatsIncluded";
 import TourFAQ from "@/components/tour/TourFAQ";
 import HolidayEnquiryForm from "@/components/tour/HolidayEnquiryForm";
+import { ContentPageSkeleton } from "@/components/common/SkeletonLoader";
 
 // Use local proxy; server will attach Authorization from cookie
 const getAuthHeaders = () => ({ "Content-Type": "application/json" });
@@ -107,23 +108,7 @@ const TourDetailPageInner = () => {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <TopNav />
-        <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
-          <div className="mb-6">
-            <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
-          </div>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-            Loading Holiday Details...
-          </h2>
-          <p className="text-gray-600">
-            Please wait while we fetch your holiday information
-          </p>
-        </div>
-        <Footer />
-      </div>
-    );
+    return <ContentPageSkeleton />;
   }
 
   // Error state
@@ -337,12 +322,7 @@ const TourDetailPageInner = () => {
 export default function TourDetailPage() {
   return (
     <Suspense
-      fallback={
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-700">Loading...</h2>
-        </div>
-      }
+      fallback={<ContentPageSkeleton />}
     >
       <TourDetailPageInner />
     </Suspense>

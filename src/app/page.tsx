@@ -13,6 +13,7 @@ import VisaCarousel, {
 import Footer from "@/components/common/Footer";
 import { Button } from "@/components/ui/button";
 import { usePageContext } from "@/components/common/PageContext";
+import { HomePageSkeleton } from "@/components/common/SkeletonLoader";
 
 // Define types for API responses
 interface HolidayCardItem {
@@ -379,17 +380,7 @@ const Index = () => {
 
   // Show loading state
   if (shouldShowLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <TopNav />
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <HomePageSkeleton />;
   }
 
   // Show error state

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import TopNav from "@/components/common/TopNav";
+import TopNav from "@/components/common/IconNav";
+import Footer from "@/components/common/Footer";
+import { Skeleton } from "@/components/common/SkeletonLoader";
 
 const TermsPage = () => {
   const [activeSection, setActiveSection] = useState("general-terms");
@@ -101,8 +103,19 @@ const TermsPage = () => {
 
               {/* Content */}
               {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="text-gray-500">Loading terms and conditions...</div>
+                <div className="space-y-4 py-4">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                  <Skeleton className="h-6 w-2/3 mt-6" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-4/5" />
+                  <Skeleton className="h-6 w-3/4 mt-6" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
                 </div>
               ) : error ? (
                 <div className="flex items-center justify-center py-12">
@@ -137,6 +150,7 @@ const TermsPage = () => {
           </svg>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

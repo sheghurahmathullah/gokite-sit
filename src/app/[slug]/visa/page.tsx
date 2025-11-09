@@ -8,6 +8,7 @@ import VisaRulesCard from "@/components/visa/VisaRulesCard";
 import VisaCountrySearchAndGrid from "@/components/visa/VisaCountrySearchAndGrid";
 import StepsGetVisa from "@/components/visa/StepsGetVisa";
 import { usePageContext } from "@/components/common/PageContext";
+import { CarouselSkeleton } from "@/components/common/SkeletonLoader";
 
 interface Section {
   pageSectionId: string;
@@ -321,12 +322,7 @@ const VisaPage = () => {
 
         {/* Dynamic Visa Sections */}
         {loading ? (
-          <section className="w-full px-6 py-6">
-            <div className="max-w-[85rem] mx-auto text-center text-gray-600">
-              <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-              <p className="font-medium">Loading visa sections...</p>
-            </div>
-          </section>
+          <CarouselSkeleton />
         ) : error ? (
           <section className="w-full px-6 py-6">
             <div className="max-w-[85rem] mx-auto text-center text-red-600">

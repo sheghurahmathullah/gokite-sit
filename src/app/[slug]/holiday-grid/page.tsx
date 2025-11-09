@@ -4,6 +4,7 @@ import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
 import FilterSidebar from "@/components/holiday-grid/FilterSidebar";
 import DestinationCard from "@/components/common/DestinationCard";
+import { Skeleton } from "@/components/common/SkeletonLoader";
 
 // Fallback images if API does not provide an image
 const FALLBACK_IMAGES = [
@@ -246,13 +247,17 @@ const HolidayGridPage = () => {
                 {/* Tour Cards Grid - 70% width */}
                 <div className="w-full lg:w-[70%]">
                   {loading ? (
-                    <div className="flex items-center justify-center min-h-[400px]">
-                      <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                        <p className="text-muted-foreground">
-                          Loading holiday destinations...
-                        </p>
-                      </div>
+                    <div className="grid grid-cols-1 gap-6">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="rounded-2xl overflow-hidden">
+                          <Skeleton className="h-64 w-full" />
+                          <div className="p-4 bg-gray-50">
+                            <Skeleton className="h-6 w-3/4 mb-2" />
+                            <Skeleton className="h-4 w-full mb-2" />
+                            <Skeleton className="h-4 w-1/2" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : error ? (
                     <div className="flex items-center justify-center min-h-[400px]">

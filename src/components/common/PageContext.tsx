@@ -104,9 +104,12 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
         }, 5 * 60 * 1000);
       }
       
-      // Refetch pages to ensure we have latest data
-      hasFetchedRef.current = false;
-      fetchPages();
+      // Add a small delay before refetching to ensure cookie is updated
+      setTimeout(() => {
+        console.log("[PageContext] Refetching pages after session refresh");
+        hasFetchedRef.current = false;
+        fetchPages(true); // Pass true to indicate this is after a refresh
+      }, 500); // 500ms delay to allow cookie to be set
     },
     onRefreshFailed: () => {
       console.error("[PageContext] Session refresh failed");
@@ -149,19 +152,82 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
         hasFetchedRef.current = true;
         
         // Just try to fetch pages - if it works, user is authenticated
-        await fetchPages();
-        if (mounted) {
+        const result = await fetchPages();
+        
+        // Check if result indicates unauthorized (won't happen with throw, but keeping for safety)
+        if (result && (result as any).unauthorized) {
+          console.log("[PageContext] 401 on initial load - attempting session refresh...");
+          
+          // Try to refresh session using stored email
+          const { refreshSession, getUserEmail } = await import("@/lib/sessionManager");
+          const storedEmail = getUserEmail();
+          
+          if (storedEmail) {
+            console.log("[PageContext] Found stored email, attempting auto-refresh");
+            const refreshSuccess = await refreshSession();
+            
+            if (refreshSuccess && mounted) {
+              console.log("[PageContext] Auto-refresh successful, retrying fetch");
+              // Wait a bit for cookie to be set
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
+              // Retry fetching pages
+              hasFetchedRef.current = false;
+              const retryResult = await fetchPages();
+              
+              if (retryResult && (retryResult as any).unauthorized) {
+                // Still unauthorized after refresh, user needs to sign in
+                console.log("[PageContext] Still unauthorized after refresh");
+                setIsAuthenticated(false);
+                setInitialAuthCheckDone(true);
+                setPages([]);
+                setPageIds({});
+              } else {
+                // Success!
+                console.log("[PageContext] Successfully authenticated after auto-refresh");
+                setIsAuthenticated(true);
+                setInitialAuthCheckDone(true);
+              }
+            } else {
+              // Refresh failed, user needs to sign in
+              console.log("[PageContext] Auto-refresh failed");
+              if (mounted) {
+                setIsAuthenticated(false);
+                setInitialAuthCheckDone(true);
+                setPages([]);
+                setPageIds({});
+              }
+            }
+          } else {
+            // No stored email, user needs to sign in
+            console.log("[PageContext] No stored email for auto-refresh");
+            if (mounted) {
+              setIsAuthenticated(false);
+              setInitialAuthCheckDone(true);
+              setPages([]);
+              setPageIds({});
+            }
+          }
+          
+          // Reset flag so we can retry later
+          hasFetchedRef.current = false;
+        } else if (mounted) {
           console.log("[PageContext] Setting authenticated to true");
           setIsAuthenticated(true);
           setInitialAuthCheckDone(true);
         }
-      } catch (err) {
+      } catch (err: any) {
         // Reset flag on error so we can retry
         hasFetchedRef.current = false;
         
         if (mounted) {
-          // Fetch failed, user is not authenticated
-          console.log("[PageContext] Setting authenticated to false");
+          // Only log unexpected errors
+          if (err?.message !== "UNAUTHORIZED_401") {
+            console.error("[PageContext] Unexpected error during auth check:", err);
+          } else {
+            console.log("[PageContext] User not authenticated (expected)");
+          }
+          
           setIsAuthenticated(false);
           setInitialAuthCheckDone(true);
           setLoading(false);
@@ -223,20 +289,104 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
     };
   }, [isSignInPage]); // Re-run when pathname changes (sign-in -> other page)
 
-  const fetchPages = async () => {
+  // Helper function to update page mapping
+  const updatePageMapping = (pagesData: Page[]) => {
+    const pageMapping: Record<string, string> = {};
+    if (pagesData && Array.isArray(pagesData)) {
+      pagesData.forEach((page: Page) => {
+        // Map based on title and slug from the actual API response
+        const pageTitle = page.title?.toLowerCase() || "";
+        const pageSlug = page.slug?.toLowerCase() || "";
+
+        // Map specific pages based on actual API response
+        if (
+          pageTitle.includes("landing page") &&
+          !pageTitle.includes("visa")
+        ) {
+          pageMapping.landing = page.id;
+        } else if (
+          pageTitle.includes("visa landing page") ||
+          pageSlug.includes("visa-landing")
+        ) {
+          pageMapping.visa = page.id;
+          pageMapping.visaLanding = page.id;
+        } else if (
+          pageTitle.includes("holiday home page") ||
+          pageSlug.includes("holiday-home")
+        ) {
+          pageMapping.holidays = page.id;
+          pageMapping.holidayHome = page.id;
+        } else if (
+          pageTitle.includes("dubai") ||
+          pageSlug.includes("dubai")
+        ) {
+          pageMapping.dubai = page.id;
+          pageMapping.dubaiHolidays = page.id;
+        }
+
+        // Also store by exact title and slug for flexibility
+        pageMapping[pageTitle.replace(/\s+/g, "")] = page.id; // Remove spaces
+        pageMapping[pageSlug] = page.id;
+
+        // Store by ID as well for direct access
+        pageMapping[`id_${page.id}`] = page.id;
+      });
+    }
+
+    setPageIds(pageMapping);
+    console.log("Page ID mapping:", pageMapping);
+    console.log(
+      "Available page types:",
+      Object.keys(pageMapping).filter((key) => !key.startsWith("id_"))
+    );
+  };
+
+  const fetchPages = async (isRefetchAfterRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log("[PageContext] Fetching /api/cms/pages");
-      const response = await fetch("/api/cms/pages");
+      console.log("[PageContext] Fetching /api/cms/pages", isRefetchAfterRefresh ? "(after session refresh)" : "");
+      const response = await fetch("/api/cms/pages", {
+        cache: "no-store", // Don't cache to get fresh data with new token
+      });
 
       if (!response.ok) {
         if (response.status === 401) {
           // User is no longer authenticated
-          console.log("[PageContext] Unauthorized - user not authenticated");
-          setIsAuthenticated(false);
-          throw new Error("UNAUTHORIZED_401");
+          console.log("[PageContext] 401 Response - user not authenticated");
+          // Only set isAuthenticated to false if this is not a refetch after refresh
+          // Give the session refresh some grace time
+          if (!isRefetchAfterRefresh) {
+            setIsAuthenticated(false);
+            setLoading(false);
+            // Return a special object instead of throwing to indicate auth failure
+            return { unauthorized: true };
+          } else {
+            console.log("[PageContext] 401 during refetch after refresh - retrying in 1s");
+            // Retry once more after a delay
+            setTimeout(async () => {
+              try {
+                const retryResponse = await fetch("/api/cms/pages", { cache: "no-store" });
+                if (retryResponse.ok) {
+                  const data = await retryResponse.json();
+                  setPages(data.data || []);
+                  updatePageMapping(data.data);
+                  setIsAuthenticated(true);
+                  console.log("[PageContext] Retry successful after session refresh");
+                } else {
+                  console.error("[PageContext] Retry failed, setting authenticated to false");
+                  setIsAuthenticated(false);
+                }
+              } catch (err) {
+                console.error("[PageContext] Retry error:", err);
+                setIsAuthenticated(false);
+              } finally {
+                setLoading(false);
+              }
+            }, 1000);
+            return; // Exit early, retry will handle the rest
+          }
         }
         throw new Error(`Failed to fetch pages: ${response.status}`);
       }
@@ -245,60 +395,16 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
       console.log("[PageContext] Successfully fetched pages:", data);
 
       setPages(data.data || []);
-
-      // Create a mapping of page names/types to IDs
-      const pageMapping: Record<string, string> = {};
-      if (data.data && Array.isArray(data.data)) {
-        data.data.forEach((page: Page) => {
-          // Map based on title and slug from the actual API response
-          const pageTitle = page.title?.toLowerCase() || "";
-          const pageSlug = page.slug?.toLowerCase() || "";
-
-          // Map specific pages based on actual API response
-          if (
-            pageTitle.includes("landing page") &&
-            !pageTitle.includes("visa")
-          ) {
-            pageMapping.landing = page.id;
-          } else if (
-            pageTitle.includes("visa landing page") ||
-            pageSlug.includes("visa-landing")
-          ) {
-            pageMapping.visa = page.id;
-            pageMapping.visaLanding = page.id;
-          } else if (
-            pageTitle.includes("holiday home page") ||
-            pageSlug.includes("holiday-home")
-          ) {
-            pageMapping.holidays = page.id;
-            pageMapping.holidayHome = page.id;
-          } else if (
-            pageTitle.includes("dubai") ||
-            pageSlug.includes("dubai")
-          ) {
-            pageMapping.dubai = page.id;
-            pageMapping.dubaiHolidays = page.id;
-          }
-
-          // Also store by exact title and slug for flexibility
-          pageMapping[pageTitle.replace(/\s+/g, "")] = page.id; // Remove spaces
-          pageMapping[pageSlug] = page.id;
-
-          // Store by ID as well for direct access
-          pageMapping[`id_${page.id}`] = page.id;
-        });
-      }
-
-      setPageIds(pageMapping);
-      console.log("Page ID mapping:", pageMapping);
-      console.log(
-        "Available page types:",
-        Object.keys(pageMapping).filter((key) => !key.startsWith("id_"))
-      );
+      updatePageMapping(data.data);
     } catch (err: any) {
-      console.error("Error fetching pages:", err);
-      const message = String(err && err.message ? err.message : err);
-      setError(message);
+      // Don't log error for expected auth failures
+      if (err?.message !== "UNAUTHORIZED_401") {
+        console.error("[PageContext] Error fetching pages:", err);
+        const message = String(err && err.message ? err.message : err);
+        setError(message);
+      } else {
+        console.log("[PageContext] User not authenticated (expected during initial check)");
+      }
     } finally {
       setLoading(false);
     }

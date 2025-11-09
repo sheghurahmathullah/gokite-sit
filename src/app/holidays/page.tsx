@@ -9,6 +9,7 @@ import HolidayCarousel, {
 } from "@/components/landingpage/HolidayCarousel";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePageContext } from "@/components/common/PageContext";
+import { CarouselSkeleton } from "@/components/common/SkeletonLoader";
 
 const HolidaysPage = () => {
   const router = useRouter();
@@ -184,13 +185,11 @@ const HolidaysPage = () => {
         );
         if (bannerFiltered) {
           console.log("Banner section found:", bannerFiltered);
-          if (!cancelled) {
-            setBannerSection({
-              pageSectionId: bannerFiltered.pageSectionId,
-              title: bannerFiltered.title,
-              contentType: bannerFiltered.contentType,
-            });
-          }
+          setBannerSection({
+            pageSectionId: bannerFiltered.pageSectionId,
+            title: bannerFiltered.title,
+            contentType: bannerFiltered.contentType,
+          });
         }
 
         // 2) Filter sections by HOLIDAY contentType
@@ -200,11 +199,18 @@ const HolidaysPage = () => {
 
         console.log("Holiday sections:", holidaySections);
 
-        // 3) Fetch cards for each section in parallel
+        // 3) Fetch cards for each section in parallel with timeout and error handling
         if (holidaySections.length > 0) {
-          const sectionsWithData = await Promise.all(
-            holidaySections.map(async (section: any) => {
+          console.log(`[HolidaysPage] Fetching ${holidaySections.length} sections in parallel...`);
+          
+          const sectionsPromises = holidaySections.map(async (section: any) => {
+            try {
               console.log(`[API Call] Fetching /api/cms/sections-holiday-cards for section: ${section.pageSectionId}`);
+              
+              // Add timeout to individual fetch requests (30 seconds)
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 30000);
+              
               const cardsRes = await fetch("/api/cms/sections-holiday-cards", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -212,12 +218,14 @@ const HolidaysPage = () => {
                   pageSectionId: section.pageSectionId,
                   limitValue: 10,
                 }),
+                signal: controller.signal,
               });
+
+              clearTimeout(timeoutId);
 
               if (!cardsRes.ok) {
                 console.error(
-                  "Failed to load cards for section:",
-                  section.pageSectionId
+                  `Failed to load cards for section ${section.pageSectionId}: HTTP ${cardsRes.status}`
                 );
                 return {
                   pageSectionId: section.pageSectionId,
@@ -228,7 +236,7 @@ const HolidaysPage = () => {
               }
 
               const cardsJson = await cardsRes.json();
-              console.log(`[API Call] Received holiday cards for section: ${section.pageSectionId}`);
+              console.log(`[API Call] Received ${cardsJson?.data?.length || 0} holiday cards for section: ${section.pageSectionId}`);
               const items: CardApiItem[] = Array.isArray(cardsJson?.data)
                 ? cardsJson.data
                 : [];
@@ -297,13 +305,39 @@ const HolidaysPage = () => {
                 contentType: section.contentType,
                 data: mapped,
               };
-            })
-          );
+            } catch (error: any) {
+              console.error(
+                `Error processing cards for section ${section.pageSectionId}:`,
+                error.name === 'AbortError' ? 'Request timeout (30s)' : error.message
+              );
+              return {
+                pageSectionId: section.pageSectionId,
+                title: section.title,
+                contentType: section.contentType,
+                data: [],
+              };
+            }
+          });
 
-          if (!cancelled) {
-            console.log("Sections with data:", sectionsWithData);
-            setDynamicSections(sectionsWithData);
+          // Use Promise.allSettled so that if some sections fail, others can still load
+          const results = await Promise.allSettled(sectionsPromises);
+          
+          // Extract successful results
+          const sectionsWithData = results
+            .filter((result) => result.status === 'fulfilled')
+            .map((result: any) => result.value);
+
+          // Log any failures
+          const failures = results.filter((result) => result.status === 'rejected');
+          if (failures.length > 0) {
+            console.error(`[HolidaysPage] ${failures.length} section(s) failed to load`);
           }
+
+          console.log(`[HolidaysPage] Successfully loaded ${sectionsWithData.length} out of ${holidaySections.length} sections`);
+          console.log("[HolidaysPage] Sections data:", sectionsWithData);
+          // Always set data when it arrives to prevent empty state
+          setDynamicSections(sectionsWithData);
+          console.log("[HolidaysPage] Called setDynamicSections with", sectionsWithData.length, "sections");
         }
         
         console.log("[HolidaysPage] Data fetch completed successfully");
@@ -311,12 +345,13 @@ const HolidaysPage = () => {
         console.error("Error loading section cards:", err);
         // Reset the flag on error so user can retry
         dataFetchedRef.current = false;
-        if (!cancelled) {
-          setDynamicSections([]);
-          setBannerSection(null);
-        }
+        setDynamicSections([]);
+        setBannerSection(null);
       } finally {
-        if (!cancelled) setIsSectionsLoading(false);
+        // Always set loading to false to prevent stuck loader
+        console.log("[HolidaysPage] Finally block - setting isSectionsLoading to false");
+        setIsSectionsLoading(false);
+        console.log("[HolidaysPage] Finally block complete");
       }
     }
 
@@ -573,10 +608,7 @@ const HolidaysPage = () => {
                     destinations.length
                   );
                   return isLoading ? (
-                    <div className="text-center text-gray-600 text-sm bg-gray-50 rounded-2xl p-12">
-                      <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-                      <p className="font-medium">Loading packages...</p>
-                    </div>
+                    <CarouselSkeleton />
                   ) : destinations.length === 0 ? (
                     <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
                       <h3 className="text-xl font-semibold text-gray-800 mb-2">
@@ -609,15 +641,29 @@ const HolidaysPage = () => {
         </section>
 
         {/* Dynamic Holiday Sections */}
-        {isSectionsLoading ? (
-          <section className="mt-4 max-w-8xl mx-auto">
-            <div className="text-center text-gray-600 text-sm bg-gray-50 rounded-2xl p-12">
-              <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-              <p className="font-medium">Loading sections...</p>
-            </div>
-          </section>
-        ) : (
-          dynamicSections.map((section, index) => (
+        {(() => {
+          console.log("[HolidaysPage Render] isSectionsLoading:", isSectionsLoading, "dynamicSections:", dynamicSections.length, "sections");
+          
+          if (isSectionsLoading) {
+            return <CarouselSkeleton />;
+          }
+          
+          if (dynamicSections.length === 0) {
+            return (
+              <section className="mt-4 px-6 lg:px-12">
+                <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    No Additional Sections Available
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    No additional holiday sections found at the moment.
+                  </p>
+                </div>
+              </section>
+            );
+          }
+          
+          return dynamicSections.map((section, index) => (
             <section
               key={section.pageSectionId}
               className="mt-4 max-w-8xl mx-auto"
@@ -664,8 +710,8 @@ const HolidaysPage = () => {
                 />
               )}
             </section>
-          ))
-        )}
+          ));
+        })()}
       </main>
 
       <Footer />
