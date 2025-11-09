@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import * as Flags from "country-flag-icons/react/3x2";
 import { usePageContext } from "../common/PageContext";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import VisaCountryCarousel, {
   VisaCountryCarouselRef,
 } from "./VisaCountryCarousel";
@@ -227,6 +228,18 @@ const CountrySlider = ({
   // Handle card click - validate visa availability before navigation
   const handleCardClick = async (visa: VisaCountry) => {
     try {
+      console.log("[CountrySlider] Clicked on visa card for:", visa.country);
+      console.log("[CountrySlider] Validating visa data for country:", visa.id);
+      
+      // Store country ID first
+      try {
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem("applyVisaCountryId", visa.id);
+        }
+      } catch (e) {
+        console.error("[CountrySlider] Error saving to sessionStorage:", e);
+      }
+
       // Validate country has visa data before redirecting
       const visaResponse = await fetch("/api/cms/visa-country-search", {
         method: "POST",
@@ -234,8 +247,11 @@ const CountrySlider = ({
         body: JSON.stringify({ countryCode: visa.id }),
       });
 
+      console.log("[CountrySlider] API response status:", visaResponse.status);
+
+      // Check if response is not OK
       if (!visaResponse.ok) {
-        const { toast } = await import("react-toastify");
+        console.error("[CountrySlider] API call failed with status:", visaResponse.status);
         toast.error("The country is not found or no visa is available", {
           position: "top-right",
           autoClose: 4000,
@@ -244,9 +260,11 @@ const CountrySlider = ({
       }
 
       const visaData = await visaResponse.json();
+      console.log("[CountrySlider] API response data:", visaData);
       
-      if (!visaData.success || !visaData.data || visaData.data.length === 0) {
-        const { toast } = await import("react-toastify");
+      // Validate response structure and data
+      if (!visaData.success || !visaData.data || !Array.isArray(visaData.data) || visaData.data.length === 0) {
+        console.warn("[CountrySlider] Invalid or empty visa data:", visaData);
         toast.error("The country is not found or no visa is available", {
           position: "top-right",
           autoClose: 4000,
@@ -254,22 +272,24 @@ const CountrySlider = ({
         return;
       }
 
-      // Store country ID and navigate
+      // Valid data found - store the visa details and redirect
+      console.log("[CountrySlider] Valid visa data found, redirecting to apply-visa");
+      
+      // Store the visa details for the apply-visa page
       try {
         if (typeof window !== "undefined") {
-          window.sessionStorage.setItem("applyVisaCountryId", visa.id);
-          window.sessionStorage.setItem("applyVisaCountryCode", visa.countryCode);
+          window.sessionStorage.setItem("applyVisaDetails", JSON.stringify(visaData.data[0]));
         }
       } catch (e) {
-        console.error("Error saving to sessionStorage:", e);
+        console.error("[CountrySlider] Error saving visa details:", e);
       }
 
-      // Navigate to apply-visa page
+      // Redirect to apply-visa page
       router.push("/apply-visa");
+      
     } catch (e) {
-      console.error("Failed to validate visa:", e);
-      const { toast } = await import("react-toastify");
-      toast.error("Failed to validate visa availability. Please try again.", {
+      console.error("[CountrySlider] Error validating visa:", e);
+      toast.error("The country is not found or no visa is available", {
         position: "top-right",
         autoClose: 4000,
       });

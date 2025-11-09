@@ -35,81 +35,72 @@ const ApplyVisaPage: React.FC = () => {
     return headers;
   };
 
-  // Fetch visa details from sessionStorage or API
+  // Fetch visa details from API
   useEffect(() => {
     async function loadVisaDetails() {
-      setLoading(true);
+      let countryId = "";
 
       try {
-        // First, check if we have cached visa details from the previous validation
         if (typeof window !== "undefined") {
-          const cachedDetails = window.sessionStorage.getItem("applyVisaDetails");
-          
-          if (cachedDetails) {
-            try {
-              const parsed = JSON.parse(cachedDetails);
-              console.log("[ApplyVisaPage] Using cached visa details:", parsed);
-              
-              // Validate the cached data structure
-              if (parsed && parsed.detailsJson) {
-                setVisaDetails(parsed);
-                setVisaError(null);
-                setNoVisaAvailable(false);
-                setLoading(false);
-                return; // Successfully loaded from cache
-              }
-            } catch (parseError) {
-              console.error("[ApplyVisaPage] Error parsing cached details:", parseError);
-              // Continue to fetch from API
-            }
-          }
+          countryId = window.sessionStorage.getItem("applyVisaCountryId") || "";
         }
+      } catch (e) {
+        console.error("Error reading from sessionStorage:", e);
+      }
 
-        // If no cached details, try to fetch from API
-        let countryId = "";
-        try {
-          if (typeof window !== "undefined") {
-            countryId = window.sessionStorage.getItem("applyVisaCountryId") || "";
-          }
-        } catch (e) {
-          console.error("[ApplyVisaPage] Error reading countryId from sessionStorage:", e);
-        }
+      // If no country selected, use default (UAE/AE)
+      if (!countryId) {
+        countryId = "AE";
+        console.log("No country code found, using default: AE");
+      }
 
-        // If no country selected, use default (UAE/AE)
-        if (!countryId) {
-          countryId = "AE";
-          console.log("[ApplyVisaPage] No country code found, using default: AE");
-        }
+      setLoading(true);
 
-        console.log("[ApplyVisaPage] Fetching visa data for country:", countryId);
-        
-        // Fetch visa data from API
+      // Helper function to make API call
+      const fetchVisaData = async (countryCode: string) => {
+        console.log(`Fetching visa data for country: ${countryCode}`);
         const res = await fetch("/api/cms/visa-country-search", {
           method: "POST",
           headers: getAuthHeaders(),
-          body: JSON.stringify({ countryCode: countryId }),
+          body: JSON.stringify({ countryCode: countryCode }),
         });
 
         if (!res.ok) {
-          console.error(`[ApplyVisaPage] API call failed:`, res.status);
-          throw new Error(`Failed to fetch visa details: ${res.status}`);
+          const errorText = await res.text();
+          console.error(`API call failed for ${countryCode}:`, {
+            status: res.status,
+            statusText: res.statusText,
+            error: errorText
+          });
+          throw new Error(`Failed to fetch visa details for ${countryCode}: ${res.status} ${res.statusText}`);
         }
 
         const json = await res.json();
         const items = Array.isArray(json?.data) ? json.data : [];
-        
-        console.log(`[ApplyVisaPage] API response:`, { itemsCount: items.length });
+        console.log(`API response for ${countryCode}:`, { itemsCount: items.length, data: json });
+        return items;
+      };
+
+      try {
+        // First attempt with the selected country
+        let items = await fetchVisaData(countryId);
+
+        // If no data found and we're not already using AE, retry with AE
+        if (items.length === 0 && countryId !== "AE") {
+          console.log(`No data found for ${countryId}, retrying with default: AE`);
+          items = await fetchVisaData("AE");
+        }
 
         if (items.length === 0) {
-          console.log("[ApplyVisaPage] No visa data available");
+          console.log("No visa data available for any country");
           setNoVisaAvailable(true);
           setVisaDetails(null);
           setVisaError(null);
           return;
         }
 
-        const details = items[0];
-        console.log("[ApplyVisaPage] Successfully loaded visa details");
+        const details = items[0] || null;
+        console.log("Successfully fetched visa details:", details);
         setVisaDetails(details);
         setVisaError(null);
         setNoVisaAvailable(false);
@@ -119,19 +110,33 @@ const ApplyVisaPage: React.FC = () => {
           if (typeof window !== "undefined") {
             window.sessionStorage.setItem(
               "applyVisaDetails",
-              JSON.stringify(details)
+              JSON.stringify(details || {})
             );
           }
         } catch (e) {
-          console.error("[ApplyVisaPage] Error saving to sessionStorage:", e);
+          console.error("Error saving to sessionStorage:", e);
         }
       } catch (e) {
-        console.error("[ApplyVisaPage] Error loading visa details:", e);
+        console.error("Error fetching visa details:", e);
         setVisaError(`Failed to load visa details: ${e instanceof Error ? e.message : 'Unknown error'}`);
         setNoVisaAvailable(false);
       } finally {
         setLoading(false);
       }
+    }
+
+    // Try to use cached details first
+    try {
+      if (typeof window !== "undefined") {
+        const cached = window.sessionStorage.getItem("applyVisaDetails");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          setVisaDetails(parsed);
+          setLoading(false);
+        }
+      }
+    } catch (e) {
+      console.error("Error reading cached data:", e);
     }
 
     loadVisaDetails();
@@ -210,3 +215,4 @@ const ApplyVisaPage: React.FC = () => {
 };
 
 export default ApplyVisaPage;
+

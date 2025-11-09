@@ -35,13 +35,12 @@ const VISA_TYPES = [
 
 // Customer Types
 const CUSTOMER_TYPES = [
-  "Leisure",
-  "Business",
-  "Adventure",
-  "Family",
-  "Honeymoon",
+  "Corporate",
   "Group",
   "Solo",
+  "Student",
+  "Cruise",
+  "Others",
 ];
 
 // ============================================

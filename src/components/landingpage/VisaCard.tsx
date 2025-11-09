@@ -1,5 +1,6 @@
 import { VisaDestination } from "@/types";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 interface VisaCardProps {
   destination: VisaDestination;
@@ -61,6 +62,8 @@ const VisaCard = ({ destination }: VisaCardProps) => {
   // Handle card click - validate visa availability before navigation
   const handleCardClick = async () => {
     try {
+      console.log("[VisaCard] Clicked on visa card for:", destination.country);
+      
       // Fetch country ID from API
       const res = await fetch("/api/cms/countries-dd-proxy", {
         cache: "no-store",
@@ -76,8 +79,7 @@ const VisaCard = ({ destination }: VisaCardProps) => {
       );
 
       if (!match?.id) {
-        console.log("Country id not found for:", destination.country);
-        const { toast } = await import("react-toastify");
+        console.error("[VisaCard] Country id not found for:", destination.country);
         toast.error("The country is not found or no visa is available", {
           position: "top-right",
           autoClose: 4000,
@@ -86,7 +88,14 @@ const VisaCard = ({ destination }: VisaCardProps) => {
       }
 
       const countryId = String(match.id);
-      console.log("Selected visa country id:", countryId);
+      console.log("[VisaCard] Validating visa data for country:", countryId);
+
+      // Store country ID
+      try {
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem("applyVisaCountryId", countryId);
+        }
+      } catch (_) {}
 
       // Validate country has visa data before redirecting
       const visaResponse = await fetch("/api/cms/visa-country-search", {
@@ -95,8 +104,11 @@ const VisaCard = ({ destination }: VisaCardProps) => {
         body: JSON.stringify({ countryCode: countryId }),
       });
 
+      console.log("[VisaCard] API response status:", visaResponse.status);
+
+      // Check if response is not OK
       if (!visaResponse.ok) {
-        const { toast } = await import("react-toastify");
+        console.error("[VisaCard] API call failed with status:", visaResponse.status);
         toast.error("The country is not found or no visa is available", {
           position: "top-right",
           autoClose: 4000,
@@ -105,9 +117,11 @@ const VisaCard = ({ destination }: VisaCardProps) => {
       }
 
       const visaData = await visaResponse.json();
+      console.log("[VisaCard] API response data:", visaData);
       
-      if (!visaData.success || !visaData.data || visaData.data.length === 0) {
-        const { toast } = await import("react-toastify");
+      // Validate response structure and data
+      if (!visaData.success || !visaData.data || !Array.isArray(visaData.data) || visaData.data.length === 0) {
+        console.warn("[VisaCard] Invalid or empty visa data:", visaData);
         toast.error("The country is not found or no visa is available", {
           position: "top-right",
           autoClose: 4000,
@@ -115,19 +129,22 @@ const VisaCard = ({ destination }: VisaCardProps) => {
         return;
       }
 
-      // Store country ID and navigate
+      // Valid data found - store the visa details and redirect
+      console.log("[VisaCard] Valid visa data found, redirecting to apply-visa");
+      
+      // Store the visa details for the apply-visa page
       try {
         if (typeof window !== "undefined") {
-          window.sessionStorage.setItem("applyVisaCountryId", countryId);
+          window.sessionStorage.setItem("applyVisaDetails", JSON.stringify(visaData.data[0]));
         }
       } catch (_) {}
 
-      // Navigate to apply-visa page
+      // Redirect to apply-visa page
       router.push("/apply-visa");
+      
     } catch (e) {
-      console.error("Failed to validate visa:", e);
-      const { toast } = await import("react-toastify");
-      toast.error("Failed to validate visa availability. Please try again.", {
+      console.error("[VisaCard] Error validating visa:", e);
+      toast.error("The country is not found or no visa is available", {
         position: "top-right",
         autoClose: 4000,
       });

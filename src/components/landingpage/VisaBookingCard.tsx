@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Search, Calendar } from "lucide-react";
+import { toast } from "react-toastify";
 
 interface CountrySuggestion {
   id: string;
@@ -127,8 +128,6 @@ const VisaBookingCard = () => {
   // Handle search button click
   const handleSearch = async () => {
     if (!selectedCountry) {
-      // Import toast dynamically
-      const { toast } = await import("react-toastify");
       toast.error("Please select a destination country", {
         position: "top-right",
         autoClose: 3000,
@@ -142,7 +141,6 @@ const VisaBookingCard = () => {
       : null;
 
     if (!countryId) {
-      const { toast } = await import("react-toastify");
       toast.error("Please select a valid destination", {
         position: "top-right",
         autoClose: 3000,
@@ -151,15 +149,20 @@ const VisaBookingCard = () => {
     }
 
     try {
-      // Validate country has visa data before redirecting
+      console.log("[VisaBookingCard] Validating visa data for country:", countryId);
+      
+      // Call API to validate visa availability
       const response = await fetch("/api/cms/visa-country-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ countryCode: countryId }),
       });
 
+      console.log("[VisaBookingCard] API response status:", response.status);
+
+      // Check if response is not OK
       if (!response.ok) {
-        const { toast } = await import("react-toastify");
+        console.error("[VisaBookingCard] API call failed with status:", response.status);
         toast.error("The country is not found or no visa is available", {
           position: "top-right",
           autoClose: 4000,
@@ -168,9 +171,11 @@ const VisaBookingCard = () => {
       }
 
       const data = await response.json();
+      console.log("[VisaBookingCard] API response data:", data);
       
-      if (!data.success || !data.data || data.data.length === 0) {
-        const { toast } = await import("react-toastify");
+      // Validate response structure and data
+      if (!data.success || !data.data || !Array.isArray(data.data) || data.data.length === 0) {
+        console.warn("[VisaBookingCard] Invalid or empty visa data:", data);
         toast.error("The country is not found or no visa is available", {
           position: "top-right",
           autoClose: 4000,
@@ -178,12 +183,20 @@ const VisaBookingCard = () => {
         return;
       }
 
-      // Valid data found, proceed to apply-visa page
+      // Valid data found - store the visa details and redirect
+      console.log("[VisaBookingCard] Valid visa data found, redirecting to apply-visa");
+      
+      // Store the visa details for the apply-visa page
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("applyVisaDetails", JSON.stringify(data.data[0]));
+      }
+
+      // Redirect to apply-visa page
       router.push("/apply-visa");
+      
     } catch (error) {
-      console.error("Error validating visa data:", error);
-      const { toast } = await import("react-toastify");
-      toast.error("Failed to validate visa availability. Please try again.", {
+      console.error("[VisaBookingCard] Error validating visa data:", error);
+      toast.error("The country is not found or no visa is available", {
         position: "top-right",
         autoClose: 4000,
       });

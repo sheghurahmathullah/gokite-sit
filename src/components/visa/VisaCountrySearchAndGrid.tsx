@@ -102,8 +102,16 @@ const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
         }
       } catch (_) {}
 
-      // Navigate to apply-visa page
-      router.push("/apply-visa");
+      // Navigate to apply-visa page with nested routing
+      const currentPageSlug = typeof window !== "undefined" 
+        ? window.sessionStorage.getItem("currentPageSlug") 
+        : null;
+      
+      const route = currentPageSlug 
+        ? `/${currentPageSlug}/apply-visa`
+        : `/apply-visa`; // Fallback to flat route
+      
+      router.push(route);
     } catch (e) {
       console.error("Failed to validate visa:", e);
       const { toast } = await import("react-toastify");

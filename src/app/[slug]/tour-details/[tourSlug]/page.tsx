@@ -40,7 +40,7 @@ const TourDetailPageInner = () => {
   const [error, setError] = useState<string | null>(null);
   const [holidayId, setHolidayId] = useState<string | null>(null);
 
-  // Resolve holidayId: prefer sessionStorage, else query param, else use slug
+  // Resolve holidayId: prefer sessionStorage, else query param, else use tourSlug
   useEffect(() => {
     // Try to get from sessionStorage first (highest priority)
     if (typeof window !== "undefined") {
@@ -62,11 +62,11 @@ const TourDetailPageInner = () => {
       return;
     }
 
-    // Use slug as fallback
-    if (params.slug) {
-      setHolidayId(params.slug as string);
+    // Use tourSlug as fallback
+    if (params.tourSlug) {
+      setHolidayId(params.tourSlug as string);
     }
-  }, [searchParams, params.slug]);
+  }, [searchParams, params.tourSlug]);
 
   // Fetch holiday details
   useEffect(() => {
@@ -76,39 +76,8 @@ const TourDetailPageInner = () => {
       try {
         setLoading(true);
         setError(null);
-
-        // First, check if we have cached holiday details from the previous validation
-        if (typeof window !== "undefined") {
-          const cachedDetails = window.sessionStorage.getItem("holidayDetails");
-          
-          if (cachedDetails) {
-            try {
-              const parsed = JSON.parse(cachedDetails);
-              console.log("[TourDetails] Using cached holiday details:", parsed);
-              
-              // Validate the cached data structure
-              if (parsed && parsed.cardJson) {
-                setHolidayDetails(parsed);
-                
-                // Set page title dynamically
-                if (parsed.title) {
-                  document.title = parsed.title;
-                }
-                
-                setLoading(false);
-                return; // Successfully loaded from cache
-              }
-            } catch (parseError) {
-              console.error("[TourDetails] Error parsing cached details:", parseError);
-              // Continue to fetch from API
-            }
-          }
-        }
-
-        // If no cached details, fetch from API
-        console.log("[TourDetails] Fetching holiday details from API for:", holidayId);
         const data = await fetchHolidayDetails(holidayId);
-        console.log("[TourDetails] Fetched data:", data);
+        console.log("Fetched data:", data);
 
         if (data && data.length > 0) {
           const details = data[0];
@@ -118,20 +87,11 @@ const TourDetailPageInner = () => {
           if (details?.title) {
             document.title = details.title;
           }
-
-          // Cache the details
-          try {
-            if (typeof window !== "undefined") {
-              window.sessionStorage.setItem("holidayDetails", JSON.stringify(details));
-            }
-          } catch (e) {
-            console.error("[TourDetails] Error saving to sessionStorage:", e);
-          }
         } else {
           setError("Holiday details not found");
         }
       } catch (err: any) {
-        console.error("[TourDetails] Error fetching holiday details:", err);
+        console.error("Error fetching holiday details:", err);
         setError(err.message || "Failed to load holiday details");
       } finally {
         setLoading(false);
@@ -388,3 +348,4 @@ export default function TourDetailPage() {
     </Suspense>
   );
 }
+

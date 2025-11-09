@@ -6,9 +6,10 @@ import { useParams, notFound } from "next/navigation";
 import HomePage from "@/app/page";
 import HolidaysPage from "@/app/holidays/page";
 import VisaPage from "@/app/visa/page";
-import ApplyVisaPage from "@/app/apply-visa/page";
-import HolidayGridPage from "@/app/holiday-grid/page";
-import HolidayListPage from "@/app/holiday-list/page";
+import ApplyVisaPage from "@/app/[slug]/apply-visa/page";
+import HolidayGridPage from "@/app/[slug]/holiday-grid/page";
+import HolidayListPage from "@/app/[slug]/holiday-list/page";
+import NestedVisaPage from "@/app/[slug]/visa/page";
 
 // Mapping of slugs to page components
 const PAGE_COMPONENTS: Record<string, React.ComponentType<any>> = {
@@ -18,6 +19,7 @@ const PAGE_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "apply-visa": ApplyVisaPage,
   "holiday-grid": HolidayGridPage,
   "holiday-list": HolidayListPage,
+  "visa": NestedVisaPage,
 };
 
 interface PageData {
@@ -52,6 +54,15 @@ export default function DynamicPage() {
           setPageData(null);
         } else {
           setPageData(page);
+          
+          // Store page slug in sessionStorage for nested routing
+          if (typeof window !== 'undefined') {
+            try {
+              window.sessionStorage.setItem("currentPageSlug", slug);
+            } catch (e) {
+              console.error("Failed to store page slug:", e);
+            }
+          }
           
           // Update document title and meta tags
           if (typeof window !== 'undefined') {

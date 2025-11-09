@@ -83,11 +83,20 @@ const HolidaysPage = () => {
   // CMS-driven sections: Dynamic Holiday Sections
   const { getPageIdWithFallback, getPageInfo, loading: pageLoading, isAuthenticated } = usePageContext();
 
-  // Set page title dynamically
+  // Set page title dynamically and store page slug
   useEffect(() => {
     const pageInfo = getPageInfo("holidays");
     if (pageInfo?.title) {
       document.title = pageInfo.title;
+    }
+    
+    // Store page slug for nested routing
+    if (pageInfo?.slug && typeof window !== "undefined") {
+      try {
+        window.sessionStorage.setItem("currentPageSlug", pageInfo.slug);
+      } catch (e) {
+        console.error("Failed to store page slug:", e);
+      }
     }
   }, [getPageInfo]);
 
@@ -533,7 +542,15 @@ const HolidaysPage = () => {
                     </h3>
                     <button
                       className="px-6 py-2 bg-white text-gray-900 rounded-full text-sm font-medium hover:bg-white/90 transition-colors flex items-center gap-2"
-                      onClick={() => router.push("/holiday-grid")}
+                      onClick={() => {
+                        const currentPageSlug = typeof window !== "undefined" 
+                          ? window.sessionStorage.getItem("currentPageSlug") 
+                          : null;
+                        const route = currentPageSlug 
+                          ? `/${currentPageSlug}/holiday-grid`
+                          : `/holiday-grid`;
+                        router.push(route);
+                      }}
                     >
                       View All
                     </button>

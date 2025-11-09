@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "react-toastify";
 
 interface SearchSuggestion {
   id: string;
@@ -138,9 +139,96 @@ const HolidayBookingCard = () => {
   };
 
   // Handle search button click
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      toast.error("Please select a destination", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    try {
+      console.log("[HolidayBookingCard] Validating holiday data for:", searchType, searchQuery);
+
+      // Determine which API endpoint to call based on search type
+      let apiEndpoint = "";
+      let requestBody: any = {};
+
+      if (searchType === "city") {
+        const cityId = typeof window !== "undefined" 
+          ? window.sessionStorage.getItem("selectedHolidayCityId") 
+          : null;
+        
+        if (!cityId) {
+          toast.error("Please select a valid city", {
+            position: "top-right",
+            autoClose: 3000,
+          });
+          return;
+        }
+
+        apiEndpoint = "/api/cms/holiday-city-search";
+        requestBody = { cityId };
+      } else if (searchType === "country") {
+        const countryId = typeof window !== "undefined" 
+          ? window.sessionStorage.getItem("selectedHolidayCountryId") 
+          : null;
+        
+        if (!countryId) {
+          toast.error("Please select a valid country", {
+            position: "top-right",
+            autoClose: 3000,
+          });
+          return;
+        }
+
+        apiEndpoint = "/api/cms/holiday-country-search";
+        requestBody = { countryId };
+      }
+
+      // Validate holiday data exists
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log("[HolidayBookingCard] API response status:", response.status);
+
+      // Check if response is not OK
+      if (!response.ok) {
+        console.error("[HolidayBookingCard] API call failed with status:", response.status);
+        toast.error("No holiday packages found for this destination", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return;
+      }
+
+      const data = await response.json();
+      console.log("[HolidayBookingCard] API response data:", data);
+
+      // Validate response structure and data
+      if (!data.success || !data.data || !Array.isArray(data.data) || data.data.length === 0) {
+        console.warn("[HolidayBookingCard] Invalid or empty holiday data:", data);
+        toast.error("No holiday packages found for this destination", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return;
+      }
+
+      // Valid data found - redirect to holiday-list page
+      console.log("[HolidayBookingCard] Valid holiday data found, redirecting to holiday-list");
       router.push("/holiday-list");
+      
+    } catch (error) {
+      console.error("[HolidayBookingCard] Error validating holiday data:", error);
+      toast.error("No holiday packages found for this destination", {
+        position: "top-right",
+        autoClose: 4000,
+      });
     }
   };
 

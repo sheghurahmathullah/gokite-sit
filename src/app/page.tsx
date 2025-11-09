@@ -90,11 +90,20 @@ const Index = () => {
     initialAuthCheckDone
   } = usePageContext();
 
-  // Set page title dynamically
+  // Set page title dynamically and store page slug
   useEffect(() => {
     const pageInfo = getPageInfo("landing");
     if (pageInfo?.title) {
       document.title = pageInfo.title;
+    }
+    
+    // Store page slug for nested routing
+    if (pageInfo?.slug && typeof window !== "undefined") {
+      try {
+        window.sessionStorage.setItem("currentPageSlug", pageInfo.slug);
+      } catch (e) {
+        console.error("Failed to store page slug:", e);
+      }
     }
   }, [getPageInfo]);
 
@@ -459,7 +468,15 @@ const Index = () => {
                     variant="ghost"
                     size="sm"
                     className="text-foreground bg-[#f2f0f0]"
-                    onClick={() => router.push("/holiday-grid")}
+                    onClick={() => {
+                      const currentPageSlug = typeof window !== "undefined" 
+                        ? window.sessionStorage.getItem("currentPageSlug") 
+                        : null;
+                      const route = currentPageSlug 
+                        ? `/${currentPageSlug}/holiday-grid`
+                        : `/holiday-grid`;
+                      router.push(route);
+                    }}
                   >
                     View All
                   </Button>
@@ -541,7 +558,15 @@ const Index = () => {
                     variant="ghost"
                     size="sm"
                     className="text-foreground bg-[#f2f0f0]"
-                    onClick={() => router.push("/visa")}
+                    onClick={() => {
+                      const currentPageSlug = typeof window !== "undefined" 
+                        ? window.sessionStorage.getItem("currentPageSlug") 
+                        : null;
+                      const route = currentPageSlug 
+                        ? `/${currentPageSlug}/visa`
+                        : `/visa`;
+                      router.push(route);
+                    }}
                   >
                     View All
                   </Button>

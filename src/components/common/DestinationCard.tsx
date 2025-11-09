@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Heart, Star, Plane, Building2, Car, User } from "lucide-react";
+import { toast } from "react-toastify";
 
 interface Destination {
   id?: string;
@@ -29,22 +30,85 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const router = useRouter();
 
-  const handleCardClick = () => {
-    // Store holidayId and title in sessionStorage
-    if (typeof window !== "undefined") {
-      try {
-        if (destination.id) {
-          window.sessionStorage.setItem("holidayId", destination.id);
-        }
-        window.sessionStorage.setItem("holidayTitle", destination.name);
-      } catch (e) {
-        console.error("Failed to store holiday data:", e);
+  const handleCardClick = async () => {
+    try {
+      // Check if holiday ID exists
+      if (!destination.id) {
+        console.error("[DestinationCard] No holiday ID available");
+        toast.error("Unable to load holiday details. Please try again.", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return;
       }
-    }
 
-    // Navigate to tour details page with slug (using title)
-    const slug = destination.name.toLowerCase().replace(/\s+/g, "-");
-    router.push(`/tour-details/${slug}`);
+      console.log("[DestinationCard] Validating holiday data for:", destination.id);
+
+      // Store holidayId and title in sessionStorage
+      if (typeof window !== "undefined") {
+        try {
+          window.sessionStorage.setItem("holidayId", destination.id);
+          window.sessionStorage.setItem("holidayTitle", destination.name);
+        } catch (e) {
+          console.error("[DestinationCard] Failed to store holiday data:", e);
+        }
+      }
+
+      // Validate holiday data before redirecting
+      const response = await fetch("/api/cms/holiday-itinerary-details", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ holidayId: destination.id }),
+      });
+
+      console.log("[DestinationCard] API response status:", response.status);
+
+      // Check if response is not OK
+      if (!response.ok) {
+        console.error("[DestinationCard] API call failed with status:", response.status);
+        toast.error("Holiday package not found or unavailable", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return;
+      }
+
+      const data = await response.json();
+      console.log("[DestinationCard] API response data:", data);
+
+      // Validate response structure and data
+      if (!data.success || !data.data || !Array.isArray(data.data) || data.data.length === 0) {
+        console.warn("[DestinationCard] Invalid or empty holiday data:", data);
+        toast.error("Holiday package not found or unavailable", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return;
+      }
+
+      // Valid data found - store the details and redirect
+      console.log("[DestinationCard] Valid holiday data found, redirecting to tour-details");
+
+      // Store the holiday details for the tour details page
+      try {
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem("holidayDetails", JSON.stringify(data.data[0]));
+        }
+      } catch (e) {
+        console.error("[DestinationCard] Error saving holiday details:", e);
+      }
+
+      // Navigate to tour details page
+      const tourSlug = destination.name.toLowerCase().replace(/\s+/g, "-");
+      router.push(`/tour-details/${tourSlug}`);
+      
+    } catch (error) {
+      console.error("[DestinationCard] Error validating holiday data:", error);
+      toast.error("Holiday package not found or unavailable", {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    }
   };
 
   return (
