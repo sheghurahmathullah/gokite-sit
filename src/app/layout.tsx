@@ -49,6 +49,7 @@ export default function RootLayout({
             draggable
             pauseOnHover
             theme="light"
+            style={{ zIndex: 9999 }}
           />
         </PageProvider>
       </body>

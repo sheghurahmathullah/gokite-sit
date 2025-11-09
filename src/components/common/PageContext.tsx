@@ -61,8 +61,8 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
     isAuthenticatedRef.current = isAuthenticated;
   }, [isAuthenticated]);
 
-  // Check if current page is sign-in page
-  const isSignInPage = pathname === "/sign-in";
+  // Sign-in page is now disabled (auto-authentication is used)
+  const isSignInPage = false;
 
   // Session monitoring - only when authenticated
   useSessionMonitor({
@@ -83,9 +83,9 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
         });
       }
       
-      // Redirect to sign-in
-      const currentPath = pathname;
-      router.push(`/sign-in?redirect=${encodeURIComponent(currentPath)}`);
+      // Auto-authenticate instead of redirecting to sign-in
+      console.log("[PageContext] Session expired - auto-authenticating...");
+      // The auto-authentication will happen automatically on next API call
     },
     onSessionRefreshed: () => {
       console.log("[PageContext] Session refreshed automatically");
@@ -124,7 +124,41 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
     },
   });
 
-  // Check authentication status and fetch pages only if authenticated
+  // Auto-authenticate with hardcoded email if no token
+  const autoAuthenticate = async () => {
+    try {
+      console.log("[PageContext] Auto-authenticating with hardcoded email...");
+      
+      const response = await fetch("/api/auth/guest-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userName: "codetezteam@gmail.com" }),
+      });
+
+      if (!response.ok) {
+        console.error("[PageContext] Auto-authentication failed:", response.status);
+        return false;
+      }
+
+      const data = await response.json();
+      console.log("[PageContext] Auto-authentication successful");
+      
+      // Store email and session duration
+      const { storeUserEmail, storeSessionDuration } = await import("@/lib/sessionManager");
+      storeUserEmail("codetezteam@gmail.com");
+      
+      if (data.data?.sessionDuration) {
+        storeSessionDuration(data.data.sessionDuration);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("[PageContext] Auto-authentication error:", error);
+      return false;
+    }
+  };
+
+  // Check authentication status and fetch pages
   useEffect(() => {
     let mounted = true;
 
@@ -154,53 +188,38 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
         // Just try to fetch pages - if it works, user is authenticated
         const result = await fetchPages();
         
-        // Check if result indicates unauthorized (won't happen with throw, but keeping for safety)
+        // Check if result indicates unauthorized
         if (result && (result as any).unauthorized) {
-          console.log("[PageContext] 401 on initial load - attempting session refresh...");
+          console.log("[PageContext] 401 on initial load - attempting auto-authentication...");
           
-          // Try to refresh session using stored email
-          const { refreshSession, getUserEmail } = await import("@/lib/sessionManager");
-          const storedEmail = getUserEmail();
+          // Try auto-authentication with hardcoded email
+          const authSuccess = await autoAuthenticate();
           
-          if (storedEmail) {
-            console.log("[PageContext] Found stored email, attempting auto-refresh");
-            const refreshSuccess = await refreshSession();
+          if (authSuccess && mounted) {
+            console.log("[PageContext] Auto-authentication successful, retrying fetch");
+            // Wait for cookie to be set
+            await new Promise(resolve => setTimeout(resolve, 500));
             
-            if (refreshSuccess && mounted) {
-              console.log("[PageContext] Auto-refresh successful, retrying fetch");
-              // Wait a bit for cookie to be set
-              await new Promise(resolve => setTimeout(resolve, 500));
-              
-              // Retry fetching pages
-              hasFetchedRef.current = false;
-              const retryResult = await fetchPages();
-              
-              if (retryResult && (retryResult as any).unauthorized) {
-                // Still unauthorized after refresh, user needs to sign in
-                console.log("[PageContext] Still unauthorized after refresh");
-                setIsAuthenticated(false);
-                setInitialAuthCheckDone(true);
-                setPages([]);
-                setPageIds({});
-              } else {
-                // Success!
-                console.log("[PageContext] Successfully authenticated after auto-refresh");
-                setIsAuthenticated(true);
-                setInitialAuthCheckDone(true);
-              }
+            // Retry fetching pages
+            hasFetchedRef.current = false;
+            const retryResult = await fetchPages();
+            
+            if (retryResult && (retryResult as any).unauthorized) {
+              // Still unauthorized after auto-auth
+              console.error("[PageContext] Still unauthorized after auto-authentication");
+              setIsAuthenticated(false);
+              setInitialAuthCheckDone(true);
+              setPages([]);
+              setPageIds({});
             } else {
-              // Refresh failed, user needs to sign in
-              console.log("[PageContext] Auto-refresh failed");
-              if (mounted) {
-                setIsAuthenticated(false);
-                setInitialAuthCheckDone(true);
-                setPages([]);
-                setPageIds({});
-              }
+              // Success!
+              console.log("[PageContext] Successfully authenticated after auto-auth");
+              setIsAuthenticated(true);
+              setInitialAuthCheckDone(true);
             }
           } else {
-            // No stored email, user needs to sign in
-            console.log("[PageContext] No stored email for auto-refresh");
+            // Auto-auth failed
+            console.error("[PageContext] Auto-authentication failed");
             if (mounted) {
               setIsAuthenticated(false);
               setInitialAuthCheckDone(true);

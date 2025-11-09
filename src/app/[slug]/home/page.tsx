@@ -409,13 +409,13 @@ const Index = () => {
               Please Sign In
             </h3>
             <p className="text-sm text-gray-600 mb-4">
-              You need to sign in to view holiday and visa packages.
+              Loading your holiday and visa packages...
             </p>
             <Button
-              onClick={() => router.push("/sign-in")}
+              onClick={() => window.location.reload()}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2"
             >
-              Go to Sign In
+              Reload Page
             </Button>
           </div>
         </div>

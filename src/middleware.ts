@@ -10,38 +10,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/master-landing-page", request.url));
   }
 
-  // Public routes that don't require authentication
-  const publicRoutes = ["/sign-in"];
-
-  // Check if the current route is public
-  const isPublicRoute = publicRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
-
-  // Get the access token from cookies
-  const accessToken = request.cookies.get("accesstoken")?.value;
-  
-  // Debug logging
-  console.log(`[Middleware] Path: ${pathname}, Has Token: ${!!accessToken}, Is Public: ${isPublicRoute}`);
-
-  // If user is not authenticated and trying to access a protected route
-  if (!accessToken && !isPublicRoute) {
-    console.log(`[Middleware] No token found, redirecting to sign-in`);
-    // Redirect to sign-in page
-    const signInUrl = new URL("/sign-in", request.url);
-    // Optionally, you can add a redirect parameter to return to the original page after login
-    signInUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(signInUrl);
-  }
-
-  // If user is authenticated and trying to access sign-in page, redirect to master-landing-page
-  if (accessToken && pathname === "/sign-in") {
-    console.log(`[Middleware] User authenticated, redirecting from sign-in to home`);
-    return NextResponse.redirect(new URL("/master-landing-page", request.url));
-  }
+  // All routes are public now - no authentication check
+  // Auto-authentication happens on client-side
+  console.log(`[Middleware] Path: ${pathname}, allowing access`);
 
   // Allow the request to proceed
-  console.log(`[Middleware] Allowing request to proceed`);
   return NextResponse.next();
 }
 

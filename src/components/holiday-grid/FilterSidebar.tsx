@@ -168,7 +168,6 @@ const FilterSidebar = ({ cities, categories, onFilterChange }: FilterSidebarProp
       {/* Filter By Price */}
       <div className="mb-6">
         <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-3">
-          <DollarSign className="w-4 h-4" />
           Filter By Price
         </label>
         <div className="mb-3">

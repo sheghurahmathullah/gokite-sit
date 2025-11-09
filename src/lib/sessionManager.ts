@@ -118,16 +118,13 @@ export function clearSessionData(): void {
   }
 }
 
-// Refresh session using stored email
+// Refresh session using hardcoded email
 export async function refreshSession(): Promise<boolean> {
   try {
-    const email = getUserEmail();
-    if (!email) {
-      console.error("[SessionManager] No stored email found for refresh");
-      return false;
-    }
-
-    console.log("[SessionManager] Attempting to refresh session...");
+    // Always use hardcoded email for auto-authentication
+    const email = "codetezteam@gmail.com";
+    
+    console.log("[SessionManager] Attempting to refresh session with hardcoded email...");
 
     const response = await fetch("/api/auth/guest-login", {
       method: "POST",

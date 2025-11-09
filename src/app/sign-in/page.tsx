@@ -1,5 +1,5 @@
 "use client";
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -78,11 +78,86 @@ const socialButtons = [
 function SignInForm() {
   const [email, setEmail] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [autoLoggingIn, setAutoLoggingIn] = useState<boolean>(true);
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Get redirect parameter from URL
   const redirectTo = searchParams.get("redirect") || "/";
+
+  // Helper function to check if access token cookie exists
+  const hasAccessToken = () => {
+    if (typeof document === "undefined") return false;
+    const cookies = document.cookie.split(";").map((c) => c.trim());
+    return cookies.some((cookie) => cookie.startsWith("accesstoken="));
+  };
+
+  // Auto-login with hardcoded email on component mount (only if no cookie)
+  useEffect(() => {
+    const checkAuthAndLogin = async () => {
+      try {
+        // Check if access token cookie exists
+        const tokenExists = hasAccessToken();
+        
+        if (tokenExists) {
+          console.log("[SignIn] Access token found, redirecting without auto-login...");
+          
+          // Cookie exists, just redirect to destination
+          if (redirectTo && redirectTo !== "/") {
+            router.replace(redirectTo);
+          } else {
+            router.replace("/master-landing-page");
+          }
+          return;
+        }
+        
+        // No cookie found - perform auto-login
+        console.log("[SignIn] No access token found, auto-authenticating with hardcoded email...");
+        
+        const response = await fetch("/api/auth/guest-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userName: "codetezteam@gmail.com" }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Store email and session duration
+          try {
+            const { storeUserEmail, storeSessionDuration } = await import("@/lib/sessionManager");
+            storeUserEmail("codetezteam@gmail.com");
+            
+            if (data.data?.sessionDuration) {
+              storeSessionDuration(data.data.sessionDuration);
+            }
+          } catch (err) {
+            console.error("[SignIn] Failed to store session data:", err);
+          }
+          
+          console.log("[SignIn] Auto-login successful, redirecting...");
+          
+          // Wait a moment for cookie to be set
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // Redirect to the intended page or master-landing-page
+          if (redirectTo && redirectTo !== "/") {
+            router.replace(redirectTo);
+          } else {
+            router.replace("/master-landing-page");
+          }
+        } else {
+          console.error("[SignIn] Auto-login failed:", response.status);
+          setAutoLoggingIn(false);
+        }
+      } catch (error) {
+        console.error("[SignIn] Auto-login error:", error);
+        setAutoLoggingIn(false);
+      }
+    };
+
+    checkAuthAndLogin();
+  }, [router, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -189,6 +264,37 @@ function SignInForm() {
       setSubmitting(false);
     }
   };
+
+  // Show loading state while auto-logging in
+  if (autoLoggingIn) {
+    return (
+      <>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              Signing you in...
+            </h2>
+            <p className="text-sm text-gray-600">
+              Please wait while we authenticate your session
+            </p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
