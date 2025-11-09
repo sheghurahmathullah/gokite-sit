@@ -125,8 +125,69 @@ const VisaBookingCard = () => {
   };
 
   // Handle search button click
-  const handleSearch = () => {
-    router.push("/apply-visa");
+  const handleSearch = async () => {
+    if (!selectedCountry) {
+      // Import toast dynamically
+      const { toast } = await import("react-toastify");
+      toast.error("Please select a destination country", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    // Get the country ID from sessionStorage
+    const countryId = typeof window !== "undefined" 
+      ? window.sessionStorage.getItem("applyVisaCountryId") 
+      : null;
+
+    if (!countryId) {
+      const { toast } = await import("react-toastify");
+      toast.error("Please select a valid destination", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    try {
+      // Validate country has visa data before redirecting
+      const response = await fetch("/api/cms/visa-country-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ countryCode: countryId }),
+      });
+
+      if (!response.ok) {
+        const { toast } = await import("react-toastify");
+        toast.error("The country is not found or no visa is available", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return;
+      }
+
+      const data = await response.json();
+      
+      if (!data.success || !data.data || data.data.length === 0) {
+        const { toast } = await import("react-toastify");
+        toast.error("The country is not found or no visa is available", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return;
+      }
+
+      // Valid data found, proceed to apply-visa page
+      router.push("/apply-visa");
+    } catch (error) {
+      console.error("Error validating visa data:", error);
+      const { toast } = await import("react-toastify");
+      toast.error("Failed to validate visa availability. Please try again.", {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    }
   };
 
   // Close dropdown when clicking outside

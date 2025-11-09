@@ -260,19 +260,56 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ visaRulesData: visaRulesD
     }
   };
 
-  // Handle card click - store countryId and navigate
-  const handleCardClick = (rule: VisaRuleAnnouncement) => {
+  // Handle card click - validate visa availability before navigation
+  const handleCardClick = async (rule: VisaRuleAnnouncement) => {
     try {
-      if (typeof window !== "undefined") {
-        // Store both countryId and countryCode for the apply-visa page
-        window.sessionStorage.setItem("applyVisaCountryId", rule.id);
-        window.sessionStorage.setItem("applyVisaCountryCode", rule.countryCode);
+      // Validate country has visa data before redirecting
+      const visaResponse = await fetch("/api/cms/visa-country-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ countryCode: rule.id }),
+      });
+
+      if (!visaResponse.ok) {
+        const { toast } = await import("react-toastify");
+        toast.error("The country is not found or no visa is available", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return;
       }
+
+      const visaData = await visaResponse.json();
+      
+      if (!visaData.success || !visaData.data || visaData.data.length === 0) {
+        const { toast } = await import("react-toastify");
+        toast.error("The country is not found or no visa is available", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return;
+      }
+
+      // Store country ID and navigate
+      try {
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem("applyVisaCountryId", rule.id);
+          window.sessionStorage.setItem("applyVisaCountryCode", rule.countryCode);
+        }
+      } catch (e) {
+        console.error("Error saving to sessionStorage:", e);
+      }
+
+      // Navigate to apply-visa page
+      router.push("/apply-visa");
     } catch (e) {
-      console.error("Error saving to sessionStorage:", e);
+      console.error("Failed to validate visa:", e);
+      const { toast } = await import("react-toastify");
+      toast.error("Failed to validate visa availability. Please try again.", {
+        position: "top-right",
+        autoClose: 4000,
+      });
     }
-    // Navigate to apply-visa page
-    router.push("/apply-visa");
   };
 
   return (

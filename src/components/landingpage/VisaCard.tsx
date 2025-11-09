@@ -58,7 +58,7 @@ const VisaCard = ({ destination }: VisaCardProps) => {
     destination.processing_time
   );
 
-  // Handle card click - fetch country ID and store in session storage
+  // Handle card click - validate visa availability before navigation
   const handleCardClick = async () => {
     try {
       // Fetch country ID from API
@@ -75,25 +75,63 @@ const VisaCard = ({ destination }: VisaCardProps) => {
         (r: any) => norm(r?.label) === norm(destination.country)
       );
 
-      if (match?.id) {
-        console.log("Selected visa country id:", match.id);
-        try {
-          if (typeof window !== "undefined") {
-            window.sessionStorage.setItem(
-              "applyVisaCountryId",
-              String(match.id)
-            );
-          }
-        } catch (_) {}
-      } else {
+      if (!match?.id) {
         console.log("Country id not found for:", destination.country);
+        const { toast } = await import("react-toastify");
+        toast.error("The country is not found or no visa is available", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return;
       }
-    } catch (e) {
-      console.error("Failed to fetch country id:", e);
-    }
 
-    // Navigate to apply-visa page
-    router.push("/apply-visa");
+      const countryId = String(match.id);
+      console.log("Selected visa country id:", countryId);
+
+      // Validate country has visa data before redirecting
+      const visaResponse = await fetch("/api/cms/visa-country-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ countryCode: countryId }),
+      });
+
+      if (!visaResponse.ok) {
+        const { toast } = await import("react-toastify");
+        toast.error("The country is not found or no visa is available", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return;
+      }
+
+      const visaData = await visaResponse.json();
+      
+      if (!visaData.success || !visaData.data || visaData.data.length === 0) {
+        const { toast } = await import("react-toastify");
+        toast.error("The country is not found or no visa is available", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+        return;
+      }
+
+      // Store country ID and navigate
+      try {
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem("applyVisaCountryId", countryId);
+        }
+      } catch (_) {}
+
+      // Navigate to apply-visa page
+      router.push("/apply-visa");
+    } catch (e) {
+      console.error("Failed to validate visa:", e);
+      const { toast } = await import("react-toastify");
+      toast.error("Failed to validate visa availability. Please try again.", {
+        position: "top-right",
+        autoClose: 4000,
+      });
+    }
   };
 
   return (
