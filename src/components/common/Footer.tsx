@@ -200,7 +200,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/about-us"
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   About Us
@@ -224,7 +224,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/terms"
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Terms & Condition

@@ -241,7 +241,7 @@ const VisaBookingCard = () => {
 
           {/* Autocomplete Dropdown */}
           {showDropdown && (
-            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+            <div className="absolute z-[100] w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
               {isLoading ? (
                 <div className="p-4 text-sm text-gray-500 text-center">
                   Loading...

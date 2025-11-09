@@ -172,9 +172,9 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ bannerSection }) => {
 
   return (
     <section className="w-full px-6 lg:px-12">
-      <div className="hero-gradient rounded-[2.5rem] overflow-hidden relative min-h-[600px]">
+      <div className="hero-gradient rounded-[2.5rem] overflow-visible relative min-h-[600px]">
         {/* Background image */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 overflow-hidden rounded-[2.5rem]">
           <img
             src={bannerImages[currentIndex] || FALLBACK_IMAGE}
             alt="Hero Banner"
