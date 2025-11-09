@@ -5,6 +5,11 @@ export function middleware(request: NextRequest) {
   // Get the pathname
   const { pathname } = request.nextUrl;
 
+  // Redirect root URL to master-landing-page
+  if (pathname === "/") {
+    return NextResponse.redirect(new URL("/master-landing-page", request.url));
+  }
+
   // Public routes that don't require authentication
   const publicRoutes = ["/sign-in"];
 
@@ -25,9 +30,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(signInUrl);
   }
 
-  // If user is authenticated and trying to access sign-in page, redirect to home
+  // If user is authenticated and trying to access sign-in page, redirect to master-landing-page
   if (accessToken && pathname === "/sign-in") {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/master-landing-page", request.url));
   }
 
   // Allow the request to proceed
