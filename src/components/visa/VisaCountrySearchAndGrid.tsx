@@ -1,7 +1,7 @@
 "use client";
 import { Plane, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Autoplay from "embla-carousel-autoplay";
 import {
   Carousel,
@@ -38,6 +38,8 @@ const filters = [
 
 const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
   const router = useRouter();
+  const params = useParams();
+  const currentSlug = params.slug as string || "visa-landing-page";
 
   const handleCardClick = async () => {
     try {
@@ -103,12 +105,15 @@ const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
       } catch (_) {}
 
       // Navigate to apply-visa page with nested routing
-      // Always use nested route
-      const currentPageSlug = typeof window !== "undefined" 
-        ? window.sessionStorage.getItem("currentPageSlug") 
-        : "visa-landing-page";
+      // Use the current slug from URL params instead of sessionStorage
+      // Also store it in sessionStorage as a fallback for other components
+      if (typeof window !== "undefined") {
+        try {
+          window.sessionStorage.setItem("currentPageSlug", currentSlug);
+        } catch (_) {}
+      }
       
-      router.push(`/${currentPageSlug}/apply-visa`);
+      router.push(`/${currentSlug}/apply-visa`);
     } catch (e) {
       console.error("Failed to validate visa:", e);
       const { toast } = await import("react-toastify");

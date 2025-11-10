@@ -1,5 +1,5 @@
 import { VisaDestination } from "@/types";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { toast } from "react-toastify";
 
 interface VisaCardProps {
@@ -46,6 +46,8 @@ const formatDate = (
 
 const VisaCard = ({ destination }: VisaCardProps) => {
   const router = useRouter();
+  const params = useParams();
+  const currentSlug = params.slug as string || "master-landing-page";
 
   // Format the fast track date using processing_days and processing_time
   const fastTrackText = formatDate(
@@ -140,10 +142,14 @@ const VisaCard = ({ destination }: VisaCardProps) => {
       } catch (_) {}
 
       // Redirect to apply-visa page (always use nested route)
-      const currentPageSlug = typeof window !== "undefined" 
-        ? window.sessionStorage.getItem("currentPageSlug") 
-        : "master-landing-page";
-      router.push(`/${currentPageSlug}/apply-visa`);
+      // Use the current slug from URL params instead of sessionStorage
+      // Also store it in sessionStorage as a fallback for other components
+      if (typeof window !== "undefined") {
+        try {
+          window.sessionStorage.setItem("currentPageSlug", currentSlug);
+        } catch (_) {}
+      }
+      router.push(`/${currentSlug}/apply-visa`);
       
     } catch (e) {
       console.error("[VisaCard] Error validating visa:", e);

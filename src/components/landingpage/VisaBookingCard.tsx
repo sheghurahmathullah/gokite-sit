@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Search, Calendar } from "lucide-react";
 import { toast } from "react-toastify";
@@ -13,6 +13,8 @@ interface CountrySuggestion {
 
 const VisaBookingCard = () => {
   const router = useRouter();
+  const params = useParams();
+  const currentSlug = params.slug as string || "master-landing-page";
   const [date, setDate] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<CountrySuggestion[]>([]);
@@ -192,10 +194,14 @@ const VisaBookingCard = () => {
       }
 
       // Redirect to apply-visa page (always use nested route)
-      const currentPageSlug = typeof window !== "undefined" 
-        ? window.sessionStorage.getItem("currentPageSlug") 
-        : "master-landing-page";
-      router.push(`/${currentPageSlug}/apply-visa`);
+      // Use the current slug from URL params instead of sessionStorage
+      // Also store it in sessionStorage as a fallback for other components
+      if (typeof window !== "undefined") {
+        try {
+          window.sessionStorage.setItem("currentPageSlug", currentSlug);
+        } catch (_) {}
+      }
+      router.push(`/${currentSlug}/apply-visa`);
       
     } catch (error) {
       console.error("[VisaBookingCard] Error validating visa data:", error);

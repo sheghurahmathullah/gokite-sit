@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
@@ -13,6 +13,8 @@ interface SearchSuggestion {
 
 const HolidayBookingCard = () => {
   const router = useRouter();
+  const params = useParams();
+  const currentSlug = (params.slug as string) || "holiday-home-page";
   const [searchType, setSearchType] = useState<"city" | "country">("city");
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
@@ -149,17 +151,22 @@ const HolidayBookingCard = () => {
     }
 
     try {
-      console.log("[HolidayBookingCard] Validating holiday data for:", searchType, searchQuery);
+      console.log(
+        "[HolidayBookingCard] Validating holiday data for:",
+        searchType,
+        searchQuery
+      );
 
       // Determine which API endpoint to call based on search type
       let apiEndpoint = "";
       let requestBody: any = {};
 
       if (searchType === "city") {
-        const cityId = typeof window !== "undefined" 
-          ? window.sessionStorage.getItem("selectedHolidayCityId") 
-          : null;
-        
+        const cityId =
+          typeof window !== "undefined"
+            ? window.sessionStorage.getItem("selectedHolidayCityId")
+            : null;
+
         if (!cityId) {
           toast.error("Please select a valid city", {
             position: "top-right",
@@ -171,10 +178,11 @@ const HolidayBookingCard = () => {
         apiEndpoint = "/api/cms/holiday-city-search";
         requestBody = { cityId };
       } else if (searchType === "country") {
-        const countryId = typeof window !== "undefined" 
-          ? window.sessionStorage.getItem("selectedHolidayCountryId") 
-          : null;
-        
+        const countryId =
+          typeof window !== "undefined"
+            ? window.sessionStorage.getItem("selectedHolidayCountryId")
+            : null;
+
         if (!countryId) {
           toast.error("Please select a valid country", {
             position: "top-right",
@@ -198,7 +206,10 @@ const HolidayBookingCard = () => {
 
       // Check if response is not OK
       if (!response.ok) {
-        console.error("[HolidayBookingCard] API call failed with status:", response.status);
+        console.error(
+          "[HolidayBookingCard] API call failed with status:",
+          response.status
+        );
         toast.error("No holiday packages found for this destination", {
           position: "top-right",
           autoClose: 4000,
@@ -210,8 +221,16 @@ const HolidayBookingCard = () => {
       console.log("[HolidayBookingCard] API response data:", data);
 
       // Validate response structure and data
-      if (!data.success || !data.data || !Array.isArray(data.data) || data.data.length === 0) {
-        console.warn("[HolidayBookingCard] Invalid or empty holiday data:", data);
+      if (
+        !data.success ||
+        !data.data ||
+        !Array.isArray(data.data) ||
+        data.data.length === 0
+      ) {
+        console.warn(
+          "[HolidayBookingCard] Invalid or empty holiday data:",
+          data
+        );
         toast.error("No holiday packages found for this destination", {
           position: "top-right",
           autoClose: 4000,
@@ -220,14 +239,22 @@ const HolidayBookingCard = () => {
       }
 
       // Valid data found - redirect to holiday-list page (always use nested route)
-      console.log("[HolidayBookingCard] Valid holiday data found, redirecting to holiday-list");
-      const currentPageSlug = typeof window !== "undefined" 
-        ? window.sessionStorage.getItem("currentPageSlug") 
-        : "holiday-home-page";
-      router.push(`/${currentPageSlug}/holiday-list`);
-      
+      console.log(
+        "[HolidayBookingCard] Valid holiday data found, redirecting to holiday-list"
+      );
+      // Use the current slug from URL params instead of sessionStorage
+      // Also store it in sessionStorage as a fallback for other components
+      if (typeof window !== "undefined") {
+        try {
+          window.sessionStorage.setItem("currentPageSlug", currentSlug);
+        } catch (_) {}
+      }
+      router.push(`/${currentSlug}/holiday-list`);
     } catch (error) {
-      console.error("[HolidayBookingCard] Error validating holiday data:", error);
+      console.error(
+        "[HolidayBookingCard] Error validating holiday data:",
+        error
+      );
       toast.error("No holiday packages found for this destination", {
         position: "top-right",
         autoClose: 4000,

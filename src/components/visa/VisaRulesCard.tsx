@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import * as Flags from "country-flag-icons/react/3x2";
 import { usePageContext } from "../common/PageContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import VisaRulesCarousel, {
   VisaRulesCarouselRef,
   VisaRuleAnnouncement as ImportedVisaRuleAnnouncement,
@@ -35,6 +35,8 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ visaRulesData: visaRulesD
   const carouselRef = useRef<VisaRulesCarouselRef>(null);
   const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
   const router = useRouter();
+  const params = useParams();
+  const currentSlug = params.slug as string || "visa-landing-page";
   const dataFetchedRef = useRef(false);
 
   // Read cookie helper
@@ -301,12 +303,15 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ visaRulesData: visaRulesD
       }
 
       // Navigate to apply-visa page with nested routing
-      // Always use nested route
-      const currentPageSlug = typeof window !== "undefined" 
-        ? window.sessionStorage.getItem("currentPageSlug") 
-        : "visa-landing-page";
+      // Use the current slug from URL params instead of sessionStorage
+      // Also store it in sessionStorage as a fallback for other components
+      if (typeof window !== "undefined") {
+        try {
+          window.sessionStorage.setItem("currentPageSlug", currentSlug);
+        } catch (_) {}
+      }
       
-      router.push(`/${currentPageSlug}/apply-visa`);
+      router.push(`/${currentSlug}/apply-visa`);
     } catch (e) {
       console.error("Failed to validate visa:", e);
       const { toast } = await import("react-toastify");

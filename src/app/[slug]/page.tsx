@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, notFound } from "next/navigation";
 import { HomePageSkeleton } from "@/components/common/SkeletonLoader";
+import { usePageContext } from "@/components/common/PageContext";
 
 // Import all page components
 import HomePage from "@/app/[slug]/home/page";
@@ -38,10 +39,18 @@ export default function DynamicPage() {
   const slug = params.slug as string;
   const [pageData, setPageData] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { initialAuthCheckDone } = usePageContext();
 
   useEffect(() => {
+    // Wait for authentication check to complete before fetching page data
+    if (!initialAuthCheckDone) {
+      console.log("[DynamicPage] Waiting for authentication to complete...");
+      return;
+    }
+
     async function fetchPageData() {
       try {
+        console.log("[DynamicPage] Fetching page data for slug:", slug);
         const response = await fetch("/api/cms/pages");
         if (!response.ok) {
           throw new Error("Failed to fetch pages");
@@ -51,8 +60,10 @@ export default function DynamicPage() {
         const page = data.data?.find((p: any) => p.slug === slug);
         
         if (!page) {
+          console.warn("[DynamicPage] Page not found for slug:", slug);
           setPageData(null);
         } else {
+          console.log("[DynamicPage] Page data loaded successfully");
           setPageData(page);
           
           // Store page slug in sessionStorage for nested routing
@@ -90,7 +101,7 @@ export default function DynamicPage() {
     }
 
     fetchPageData();
-  }, [slug]);
+  }, [slug, initialAuthCheckDone]);
 
   if (loading) {
     return <HomePageSkeleton />;

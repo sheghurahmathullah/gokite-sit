@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Heart, Star, Plane, Building2, Car, User } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -29,6 +29,8 @@ interface DestinationCardProps {
 const DestinationCard = ({ destination }: DestinationCardProps) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const router = useRouter();
+  const params = useParams();
+  const currentSlug = params.slug as string || "holiday-home-page";
 
   const handleCardClick = async () => {
     try {
@@ -100,10 +102,14 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
 
       // Navigate to tour details page (always use nested route)
       const tourSlug = destination.name.toLowerCase().replace(/\s+/g, "-");
-      const currentPageSlug = typeof window !== "undefined" 
-        ? window.sessionStorage.getItem("currentPageSlug") 
-        : "master-landing-page";
-      router.push(`/${currentPageSlug}/tour-details/${tourSlug}`);
+      // Use the current slug from URL params instead of sessionStorage
+      // Also store it in sessionStorage as a fallback for other components
+      if (typeof window !== "undefined") {
+        try {
+          window.sessionStorage.setItem("currentPageSlug", currentSlug);
+        } catch (_) {}
+      }
+      router.push(`/${currentSlug}/tour-details/${tourSlug}`);
       
     } catch (error) {
       console.error("[DestinationCard] Error validating holiday data:", error);
