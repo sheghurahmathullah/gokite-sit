@@ -3,7 +3,9 @@ import { useState, useEffect, useCallback } from "react";
 import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
 import HeroBanner from "@/components/holiday-grid/HeroBanner";
-import FilterSidebar, { FilterCriteria } from "@/components/holiday-grid/FilterSidebar";
+import FilterSidebar, {
+  FilterCriteria,
+} from "@/components/holiday-grid/FilterSidebar";
 import DestinationCard from "@/components/common/DestinationCard";
 import { Skeleton } from "@/components/common/SkeletonLoader";
 
@@ -38,23 +40,17 @@ const HolidayListPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [rawApiData, setRawApiData] = useState<any[]>([]);
 
-  // Currency conversion and formatting
-  const convertAndFormatCurrency = (amount: number, currency: string) => {
-    const exchangeRates: Record<string, number> = {
-      AED: 20, // 1 AED = 20 INR
-      USD: 80, // 1 USD = 80 INR
-      INR: 1,
-    };
-
-    const rate = exchangeRates[currency] || 1;
-    const convertedAmount = Math.round(parseFloat(String(amount)) * rate);
-
-    switch (currency) {
+  // Get currency symbol based on currency code
+  const getCurrencySymbol = (currency: string) => {
+    switch (currency?.toUpperCase()) {
       case "AED":
-        return `${convertedAmount.toFixed(2)} ${currency}`;
+        return "AED ";
+      case "USD":
+        return "$";
       case "INR":
+        return "₹";
       default:
-        return convertedAmount;
+        return "₹";
     }
   };
 
@@ -86,13 +82,22 @@ const HolidayListPage = () => {
         return `/api/cms/file-download?image=${encodeURIComponent(imageName)}`;
       };
 
+      // Get days and nights from cardJson first, then fall back to top-level fields
+      const days = item?.cardJson?.days || parseInt(item.noOfDays) || 3;
+      const nights = item?.cardJson?.nights || parseInt(item.noOfNights) || 4;
+
+      // Get rating from cardJson first, then fall back to top-level field
+      const rating = parseFloat(
+        item?.cardJson?.packageRating || item.packageRating || "4.5"
+      );
+
       return {
         id: holidayId, // This will be used as slug and stored in sessionStorage
-        name: item.title || "Holiday Package",
+        name: item?.cardJson?.packageName || item.title || "Holiday Package",
         image: getImageUrl(item?.cardJson?.heroImage),
-        rating: parseFloat(item.packageRating || "4.5"),
-        days: parseInt(item.noOfDays) || 3,
-        nights: parseInt(item.noOfNights) || 4,
+        rating: rating,
+        days: days,
+        nights: nights,
         flights: getIconValue("flight", 2),
         hotels: getIconValue("hotel", 1) || getIconValue("accomodation", 1),
         transfers: getIconValue("transfer", 2) || getIconValue("car", 2),
@@ -102,12 +107,11 @@ const HolidayListPage = () => {
           "City Tour",
           "Sightseeing",
         ],
-        currency: "₹",
-        originalPrice: convertAndFormatCurrency(
-          oldPrice,
-          item.currency || "INR"
-        ),
-        finalPrice: convertAndFormatCurrency(newPrice, item.currency || "INR"),
+        currency: getCurrencySymbol(item.currency || "INR"),
+        originalPrice: oldPrice,
+        finalPrice: newPrice,
+        priceContent: item?.cardJson?.priceContent || "Per person",
+        itineraryIcons: itineraryIcons, // Pass through the itinerary icons from API
       };
     });
   };
@@ -168,7 +172,7 @@ const HolidayListPage = () => {
 
       const data = await response.json();
       console.log("holiday country search response", data);
-      
+
       const list = Array.isArray(data?.data) ? data.data : [];
 
       setRawApiData(list);
@@ -221,63 +225,119 @@ const HolidayListPage = () => {
   // Load data when category changes or on initial load
   useEffect(() => {
     // Check if we have session storage data for destination-based search
-    const destinationType = typeof window !== "undefined" 
-      ? window.sessionStorage.getItem("selectedHolidayDestinationType") 
-      : null;
-    
-    if (destinationType === "country") {
-      const countryId = typeof window !== "undefined" 
-        ? window.sessionStorage.getItem("selectedHolidayCountryId") 
+    const destinationType =
+      typeof window !== "undefined"
+        ? window.sessionStorage.getItem("selectedHolidayDestinationType")
         : null;
-      
+
+    if (destinationType === "country") {
+      const countryId =
+        typeof window !== "undefined"
+          ? window.sessionStorage.getItem("selectedHolidayCountryId")
+          : null;
+
       if (countryId) {
         fetchHolidayItineraryDetails(countryId);
         return;
       }
     } else if (destinationType === "city") {
-      const cityId = typeof window !== "undefined" 
-        ? window.sessionStorage.getItem("selectedHolidayCityId") 
-        : null;
-      
+      const cityId =
+        typeof window !== "undefined"
+          ? window.sessionStorage.getItem("selectedHolidayCityId")
+          : null;
+
       if (cityId) {
         fetchHolidayCitySearch(cityId);
         return;
       }
     }
-    
+
     // Fallback to category-based search
-    
   }, []);
 
   // Extract unique cities and categories
-  const uniqueCities = Array.from(new Set(rawApiData.map(item => item.cityName).filter(Boolean)));
-  const uniqueCategories = Array.from(new Set(rawApiData.map(item => item.categoryName).filter(Boolean)));
+  const uniqueCities = Array.from(
+    new Set(rawApiData.map((item) => item.cityName).filter(Boolean))
+  );
+  const uniqueCategories = Array.from(
+    new Set(rawApiData.map((item) => item.categoryName).filter(Boolean))
+  );
+
+  // Calculate min and max prices from the data
+  const prices = rawApiData
+    .map((item) => parseFloat(item.newPrice || "0"))
+    .filter((price) => price > 0);
+
+  const minPrice = 0; // Always start from 0
+  const maxPrice = prices.length > 0 ? Math.ceil(Math.max(...prices)) : 10000;
+
+  // Extract the most common currency from the data
+  const currencies = rawApiData.map((item) => item.currency).filter(Boolean);
+
+  const currencyCount: Record<string, number> = {};
+  currencies.forEach((curr) => {
+    currencyCount[curr] = (currencyCount[curr] || 0) + 1;
+  });
+
+  // Get the most common currency
+  const mostCommonCurrency =
+    Object.keys(currencyCount).length > 0
+      ? Object.keys(currencyCount).reduce((a, b) =>
+          currencyCount[a] > currencyCount[b] ? a : b
+        )
+      : "INR";
+
+  // Convert to currency symbol
+  const getCurrencySymbolForFilter = (currency: string) => {
+    switch (currency?.toUpperCase()) {
+      case "AED":
+        return "AED ";
+      case "USD":
+        return "$";
+      case "INR":
+        return "₹";
+      default:
+        return "₹";
+    }
+  };
+
+  const displayCurrency = getCurrencySymbolForFilter(mostCommonCurrency);
 
   // Filter handler - memoized to prevent infinite loop
-  const handleFilterChange = useCallback((filters: FilterCriteria) => {
-    const filteredRaw = rawApiData.filter((item) => {
-      if (filters.cityName !== "All" && item.cityName !== filters.cityName) return false;
-      if (filters.categoryName !== "All" && item.categoryName !== filters.categoryName) return false;
-      const noOfGuests = parseInt(item.noOfGuests || "0");
-      if (noOfGuests > 0 && noOfGuests < filters.minGuests) return false;
-      const price = parseFloat(item.newPrice || "0");
-      if (price < filters.minPrice || price > filters.maxPrice) return false;
-      const rating = parseFloat(item.packageRating || item.cardJson?.packageRating || "0");
-      if (rating < filters.minRating) return false;
-      if (filters.pickupRequired !== null) {
-        const hasPickup = item.pickupRequired === "1";
-        if (filters.pickupRequired && !hasPickup) return false;
-        if (!filters.pickupRequired && hasPickup) return false;
-      }
-      return true;
-    });
-    setDestinations(transformHolidayData(filteredRaw));
-  }, [rawApiData]); // Only recreate when rawApiData changes
+  const handleFilterChange = useCallback(
+    (filters: FilterCriteria) => {
+      const filteredRaw = rawApiData.filter((item) => {
+        if (filters.cityName !== "All" && item.cityName !== filters.cityName)
+          return false;
+        if (
+          filters.categoryName !== "All" &&
+          item.categoryName !== filters.categoryName
+        )
+          return false;
+        const noOfGuests = parseInt(item.noOfGuests || "0");
+        if (noOfGuests > 0 && noOfGuests < filters.minGuests) return false;
+        const price = parseFloat(item.newPrice || "0");
+        if (price < filters.minPrice || price > filters.maxPrice) return false;
+        const rating = parseFloat(
+          item.packageRating || item.cardJson?.packageRating || "0"
+        );
+        if (rating < filters.minRating) return false;
+        if (filters.pickupRequired !== null) {
+          const hasPickup = item.pickupRequired === "1";
+          if (filters.pickupRequired && !hasPickup) return false;
+          if (!filters.pickupRequired && hasPickup) return false;
+        }
+        return true;
+      });
+      setDestinations(transformHolidayData(filteredRaw));
+    },
+    [rawApiData]
+  ); // Only recreate when rawApiData changes
 
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
-      
+
       <div className="relative w-full px-2 sm:px-4 max-w-[1400px] mx-auto">
         <HeroBanner />
       </div>
@@ -330,10 +390,13 @@ const HolidayListPage = () => {
 
           {/* Filter Sidebar - 30% width */}
           <div className="w-full lg:w-[30%]">
-            <FilterSidebar 
+            <FilterSidebar
               cities={uniqueCities}
               categories={uniqueCategories}
               onFilterChange={handleFilterChange}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              currency={displayCurrency}
             />
           </div>
         </div>
@@ -345,4 +408,3 @@ const HolidayListPage = () => {
 };
 
 export default HolidayListPage;
-

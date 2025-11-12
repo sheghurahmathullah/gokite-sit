@@ -28,17 +28,32 @@ interface FilterSidebarProps {
   cities: string[];
   categories: string[];
   onFilterChange: (filters: FilterCriteria) => void;
+  minPrice?: number;
+  maxPrice?: number;
+  currency?: string;
 }
 
-const FilterSidebar = ({ cities, categories, onFilterChange }: FilterSidebarProps) => {
+const FilterSidebar = ({
+  cities,
+  categories,
+  onFilterChange,
+  minPrice = 0,
+  maxPrice = 10000,
+  currency = "₹",
+}: FilterSidebarProps) => {
   const [selectedCity, setSelectedCity] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [guestCount, setGuestCount] = useState(1);
-  const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [priceRange, setPriceRange] = useState([0, maxPrice]);
   const [selectedRating, setSelectedRating] = useState(0);
   const [pickupNeeded, setPickupNeeded] = useState(false);
   const [pickupAvailable, setPickupAvailable] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
+
+  // Update price range when max price props change (min is always 0)
+  useEffect(() => {
+    setPriceRange([0, maxPrice]);
+  }, [maxPrice]);
 
   // Apply filters whenever any filter value changes
   useEffect(() => {
@@ -49,11 +64,26 @@ const FilterSidebar = ({ cities, categories, onFilterChange }: FilterSidebarProp
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
       minRating: selectedRating,
-      pickupRequired: pickupAvailable && !pickupNeeded ? true : !pickupAvailable && pickupNeeded ? false : null,
+      pickupRequired:
+        pickupAvailable && !pickupNeeded
+          ? true
+          : !pickupAvailable && pickupNeeded
+          ? false
+          : null,
       dateFrom,
     };
     onFilterChange(filters);
-  }, [selectedCity, selectedCategory, guestCount, priceRange, selectedRating, pickupAvailable, pickupNeeded, dateFrom, onFilterChange]);
+  }, [
+    selectedCity,
+    selectedCategory,
+    guestCount,
+    priceRange,
+    selectedRating,
+    pickupAvailable,
+    pickupNeeded,
+    dateFrom,
+    onFilterChange,
+  ]);
 
   const handleApplyFilters = () => {
     const filters: FilterCriteria = {
@@ -63,7 +93,12 @@ const FilterSidebar = ({ cities, categories, onFilterChange }: FilterSidebarProp
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
       minRating: selectedRating,
-      pickupRequired: pickupAvailable && !pickupNeeded ? true : !pickupAvailable && pickupNeeded ? false : null,
+      pickupRequired:
+        pickupAvailable && !pickupNeeded
+          ? true
+          : !pickupAvailable && pickupNeeded
+          ? false
+          : null,
       dateFrom,
     };
     onFilterChange(filters);
@@ -84,7 +119,7 @@ const FilterSidebar = ({ cities, categories, onFilterChange }: FilterSidebarProp
             <MapPin className="w-4 h-4" />
             <span>Destination</span>
           </div>
-          <select 
+          <select
             className="w-full px-3 py-2 border border-border rounded-lg appearance-none bg-background text-foreground pr-10"
             value={selectedCity}
             onChange={(e) => setSelectedCity(e.target.value)}
@@ -106,7 +141,7 @@ const FilterSidebar = ({ cities, categories, onFilterChange }: FilterSidebarProp
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
             <span>Category</span>
           </div>
-          <select 
+          <select
             className="w-full px-3 py-2 border border-border rounded-lg appearance-none bg-background text-foreground pr-10"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -168,23 +203,24 @@ const FilterSidebar = ({ cities, categories, onFilterChange }: FilterSidebarProp
       {/* Filter By Price */}
       <div className="mb-6">
         <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-3">
+          <DollarSign className="w-4 h-4" />
           Filter By Price
         </label>
         <div className="mb-3">
           <input
             type="range"
-            min="0"
-            max="10000"
+            min={0}
+            max={maxPrice}
             value={priceRange[1]}
-            onChange={(e) =>
-              setPriceRange([priceRange[0], parseInt(e.target.value)])
-            }
+            onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
             className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
           />
         </div>
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-muted-foreground">
-            Price: {priceRange[0]} - {priceRange[1]}
+            Price: {currency}
+            {priceRange[0]} - {currency}
+            {priceRange[1]}
           </span>
         </div>
       </div>
@@ -227,7 +263,9 @@ const FilterSidebar = ({ cities, categories, onFilterChange }: FilterSidebarProp
 
       {/* Pickup Options */}
       <div className="mb-6">
-        <h4 className="text-sm font-bold text-foreground mb-3">Pickup Options</h4>
+        <h4 className="text-sm font-bold text-foreground mb-3">
+          Pickup Options
+        </h4>
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Checkbox
@@ -265,14 +303,14 @@ const FilterSidebar = ({ cities, categories, onFilterChange }: FilterSidebarProp
       </div>
 
       {/* Clear Filters Button */}
-      <Button 
-        variant="outline" 
+      <Button
+        variant="outline"
         className="w-full"
         onClick={() => {
           setSelectedCity("All");
           setSelectedCategory("All");
           setGuestCount(1);
-          setPriceRange([0, 10000]);
+          setPriceRange([0, maxPrice]);
           setSelectedRating(0);
           setPickupAvailable(false);
           setPickupNeeded(false);

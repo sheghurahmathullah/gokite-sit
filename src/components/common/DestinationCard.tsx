@@ -16,8 +16,8 @@ interface Destination {
   activities: number;
   features?: string[];
   currency: string;
-  originalPrice: number;
-  finalPrice: number;
+  originalPrice: number | string;
+  finalPrice: number | string;
   priceContent?: string;
   itineraryIcons?: { text?: string; image?: string }[];
 }
@@ -239,11 +239,15 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
         <div className="flex items-center gap-2 mt-auto">
           <span className="text-sm text-gray-500 line-through">
             {destination.currency}
-            {destination.originalPrice.toLocaleString()}
+            {typeof destination.originalPrice === 'number' 
+              ? destination.originalPrice.toLocaleString() 
+              : destination.originalPrice}
           </span>
           <span className="text-xl font-bold text-black">
             {destination.currency + " "}
-            {destination.finalPrice.toLocaleString()}
+            {typeof destination.finalPrice === 'number' 
+              ? destination.finalPrice.toLocaleString() 
+              : destination.finalPrice}
           </span>
           <span className="text-sm text-gray-600">
             {destination.priceContent || "Per person"}
