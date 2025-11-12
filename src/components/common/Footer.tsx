@@ -190,14 +190,7 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">About</h3>
             <ul className="space-y-2">
-              <li>
-                <a
-                  href="#"
-                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
-                >
-                  Account
-                </a>
-              </li>
+            
               <li>
                 <a
                   href="/about-us"
@@ -208,18 +201,10 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/privacy-policy"
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
-                  Support
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
-                >
-                  Help Desk
+                 Privacy Policy
                 </a>
               </li>
               <li>

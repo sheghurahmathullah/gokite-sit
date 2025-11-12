@@ -5,6 +5,7 @@ import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
 import TourHero from "@/components/tour/TourHero";
 import TourInfoCard from "@/components/tour/TourInfoCard";
+import TourStickyNav from "@/components/tour/TourStickyNav";
 import TourOverview from "@/components/tour/TourOverview";
 import PlacesCarousel from "@/components/tour/PlacesCarousel";
 import TourItinerary from "@/components/tour/TourItinerary";
@@ -272,9 +273,14 @@ const TourDetailPageInner = () => {
             />
           </div>
         </div>
+      </div>
 
-        {/* Content Sections */}
-        <div className="mt-12 space-y-16">
+      {/* Sticky Navigation */}
+      <TourStickyNav />
+
+      {/* Content Sections */}
+      <div className="max-w-8xl mx-auto px-6 lg:px-24">
+        <div className="space-y-16 py-8">
           {/* Overview Section */}
           <TourOverview tour={transformedTourData} />
 

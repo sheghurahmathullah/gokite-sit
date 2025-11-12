@@ -60,13 +60,24 @@ interface SectionWithVisaData {
 }
 
 const VisaPage = () => {
-  const [visaSectionsWithData, setVisaSectionsWithData] = useState<SectionWithVisaData[]>([]);
-  const [bannerSection, setBannerSection] = useState<BannerSection | null>(null);
-  const [visaRulesData, setVisaRulesData] = useState<VisaRuleAnnouncement[]>([]);
+  const [visaSectionsWithData, setVisaSectionsWithData] = useState<
+    SectionWithVisaData[]
+  >([]);
+  const [bannerSection, setBannerSection] = useState<BannerSection | null>(
+    null
+  );
+  const [visaRulesData, setVisaRulesData] = useState<VisaRuleAnnouncement[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const dataFetchedRef = useRef(false); // Track if data has been fetched
-  const { getPageIdWithFallback, getPageInfo, loading: pageLoading, isAuthenticated } = usePageContext();
+  const {
+    getPageIdWithFallback,
+    getPageInfo,
+    loading: pageLoading,
+    isAuthenticated,
+  } = usePageContext();
 
   // Set page title dynamically and store page slug
   useEffect(() => {
@@ -74,7 +85,7 @@ const VisaPage = () => {
     if (pageInfo?.title) {
       document.title = pageInfo.title;
     }
-    
+
     // Store page slug for nested routing
     if (pageInfo?.slug && typeof window !== "undefined") {
       try {
@@ -142,20 +153,29 @@ const VisaPage = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      console.log("[VisaPage useEffect] Called - isAuthenticated:", isAuthenticated, "pageLoading:", pageLoading, "dataFetched:", dataFetchedRef.current);
-      
+      console.log(
+        "[VisaPage useEffect] Called - isAuthenticated:",
+        isAuthenticated,
+        "pageLoading:",
+        pageLoading,
+        "dataFetched:",
+        dataFetchedRef.current
+      );
+
       // Wait for PageContext to finish loading
       if (pageLoading) {
-        console.log("[VisaPage useEffect] Skipping - page context still loading");
+        console.log(
+          "[VisaPage useEffect] Skipping - page context still loading"
+        );
         return;
       }
-      
+
       // Early exit if data already fetched
       if (dataFetchedRef.current) {
         console.log("[VisaPage useEffect] Skipping - data already fetched");
         return;
       }
-      
+
       // Check authentication
       if (!isAuthenticated) {
         console.log("[VisaPage useEffect] Skipping - user not authenticated");
@@ -165,10 +185,10 @@ const VisaPage = () => {
         setLoading(false);
         return;
       }
-      
+
       // Mark as fetching immediately to prevent race conditions
       dataFetchedRef.current = true;
-      
+
       try {
         setLoading(true);
         setError(null);
@@ -179,10 +199,14 @@ const VisaPage = () => {
           throw new Error("Missing visa landing pageId");
         }
 
-        console.log("[VisaPage] Starting data fetch - this should only happen once");
+        console.log(
+          "[VisaPage] Starting data fetch - this should only happen once"
+        );
 
         // Fetch sections
-        console.log("[API Call] Fetching /api/cms/pages-sections for visa page");
+        console.log(
+          "[API Call] Fetching /api/cms/pages-sections for visa page"
+        );
         const sectionsResponse = await fetch("/api/cms/pages-sections", {
           method: "POST",
           headers: {
@@ -234,60 +258,80 @@ const VisaPage = () => {
 
         // Fetch visa cards for all regular sections in parallel
         if (regularVisaSections.length > 0) {
-          const visaSectionsDataPromises = regularVisaSections.map(async (section: Section) => {
-            console.log(`[API Call] Fetching /api/cms/sections-visa-cards for section: ${section.pageSectionId}`);
-            const response = await fetch("/api/cms/sections-visa-cards", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ pageSectionId: section.pageSectionId }),
-            });
+          const visaSectionsDataPromises = regularVisaSections.map(
+            async (section: Section) => {
+              console.log(
+                `[API Call] Fetching /api/cms/sections-visa-cards for section: ${section.pageSectionId}`
+              );
+              const response = await fetch("/api/cms/sections-visa-cards", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ pageSectionId: section.pageSectionId }),
+              });
 
-            if (!response.ok) {
-              console.error("Failed to fetch visa cards for section:", section.pageSectionId);
+              if (!response.ok) {
+                console.error(
+                  "Failed to fetch visa cards for section:",
+                  section.pageSectionId
+                );
+                return {
+                  pageSectionId: section.pageSectionId,
+                  title: section.title,
+                  contentType: section.contentType,
+                  data: [],
+                };
+              }
+
+              const data = await response.json();
+              console.log(
+                `[API Call] Received visa cards for section: ${section.pageSectionId}`
+              );
+              const visaCards = Array.isArray(data?.data) ? data.data : [];
+
+              // Transform data
+              const transformedData = transformVisaData(visaCards);
+
               return {
                 pageSectionId: section.pageSectionId,
                 title: section.title,
                 contentType: section.contentType,
-                data: [],
+                data: transformedData,
               };
             }
+          );
 
-            const data = await response.json();
-            console.log(`[API Call] Received visa cards for section: ${section.pageSectionId}`);
-            const visaCards = Array.isArray(data?.data) ? data.data : [];
-
-            // Transform data
-            const transformedData = transformVisaData(visaCards);
-
-            return {
-              pageSectionId: section.pageSectionId,
-              title: section.title,
-              contentType: section.contentType,
-              data: transformedData,
-            };
-          });
-
-          const visaSectionsWithDataResult = await Promise.all(visaSectionsDataPromises);
+          const visaSectionsWithDataResult = await Promise.all(
+            visaSectionsDataPromises
+          );
           setVisaSectionsWithData(visaSectionsWithDataResult);
         }
 
         // Fetch visa rules data if section exists
         if (visaRulesSection) {
-          console.log(`[API Call] Fetching /api/cms/sections-visa-cards-rules for section: ${visaRulesSection.pageSectionId}`);
-          const rulesResponse = await fetch("/api/cms/sections-visa-cards-rules", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ pageSectionId: visaRulesSection.pageSectionId }),
-          });
+          console.log(
+            `[API Call] Fetching /api/cms/sections-visa-cards-rules for section: ${visaRulesSection.pageSectionId}`
+          );
+          const rulesResponse = await fetch(
+            "/api/cms/sections-visa-cards-rules",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                pageSectionId: visaRulesSection.pageSectionId,
+              }),
+            }
+          );
 
           if (rulesResponse.ok) {
             const rulesData = await rulesResponse.json();
             console.log(`[API Call] Received visa rules data`);
-            const rulesArray = Array.isArray(rulesData?.data) ? rulesData.data : [];
+            const rulesArray = Array.isArray(rulesData?.data)
+              ? rulesData.data
+              : [];
             const transformedRules = transformVisaRulesData(rulesArray);
             setVisaRulesData(transformedRules);
           } else {
@@ -295,7 +339,7 @@ const VisaPage = () => {
             setVisaRulesData([]);
           }
         }
-        
+
         console.log("[VisaPage] Data fetch completed successfully");
       } catch (err: unknown) {
         console.error("Error loading data:", err);
@@ -330,15 +374,33 @@ const VisaPage = () => {
             </div>
           </section>
         ) : visaSectionsWithData.length > 0 ? (
-          visaSectionsWithData.map((section) => (
-            <CountrySlider
-              key={section.pageSectionId}
-              title={section.title}
-              sectionTitle={section.title}
-              type="popular"
-              countries={section.data}
-            />
-          ))
+          visaSectionsWithData.map((section) =>
+            section.data.length > 0 ? (
+              <CountrySlider
+                key={section.pageSectionId}
+                title={section.title}
+                sectionTitle={section.title}
+                type="popular"
+                countries={section.data}
+              />
+            ) : (
+              <section key={section.pageSectionId} className="w-full px-6 py-6">
+                <div className="max-w-[85rem] mx-auto">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                    {section.title}
+                  </h2>
+                  <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                      No {section.title} Available
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      No data found for this section at the moment.
+                    </p>
+                  </div>
+                </div>
+              </section>
+            )
+          )
         ) : (
           <section className="w-full px-6 py-6">
             <div className="max-w-[85rem] mx-auto text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
@@ -365,4 +427,3 @@ const VisaPage = () => {
 };
 
 export default VisaPage;
-
