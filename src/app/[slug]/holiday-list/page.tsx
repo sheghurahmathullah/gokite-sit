@@ -331,7 +331,7 @@ const HolidayListPage = () => {
     .map((item) => parseFloat(item.newPrice || "0"))
     .filter((price) => price > 0);
 
-  const minPrice = 0; // Always start from 0
+  const minPrice = prices.length > 0 ? Math.floor(Math.min(...prices)) : 0;
   const maxPrice = prices.length > 0 ? Math.ceil(Math.max(...prices)) : 10000;
 
   // Extract the most common currency from the data

@@ -44,16 +44,16 @@ const FilterSidebar = ({
   const [selectedCity, setSelectedCity] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [guestCount, setGuestCount] = useState(1);
-  const [priceRange, setPriceRange] = useState([0, maxPrice]);
+  const [priceRange, setPriceRange] = useState([minPrice, maxPrice]);
   const [selectedRating, setSelectedRating] = useState(0);
   const [pickupNeeded, setPickupNeeded] = useState(false);
   const [pickupAvailable, setPickupAvailable] = useState(false);
   const [dateFrom, setDateFrom] = useState("");
 
-  // Update price range when max price props change (min is always 0)
+  // Update price range when min or max price props change
   useEffect(() => {
-    setPriceRange([0, maxPrice]);
-  }, [maxPrice]);
+    setPriceRange([minPrice, maxPrice]);
+  }, [minPrice, maxPrice]);
 
   // Apply filters whenever any filter value changes
   useEffect(() => {
@@ -209,18 +209,27 @@ const FilterSidebar = ({
         <div className="mb-3">
           <input
             type="range"
-            min={0}
+            min={minPrice}
             max={maxPrice}
             value={priceRange[1]}
-            onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
+            onChange={(e) => setPriceRange([minPrice, parseInt(e.target.value)])}
             className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
           />
         </div>
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-muted-foreground">
-            Price: {currency}
-            {priceRange[0]} - {currency}
-            {priceRange[1]}
+            {priceRange[0] === priceRange[1] ? (
+              <>
+                Price: {currency}
+                {priceRange[0]}
+              </>
+            ) : (
+              <>
+                Price: {currency}
+                {priceRange[0]} - {currency}
+                {priceRange[1]}
+              </>
+            )}
           </span>
         </div>
       </div>
@@ -310,7 +319,7 @@ const FilterSidebar = ({
           setSelectedCity("All");
           setSelectedCategory("All");
           setGuestCount(1);
-          setPriceRange([0, maxPrice]);
+          setPriceRange([minPrice, maxPrice]);
           setSelectedRating(0);
           setPickupAvailable(false);
           setPickupNeeded(false);

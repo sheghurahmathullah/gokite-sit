@@ -7,6 +7,7 @@ import { Monda, Outfit } from "next/font/google";
 import { PageProvider } from "@/components/common/PageContext";
 import { Toaster } from "@/components/ui/toaster";
 import { ToastContainer } from "react-toastify";
+import { FetchRetryInitializer } from "@/components/common/FetchRetryInitializer";
 
 const monda = Monda({
   weight: ["400", "700"],
@@ -35,6 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${monda.variable} ${outfit.variable}`}>
       <body>
+        <FetchRetryInitializer />
         <PageProvider>
           {children}
           <Toaster />

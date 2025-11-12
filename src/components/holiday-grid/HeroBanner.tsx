@@ -119,59 +119,61 @@ const HeroBanner = () => {
         )}
 
         {/* Category Section - Show on both routes */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl sm:rounded-3xl px-3 sm:px-6 py-3 sm:py-4 mb-8 border border-white/20">
-          <div className="flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide">
-            {categories.map((category) => {
-              const isActive = activeCategory === category.id;
+        {!isHolidayListRoute && (
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl sm:rounded-3xl px-3 sm:px-6 py-3 sm:py-4 mb-8 border border-white/20">
+            <div className="flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide">
+              {categories.map((category) => {
+                const isActive = activeCategory === category.id;
 
-              return (
-                <button
-                  key={category.id}
-                  type="button"
-                  onClick={() => {
-                    setActiveCategory(category.id);
+                return (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveCategory(category.id);
 
-                    // Store selected category in sessionStorage
-                    if (typeof window !== "undefined") {
-                      window.sessionStorage.setItem(
-                        "selectedHolidayCategory",
-                        category.label
-                      );
+                      // Store selected category in sessionStorage
+                      if (typeof window !== "undefined") {
+                        window.sessionStorage.setItem(
+                          "selectedHolidayCategory",
+                          category.label
+                        );
 
-                      // Trigger a custom event to notify the page about category change
-                      window.dispatchEvent(
-                        new CustomEvent("categoryChanged", {
-                          detail: { category: category.label },
-                        })
-                      );
-                    }
-                  }}
-                  className={`group flex-1 flex flex-col items-center justify-center px-1.5 sm:px-2 md:px-3 py-2 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-300 min-w-0 flex-shrink-0 ${
-                    isActive
-                      ? "text-white"
-                      : "text-white/70 hover:text-white hover:bg-white/5"
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-1 sm:gap-2">
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 flex items-center justify-center">
-                      <img
-                        src={category.icon}
-                        alt={category.label}
-                        className="w-full h-full object-contain filter brightness-0 invert"
-                      />
+                        // Trigger a custom event to notify the page about category change
+                        window.dispatchEvent(
+                          new CustomEvent("categoryChanged", {
+                            detail: { category: category.label },
+                          })
+                        );
+                      }
+                    }}
+                    className={`group flex-1 flex flex-col items-center justify-center px-1.5 sm:px-2 md:px-3 py-2 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-300 min-w-0 flex-shrink-0 ${
+                      isActive
+                        ? "text-white"
+                        : "text-white/70 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <div className="flex flex-col items-center gap-1 sm:gap-2">
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 flex items-center justify-center">
+                        <img
+                          src={category.icon}
+                          alt={category.label}
+                          className="w-full h-full object-contain filter brightness-0 invert"
+                        />
+                      </div>
+                      <span className="text-xs sm:text-sm font-medium whitespace-nowrap text-center">
+                        {category.label}
+                      </span>
                     </div>
-                    <span className="text-xs sm:text-sm font-medium whitespace-nowrap text-center">
-                      {category.label}
-                    </span>
-                  </div>
-                  {isActive && (
-                    <div className="mt-1 sm:mt-2 w-5 sm:w-6 md:w-8 h-0.5 sm:h-1 bg-white rounded-full" />
-                  )}
-                </button>
-              );
-            })}
+                    {isActive && (
+                      <div className="mt-1 sm:mt-2 w-5 sm:w-6 md:w-8 h-0.5 sm:h-1 bg-white rounded-full" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Active Category Title - Aligned Left */}
         <h2 className="text-white text-2xl sm:text-3xl md:text-4xl font-bold text-left pl-4 sm:pl-8">
