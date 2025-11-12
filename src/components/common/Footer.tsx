@@ -87,7 +87,13 @@ const Footer = () => {
           {/* Logo & Contact */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img src="/logo.svg" alt="GoKite" className="h-16" />
+              <a href="/master-landing-page">
+                <img
+                  src="/logo.svg"
+                  alt="GoKite"
+                  className="h-16 cursor-pointer"
+                />
+              </a>
             </div>
             <p className="text-sm text-gray-700 mb-4">
               Contact our Travel agent
@@ -153,7 +159,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="/visa"
+                  href="/visa-landing-page"
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Visa
@@ -169,7 +175,7 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="/holidays"
+                  href="/holiday-home-page"
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Holidays
@@ -190,7 +196,6 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">About</h3>
             <ul className="space-y-2">
-            
               <li>
                 <a
                   href="/about-us"
@@ -204,7 +209,7 @@ const Footer = () => {
                   href="/privacy-policy"
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
-                 Privacy Policy
+                  Privacy Policy
                 </a>
               </li>
               <li>

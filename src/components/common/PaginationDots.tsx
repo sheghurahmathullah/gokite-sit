@@ -22,19 +22,6 @@ const PaginationDots = ({
       >
         <ChevronLeft className="w-4 h-4" />
       </button>
-      
-      <div className="flex items-center gap-1.5">
-        {Array.from({ length: totalDots }).map((_, index) => (
-          <div
-            key={index}
-            className={`rounded-full transition-all ${
-              index === activeIndex 
-                ? "w-2 h-2 bg-black" 
-                : "w-1.5 h-1.5 bg-gray-300"
-            }`}
-          />
-        ))}
-      </div>
 
       <button
         onClick={onNext}

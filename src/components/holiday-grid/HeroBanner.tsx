@@ -1,25 +1,31 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import {
-  Umbrella,
-  Mountain,
-  Building,
-  Home,
-  FerrisWheel,
-  Snowflake,
-  Dog,
-  MapPin,
-} from "lucide-react";
 
 const categories = [
-  { id: "beaches", label: "Beaches", icon: Umbrella },
-  { id: "adventure", label: "Adventure", icon: Mountain },
-  { id: "world-wonder", label: "World Wonder", icon: MapPin },
-  { id: "iconic-city", label: "Iconic city", icon: Building },
-  { id: "countryside", label: "Countryside", icon: Home },
-  { id: "kids-wonderland", label: "Kids Wonderland", icon: FerrisWheel },
-  { id: "skiing", label: "Skiing", icon: Snowflake },
-  { id: "wildlife", label: "Wildlife", icon: Dog },
+  { id: "beaches", label: "Beaches", icon: "/holidaygrid/beach.png" },
+  { id: "adventure", label: "Adventure", icon: "/holidaygrid/adventure.png" },
+  {
+    id: "world-wonder",
+    label: "World Wonder",
+    icon: "/holidaygrid/world wonder.png",
+  },
+  {
+    id: "iconic-city",
+    label: "Iconic city",
+    icon: "/holidaygrid/iconic city.png",
+  },
+  {
+    id: "countryside",
+    label: "Countryside",
+    icon: "/holidaygrid/country side.png",
+  },
+  {
+    id: "kids-wonderland",
+    label: "Kids Wonderland",
+    icon: "/holidaygrid/kids wonderland.png",
+  },
+  { id: "skiing", label: "Skiing", icon: "/holidaygrid/skiing.png" },
+  { id: "wildlife", label: "Wildlife", icon: "/holidaygrid/wildlife.png" },
 ];
 
 const HeroBanner = () => {
@@ -113,16 +119,15 @@ const HeroBanner = () => {
         )}
 
         {/* Category Section - Show on both routes */}
-        <div className="bg-black/40 backdrop-blur-sm rounded-xl sm:rounded-2xl p-2 sm:p-4 flex flex-col">
-          {/* Category Icons */}
-          <div className="flex items-left justify-left gap-4 sm:gap-6 md:gap-10 mb-2 sm:mb-4 overflow-x-auto scrollbar-hide pb-1 pt-3">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl sm:rounded-3xl px-3 sm:px-6 py-3 sm:py-4 mb-8 border border-white/20">
+          <div className="flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-hide">
             {categories.map((category) => {
-              const Icon = category.icon;
               const isActive = activeCategory === category.id;
 
               return (
                 <button
                   key={category.id}
+                  type="button"
                   onClick={() => {
                     setActiveCategory(category.id);
 
@@ -141,16 +146,26 @@ const HeroBanner = () => {
                       );
                     }
                   }}
-                  className={`flex flex-col items-center gap-1 sm:gap-2 min-w-fit transition-all ${
-                    isActive ? "opacity-100" : "opacity-70 hover:opacity-90"
+                  className={`group flex-1 flex flex-col items-center justify-center px-1.5 sm:px-2 md:px-3 py-2 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-300 min-w-0 flex-shrink-0 ${
+                    isActive
+                      ? "text-white"
+                      : "text-white/70 hover:text-white hover:bg-white/5"
                   }`}
                 >
-                  <Icon className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
-                  <span className="text-white text-xs sm:text-sm whitespace-nowrap">
-                    {category.label}
-                  </span>
+                  <div className="flex flex-col items-center gap-1 sm:gap-2">
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 flex items-center justify-center">
+                      <img
+                        src={category.icon}
+                        alt={category.label}
+                        className="w-full h-full object-contain filter brightness-0 invert"
+                      />
+                    </div>
+                    <span className="text-xs sm:text-sm font-medium whitespace-nowrap text-center">
+                      {category.label}
+                    </span>
+                  </div>
                   {isActive && (
-                    <div className="w-full h-[2px] sm:h-[3px] bg-white rounded-full" />
+                    <div className="mt-1 sm:mt-2 w-5 sm:w-6 md:w-8 h-0.5 sm:h-1 bg-white rounded-full" />
                   )}
                 </button>
               );

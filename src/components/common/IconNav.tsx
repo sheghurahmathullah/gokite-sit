@@ -140,7 +140,7 @@ const TopNav = () => {
         size="sm"
         className="rounded-full px-6 bg-black text-primary-foreground"
       >
-        Hi, Usman
+      Sign in
       </Button>
     </nav>
   );
