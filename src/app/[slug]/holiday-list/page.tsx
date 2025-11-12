@@ -179,6 +179,18 @@ const HolidayListPage = () => {
       const transformedDestinations = transformHolidayData(list);
       setAllDestinations(transformedDestinations);
       setDestinations(transformedDestinations);
+
+      // Try to set category from the first item's category
+      if (
+        list.length > 0 &&
+        list[0].categoryName &&
+        typeof window !== "undefined"
+      ) {
+        window.sessionStorage.setItem(
+          "selectedHolidayCategory",
+          list[0].categoryName
+        );
+      }
     } catch (err) {
       console.error("Error fetching holiday country search:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -212,6 +224,18 @@ const HolidayListPage = () => {
       const transformedDestinations = transformHolidayData(list);
       setAllDestinations(transformedDestinations);
       setDestinations(transformedDestinations);
+
+      // Try to set category from the first item's category
+      if (
+        list.length > 0 &&
+        list[0].categoryName &&
+        typeof window !== "undefined"
+      ) {
+        window.sessionStorage.setItem(
+          "selectedHolidayCategory",
+          list[0].categoryName
+        );
+      }
     } catch (err) {
       console.error("Error fetching holiday city search:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -253,6 +277,45 @@ const HolidayListPage = () => {
     }
 
     // Fallback to category-based search
+    const storedCategory =
+      typeof window !== "undefined"
+        ? window.sessionStorage.getItem("selectedHolidayCategory")
+        : null;
+
+    if (storedCategory && CATEGORY_ID_MAP[storedCategory]) {
+      fetchHolidayCardsByCategory(CATEGORY_ID_MAP[storedCategory]);
+    }
+  }, []);
+
+  // Listen for category changes from HeroBanner
+  useEffect(() => {
+    const handleCategoryChange = (event: CustomEvent) => {
+      const category = event.detail?.category;
+      if (category && CATEGORY_ID_MAP[category]) {
+        // Clear destination type to switch to category-based search
+        if (typeof window !== "undefined") {
+          window.sessionStorage.removeItem("selectedHolidayDestinationType");
+          window.sessionStorage.removeItem("selectedHolidayCountryId");
+          window.sessionStorage.removeItem("selectedHolidayCityId");
+          window.sessionStorage.setItem("selectedHolidayCategory", category);
+        }
+        fetchHolidayCardsByCategory(CATEGORY_ID_MAP[category]);
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener(
+        "categoryChanged",
+        handleCategoryChange as EventListener
+      );
+
+      return () => {
+        window.removeEventListener(
+          "categoryChanged",
+          handleCategoryChange as EventListener
+        );
+      };
+    }
   }, []);
 
   // Extract unique cities and categories
