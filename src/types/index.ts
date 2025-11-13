@@ -34,7 +34,8 @@ export interface VisaDestination {
     min: number;
     max: number;
   };
-  price: number;
+  price: number | string;
+  newPrice?: string;
   currency: string;
   expiryDate?: string;
   departureDate: string;

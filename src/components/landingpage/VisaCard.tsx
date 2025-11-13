@@ -47,7 +47,7 @@ const formatDate = (
 const VisaCard = ({ destination }: VisaCardProps) => {
   const router = useRouter();
   const params = useParams();
-  const currentSlug = params.slug as string || "master-landing-page";
+  const currentSlug = (params.slug as string) || "master-landing-page";
 
   // Format the fast track date using processing_days and processing_time
   const fastTrackText = formatDate(
@@ -65,7 +65,7 @@ const VisaCard = ({ destination }: VisaCardProps) => {
   const handleCardClick = async () => {
     try {
       console.log("[VisaCard] Clicked on visa card for:", destination.country);
-      
+
       // Fetch country ID from API
       const res = await fetch("/api/cms/countries-dd-proxy", {
         cache: "no-store",
@@ -81,7 +81,10 @@ const VisaCard = ({ destination }: VisaCardProps) => {
       );
 
       if (!match?.id) {
-        console.error("[VisaCard] Country id not found for:", destination.country);
+        console.error(
+          "[VisaCard] Country id not found for:",
+          destination.country
+        );
         toast.error("The country is not found or no visa is available", {
           position: "top-right",
           autoClose: 4000,
@@ -110,7 +113,10 @@ const VisaCard = ({ destination }: VisaCardProps) => {
 
       // Check if response is not OK
       if (!visaResponse.ok) {
-        console.error("[VisaCard] API call failed with status:", visaResponse.status);
+        console.error(
+          "[VisaCard] API call failed with status:",
+          visaResponse.status
+        );
         toast.error("The country is not found or no visa is available", {
           position: "top-right",
           autoClose: 4000,
@@ -120,9 +126,14 @@ const VisaCard = ({ destination }: VisaCardProps) => {
 
       const visaData = await visaResponse.json();
       console.log("[VisaCard] API response data:", visaData);
-      
+
       // Validate response structure and data
-      if (!visaData.success || !visaData.data || !Array.isArray(visaData.data) || visaData.data.length === 0) {
+      if (
+        !visaData.success ||
+        !visaData.data ||
+        !Array.isArray(visaData.data) ||
+        visaData.data.length === 0
+      ) {
         console.warn("[VisaCard] Invalid or empty visa data:", visaData);
         toast.error("The country is not found or no visa is available", {
           position: "top-right",
@@ -132,12 +143,17 @@ const VisaCard = ({ destination }: VisaCardProps) => {
       }
 
       // Valid data found - store the visa details and redirect
-      console.log("[VisaCard] Valid visa data found, redirecting to apply-visa");
-      
+      console.log(
+        "[VisaCard] Valid visa data found, redirecting to apply-visa"
+      );
+
       // Store the visa details for the apply-visa page
       try {
         if (typeof window !== "undefined") {
-          window.sessionStorage.setItem("applyVisaDetails", JSON.stringify(visaData.data[0]));
+          window.sessionStorage.setItem(
+            "applyVisaDetails",
+            JSON.stringify(visaData.data[0])
+          );
         }
       } catch (_) {}
 
@@ -150,7 +166,6 @@ const VisaCard = ({ destination }: VisaCardProps) => {
         } catch (_) {}
       }
       router.push(`/${currentSlug}/apply-visa`);
-      
     } catch (e) {
       console.error("[VisaCard] Error validating visa:", e);
       toast.error("The country is not found or no visa is available", {
@@ -191,7 +206,11 @@ const VisaCard = ({ destination }: VisaCardProps) => {
             {destination.priceRange.currency + " "}
             {destination.priceRange.max.toLocaleString()} ={" "}
             {destination.priceRange.currency + " "}
-            {destination.price.toLocaleString()}
+            {destination.newPrice !== undefined && destination.newPrice !== ""
+              ? typeof destination.price === "number"
+                ? destination.price.toLocaleString()
+                : destination.price
+              : ""}
           </p>
         </div>
       </div>
@@ -208,7 +227,11 @@ const VisaCard = ({ destination }: VisaCardProps) => {
         {/* Price */}
         <div className="text-2xl text-black font-semibold">
           {destination.priceRange.currency + " "}
-          {destination.price.toLocaleString()}
+          {destination.newPrice !== undefined && destination.newPrice !== ""
+            ? typeof destination.price === "number"
+              ? destination.price.toLocaleString()
+              : destination.price
+            : ""}
         </div>
       </div>
     </div>

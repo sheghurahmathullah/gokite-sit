@@ -234,6 +234,11 @@ const Index = () => {
       // Simply map values from API response
       const formFee = parseFloat(item.form_fee || "0");
       const processingFee = parseFloat(item.processing_fee || "0");
+      
+      // Use newPrice from backend, if empty string then keep it as empty string
+      const newPrice = item.newPrice?.trim() || "";
+      // If newPrice exists and is not empty, use it; otherwise use empty string for price
+      const priceValue = newPrice === "" ? "" : (isNaN(parseFloat(newPrice)) ? "" : parseFloat(newPrice));
 
       return {
         id: item.visaCardId,
@@ -247,7 +252,8 @@ const Index = () => {
           min: formFee,
           max: processingFee,
         },
-        price: formFee + processingFee,
+        price: priceValue,
+        newPrice: newPrice, // Store the original newPrice string
         currency: item.currency,
         expiryDate: item.expiryDate,
         departureDate: "Upcoming",
