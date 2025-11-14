@@ -3,7 +3,6 @@ import {
   MapPin,
   Calendar,
   User,
-  DollarSign,
   Star,
   ChevronDown,
   Filter,
@@ -203,7 +202,7 @@ const FilterSidebar = ({
       {/* Filter By Price */}
       <div className="mb-6">
         <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-3">
-          <DollarSign className="w-4 h-4" />
+          <span className="text-base font-semibold">{currency}</span>
           Filter By Price
         </label>
         <div className="mb-3">
@@ -212,7 +211,9 @@ const FilterSidebar = ({
             min={minPrice}
             max={maxPrice}
             value={priceRange[1]}
-            onChange={(e) => setPriceRange([minPrice, parseInt(e.target.value)])}
+            onChange={(e) =>
+              setPriceRange([minPrice, parseInt(e.target.value)])
+            }
             className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
           />
         </div>
