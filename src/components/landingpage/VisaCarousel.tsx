@@ -33,10 +33,8 @@ const VisaCarousel = forwardRef<VisaCarouselRef, VisaCarouselProps>(
     const [canScrollPrev, setCanScrollPrev] = useState(true);
     const [canScrollNext, setCanScrollNext] = useState(true);
 
-    // Duplicate destinations for seamless infinite loop
-    const loopedDestinations = destinations.length > 0 
-      ? [...destinations, ...destinations, ...destinations] 
-      : destinations;
+    // Use destinations directly - Embla carousel handles infinite loop with loop: true
+    const loopedDestinations = destinations;
 
     const autoplayRef = useRef(
       Autoplay({

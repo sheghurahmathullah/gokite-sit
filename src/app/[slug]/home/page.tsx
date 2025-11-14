@@ -194,7 +194,12 @@ const Index = () => {
 
   // Transform holiday card data
   const transformHolidayData = (apiData: HolidayCardItem[]) => {
-    return apiData.map((item) => {
+    // Deduplicate by holidayCardId to ensure each card appears only once
+    const uniqueCards = Array.from(
+      new Map(apiData.map((item) => [item.holidayCardId, item])).values()
+    );
+
+    return uniqueCards.map((item) => {
       const getImageUrl = (imageName?: string) => {
         if (!imageName) return FALLBACK_IMAGE;
         return `/api/cms/file-download?image=${encodeURIComponent(imageName)}`;
@@ -224,7 +229,12 @@ const Index = () => {
 
   // Transform visa card data
   const transformVisaData = (apiData: VisaCardItem[]) => {
-    return apiData.map((item) => {
+    // Deduplicate by visaCardId to ensure each card appears only once
+    const uniqueCards = Array.from(
+      new Map(apiData.map((item) => [item.visaCardId, item])).values()
+    );
+
+    return uniqueCards.map((item) => {
       // Generate image URL using the proxy endpoint
       const getImageUrl = (imageName?: string) => {
         if (!imageName) return FALLBACK_IMAGE;

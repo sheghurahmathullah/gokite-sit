@@ -33,11 +33,8 @@ const HolidayCarousel = forwardRef<HolidayCarouselRef, HolidayCarouselProps>(
     const [canScrollPrev, setCanScrollPrev] = useState(false);
     const [canScrollNext, setCanScrollNext] = useState(false);
 
-    // Duplicate items for seamless infinite loop if we have fewer items
-    const displayDestinations =
-      destinations.length < 8
-        ? [...destinations, ...destinations, ...destinations]
-        : destinations;
+    // Use destinations directly - Embla carousel handles infinite loop with loop: true
+    const displayDestinations = destinations;
 
     const autoplayRef = useRef(
       Autoplay({
