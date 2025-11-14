@@ -63,12 +63,16 @@ const VisaPage = () => {
   const [visaSectionsWithData, setVisaSectionsWithData] = useState<
     SectionWithVisaData[]
   >([]);
+  const [allVisaSections, setAllVisaSections] = useState<Section[]>([]); // Store all sections for empty state titles
   const [bannerSection, setBannerSection] = useState<BannerSection | null>(
     null
   );
   const [visaRulesData, setVisaRulesData] = useState<VisaRuleAnnouncement[]>(
     []
   );
+  const [visaRulesSectionTitle, setVisaRulesSectionTitle] = useState<
+    string | null
+  >(null); // Store visa rules section title
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const dataFetchedRef = useRef(false); // Track if data has been fetched
@@ -180,8 +184,10 @@ const VisaPage = () => {
       if (!isAuthenticated) {
         console.log("[VisaPage useEffect] Skipping - user not authenticated");
         setVisaSectionsWithData([]);
+        setAllVisaSections([]);
         setBannerSection(null);
         setVisaRulesData([]);
+        setVisaRulesSectionTitle(null);
         setLoading(false);
         return;
       }
@@ -242,18 +248,32 @@ const VisaPage = () => {
           (section: Section) => section.contentType === "VISA"
         );
 
+        // Store all visa sections for empty state titles
+        setAllVisaSections(visaFiltered);
+
         console.log("Filtered visa sections:", visaFiltered);
 
-        // Find the Visa Rules Announcement section
+        // Find the Visa Rules Announcement section (check for various possible titles)
         const visaRulesSection = visaFiltered.find(
-          (section: Section) => section.title === "Visa Rules Announcement"
+          (section: Section) =>
+            section.title === "Visa Rules Announcement" ||
+            section.title?.toLowerCase().includes("visa rules") ||
+            section.title?.toLowerCase().includes("rules & announcements")
         );
 
         console.log("Visa Rules section:", visaRulesSection);
 
+        // Store the visa rules section title if found
+        if (visaRulesSection) {
+          setVisaRulesSectionTitle(visaRulesSection.title);
+        }
+
         // Filter out regular visa sections (exclude rules section)
         const regularVisaSections = visaFiltered.filter(
-          (section: Section) => section.title !== "Visa Rules Announcement"
+          (section: Section) =>
+            section.title !== "Visa Rules Announcement" &&
+            !section.title?.toLowerCase().includes("visa rules") &&
+            !section.title?.toLowerCase().includes("rules & announcements")
         );
 
         // Fetch visa cards for all regular sections in parallel
@@ -347,8 +367,10 @@ const VisaPage = () => {
         // Reset the flag on error so user can retry
         dataFetchedRef.current = false;
         setVisaSectionsWithData([]);
+        setAllVisaSections([]);
         setBannerSection(null);
         setVisaRulesData([]);
+        setVisaRulesSectionTitle(null);
       } finally {
         setLoading(false);
       }
@@ -373,48 +395,73 @@ const VisaPage = () => {
               Error: {error}
             </div>
           </section>
-        ) : visaSectionsWithData.length > 0 ? (
-          visaSectionsWithData.map((section) =>
-            section.data.length > 0 ? (
-              <CountrySlider
-                key={section.pageSectionId}
-                title={section.title}
-                sectionTitle={section.title}
-                type="popular"
-                countries={section.data}
-              />
-            ) : (
-              <section key={section.pageSectionId} className="w-full px-6 py-6">
-                <div className="max-w-[85rem] mx-auto">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                    {section.title}
-                  </h2>
-                  <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                      No {section.title} Available
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      No data found for this section at the moment.
-                    </p>
+        ) : allVisaSections.length > 0 ? (
+          // Show all sections from API, even if they have no data
+          allVisaSections
+            .filter((section) => {
+              // Exclude visa rules section as it's handled separately
+              return (
+                section.title !== "Visa Rules Announcement" &&
+                !section.title?.toLowerCase().includes("visa rules") &&
+                !section.title?.toLowerCase().includes("rules & announcements")
+              );
+            })
+            .map((section) => {
+              // Find if this section has data
+              const sectionWithData = visaSectionsWithData.find(
+                (s) => s.pageSectionId === section.pageSectionId
+              );
+
+              return sectionWithData && sectionWithData.data.length > 0 ? (
+                <CountrySlider
+                  key={section.pageSectionId}
+                  title={section.title}
+                  sectionTitle={section.title}
+                  type="popular"
+                  countries={sectionWithData.data}
+                />
+              ) : (
+                <section
+                  key={section.pageSectionId}
+                  className="w-full px-6 py-6"
+                >
+                  <div className="max-w-[85rem] mx-auto">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                      {section.title}
+                    </h2>
+                    <div className="text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
+                      <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                        No {section.title} Available
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        No data found for this section at the moment.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </section>
-            )
-          )
+                </section>
+              );
+            })
         ) : (
           <section className="w-full px-6 py-6">
             <div className="max-w-[85rem] mx-auto text-center text-gray-600 bg-gray-50 rounded-2xl p-12">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                No Visa Sections Available
+                {allVisaSections.length === 0 && !loading
+                  ? "No Visa Sections Available"
+                  : "Loading sections..."}
               </h3>
               <p className="text-sm text-gray-600">
-                No visa sections found at the moment.
+                {allVisaSections.length === 0 && !loading
+                  ? "No visa sections found at the moment."
+                  : "Please wait while we load the sections."}
               </p>
             </div>
           </section>
         )}
 
-        <VisaRulesCard visaRulesData={visaRulesData} />
+        <VisaRulesCard
+          visaRulesData={visaRulesData}
+          sectionTitle={visaRulesSectionTitle || undefined}
+        />
 
         <VisaCountrySearchAndGrid />
 

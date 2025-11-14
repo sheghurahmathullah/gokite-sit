@@ -24,11 +24,18 @@ interface VisaRuleAnnouncement {
 
 interface VisaRulesCardProps {
   visaRulesData?: VisaRuleAnnouncement[]; // Optional - if provided, skip API calls
+  sectionTitle?: string; // Optional - section title from API, defaults to "Visa Rules & Announcements"
 }
 
-const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ visaRulesData: visaRulesDataProp }) => {
+const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ 
+  visaRulesData: visaRulesDataProp,
+  sectionTitle: sectionTitleProp 
+}) => {
   const [visaRulesData, setVisaRulesData] = useState<VisaRuleAnnouncement[]>(
     visaRulesDataProp || []
+  );
+  const [sectionTitle, setSectionTitle] = useState<string>(
+    sectionTitleProp || "Visa Rules & Announcements"
   );
   const [loading, setLoading] = useState(!visaRulesDataProp);
   const [error, setError] = useState<string | null>(null);
@@ -131,14 +138,17 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ visaRulesData: visaRulesD
     });
   };
 
-  // Update visa rules when prop changes
+  // Update visa rules and section title when props change
   useEffect(() => {
     if (visaRulesDataProp) {
       console.log("[VisaRulesCard] Using visa rules from props, skipping API calls");
       setVisaRulesData(visaRulesDataProp);
       setLoading(false);
     }
-  }, [visaRulesDataProp]);
+    if (sectionTitleProp) {
+      setSectionTitle(sectionTitleProp);
+    }
+  }, [visaRulesDataProp, sectionTitleProp]);
 
   // Load data - only if rules not provided via props
   useEffect(() => {
@@ -173,11 +183,19 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ visaRulesData: visaRulesD
 
         const visaRulesSection = sections.find(
           (s: any) =>
-            s.title === "Visa Rules Announcement" && s.contentType === "VISA"
+            (s.title === "Visa Rules Announcement" || 
+             s.title?.toLowerCase().includes("visa rules") ||
+             s.title?.toLowerCase().includes("rules & announcements")) && 
+            s.contentType === "VISA"
         );
 
         if (!visaRulesSection) {
           throw new Error("Visa Rules section not found");
+        }
+
+        // Update section title from API
+        if (visaRulesSection.title) {
+          setSectionTitle(visaRulesSection.title);
         }
 
         const visaRulesApiData = await fetchVisaRulesData(
@@ -202,7 +220,7 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ visaRulesData: visaRulesD
       <section className="w-full px-6 py-8 lg:py-12">
         <div className="max-w-[85rem] mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Visa Rules & Announcements
+            {sectionTitle}
           </h2>
           <div className="text-center py-12 bg-gray-50 rounded-2xl">
             <div className="inline-block w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-4"></div>
@@ -218,7 +236,7 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ visaRulesData: visaRulesD
       <section className="w-full px-6 py-8 lg:py-12">
         <div className="max-w-[85rem] mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Visa Rules & Announcements
+            {sectionTitle}
           </h2>
           <div className="text-center py-12 bg-gray-50 rounded-2xl">
             <div className="text-5xl mb-4">⚠️</div>
@@ -237,7 +255,7 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ visaRulesData: visaRulesD
       <section className="w-full px-6 py-8 lg:py-12">
         <div className="max-w-[85rem] mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Visa Rules & Announcements
+            {sectionTitle}
           </h2>
           <div className="text-center py-12 bg-gray-50 rounded-2xl">
             <div className="text-5xl mb-4">📋</div>
@@ -327,7 +345,7 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ visaRulesData: visaRulesD
       <div className="max-w-[85rem] mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">
-            Visa Rules & Announcements
+            {sectionTitle}
           </h2>
           <div className="flex items-center gap-2">
             <button
