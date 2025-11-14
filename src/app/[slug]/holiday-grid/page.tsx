@@ -2,7 +2,9 @@
 import { useState, useEffect, useCallback } from "react";
 import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
-import FilterSidebar, { FilterCriteria } from "@/components/holiday-grid/FilterSidebar";
+import FilterSidebar, {
+  FilterCriteria,
+} from "@/components/holiday-grid/FilterSidebar";
 import DestinationCard from "@/components/common/DestinationCard";
 import { Skeleton } from "@/components/common/SkeletonLoader";
 
@@ -73,18 +75,45 @@ const HolidayGridPage = () => {
         id: holidayId, // This will be used as slug and stored in sessionStorage
         name: item.title || item?.cardJson?.packageName || "Holiday Package",
         image: imageUrl,
-        rating: parseFloat(item?.cardJson?.packageRating || item.packageRating || "0"),
+        rating: parseFloat(
+          item?.cardJson?.packageRating || item.packageRating || "0"
+        ),
         days: parseInt(item.noOfDays || item?.cardJson?.days || "3"),
         nights: parseInt(item.noOfNights || item?.cardJson?.nights || "4"),
         flights: getIconValue("flight", 2),
         hotels: getIconValue("hotel", 1) || getIconValue("accomodation", 1),
         transfers: getIconValue("transfer", 2) || getIconValue("car", 2),
         activities: getIconValue("activit", 4),
-        features: item?.cardJson?.inclusions?.slice(0, 3) || [
-          "Tour combo with return airport transfer",
-          "City Tour",
-          "Sightseeing",
-        ],
+        features: (() => {
+          // Get inclusions from API - ensure we're reading the correct path
+          const rawInclusions = item?.cardJson?.inclusions;
+          const inclusions = Array.isArray(rawInclusions) ? rawInclusions : [];
+
+          // Always log to verify data is being read correctly - especially for cards with 4+ inclusions
+          const cardName =
+            item.title || item?.cardJson?.packageName || "Unknown";
+
+          if (inclusions.length >= 4) {
+            console.warn(
+              `[HolidayGrid] ⚠️ Card "${cardName}" has ${inclusions.length} inclusions - ALL should be displayed:`,
+              inclusions
+            );
+          } else {
+            console.log(
+              `[HolidayGrid] Card "${cardName}" has ${inclusions.length} inclusions:`,
+              inclusions
+            );
+          }
+
+          // Return ALL inclusions - NO SLICE, NO LIMIT
+          return inclusions.length > 0
+            ? inclusions
+            : [
+                "Tour combo with return airport transfer",
+                "City Tour",
+                "Sightseeing",
+              ];
+        })(),
         currency: item.currency || "₹",
         originalPrice: oldPrice,
         finalPrice: newPrice,
@@ -144,29 +173,43 @@ const HolidayGridPage = () => {
   };
 
   // Extract unique cities and categories
-  const uniqueCities = Array.from(new Set(rawApiData.map(item => item.cityName).filter(Boolean)));
-  const uniqueCategories = Array.from(new Set(rawApiData.map(item => item.categoryName).filter(Boolean)));
+  const uniqueCities = Array.from(
+    new Set(rawApiData.map((item) => item.cityName).filter(Boolean))
+  );
+  const uniqueCategories = Array.from(
+    new Set(rawApiData.map((item) => item.categoryName).filter(Boolean))
+  );
 
   // Filter handler - memoized to prevent infinite loop
-  const handleFilterChange = useCallback((filters: FilterCriteria) => {
-    const filteredRaw = rawApiData.filter((item) => {
-      if (filters.cityName !== "All" && item.cityName !== filters.cityName) return false;
-      if (filters.categoryName !== "All" && item.categoryName !== filters.categoryName) return false;
-      const noOfGuests = parseInt(item.noOfGuests || "0");
-      if (noOfGuests > 0 && noOfGuests < filters.minGuests) return false;
-      const price = parseFloat(item.newPrice || "0");
-      if (price < filters.minPrice || price > filters.maxPrice) return false;
-      const rating = parseFloat(item.packageRating || item.cardJson?.packageRating || "0");
-      if (rating < filters.minRating) return false;
-      if (filters.pickupRequired !== null) {
-        const hasPickup = item.pickupRequired === "1";
-        if (filters.pickupRequired && !hasPickup) return false;
-        if (!filters.pickupRequired && hasPickup) return false;
-      }
-      return true;
-    });
-    setDestinations(transformHolidayData(filteredRaw));
-  }, [rawApiData]); // Only recreate when rawApiData changes
+  const handleFilterChange = useCallback(
+    (filters: FilterCriteria) => {
+      const filteredRaw = rawApiData.filter((item) => {
+        if (filters.cityName !== "All" && item.cityName !== filters.cityName)
+          return false;
+        if (
+          filters.categoryName !== "All" &&
+          item.categoryName !== filters.categoryName
+        )
+          return false;
+        const noOfGuests = parseInt(item.noOfGuests || "0");
+        if (noOfGuests > 0 && noOfGuests < filters.minGuests) return false;
+        const price = parseFloat(item.newPrice || "0");
+        if (price < filters.minPrice || price > filters.maxPrice) return false;
+        const rating = parseFloat(
+          item.packageRating || item.cardJson?.packageRating || "0"
+        );
+        if (rating < filters.minRating) return false;
+        if (filters.pickupRequired !== null) {
+          const hasPickup = item.pickupRequired === "1";
+          if (filters.pickupRequired && !hasPickup) return false;
+          if (!filters.pickupRequired && hasPickup) return false;
+        }
+        return true;
+      });
+      setDestinations(transformHolidayData(filteredRaw));
+    },
+    [rawApiData]
+  ); // Only recreate when rawApiData changes
 
   const categories = [
     { id: 1, icon: "/holidaygrid/beach.png", label: "Beaches" },
@@ -174,7 +217,11 @@ const HolidayGridPage = () => {
     { id: 3, icon: "/holidaygrid/world wonder.png", label: "World Wonder" },
     { id: 4, icon: "/holidaygrid/iconic city.png", label: "Iconic city" },
     { id: 5, icon: "/holidaygrid/country side.png", label: "Countryside" },
-    { id: 6, icon: "/holidaygrid/kids wonderland.png", label: "Kids Wonderland" },
+    {
+      id: 6,
+      icon: "/holidaygrid/kids wonderland.png",
+      label: "Kids Wonderland",
+    },
     { id: 7, icon: "/holidaygrid/skiing.png", label: "Skiing" },
     { id: 8, icon: "/holidaygrid/wildlife.png", label: "Wildlife" },
   ];
@@ -319,7 +366,7 @@ const HolidayGridPage = () => {
 
                 {/* Filter Sidebar - 30% width */}
                 <div className="w-full lg:w-[30%]">
-                  <FilterSidebar 
+                  <FilterSidebar
                     cities={uniqueCities}
                     categories={uniqueCategories}
                     onFilterChange={handleFilterChange}
@@ -337,4 +384,3 @@ const HolidayGridPage = () => {
 };
 
 export default HolidayGridPage;
-

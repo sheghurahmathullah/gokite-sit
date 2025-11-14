@@ -153,7 +153,7 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Title & Rating */}
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-bold text-black">{destination.name}</h3>
@@ -226,13 +226,42 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
         </div>
 
         {/* Features */}
-        <ul className="space-y-1 mb-4">
-          {(destination.features ?? []).map((feature, index) => (
-            <li key={index} className="text-sm text-gray-800 flex items-start">
-              <span className="mr-2 text-gray-600">•</span>
-              <span>{feature}</span>
-            </li>
-          ))}
+        <ul className="space-y-1 mb-4" style={{ minHeight: 0 }}>
+          {(() => {
+            const features = destination.features ?? [];
+            // CRITICAL DEBUG: Log every time we render features, especially for 4+ items
+            if (features.length >= 4) {
+              console.error(`[DestinationCard] 🔴 CRITICAL: Card "${destination.name}" has ${features.length} features - Rendering ALL:`, features);
+              console.error(`[DestinationCard] 🔴 Feature array length: ${features.length}, Items:`, features.map((f, i) => `${i}: "${f}"`));
+            } else if (features.length > 0) {
+              console.log(`[DestinationCard] Rendering card "${destination.name}" with ${features.length} features:`, features);
+            }
+            
+            // Render ALL features - NO LIMIT
+            const renderedItems = features.map((feature, index) => {
+              if (index >= 3 && features.length > 3) {
+                console.warn(`[DestinationCard] ⚠️ Rendering feature ${index + 1}/${features.length}: "${feature}"`);
+              }
+              return (
+                <li 
+                  key={`${destination.id || destination.name}-feature-${index}`} 
+                  className="text-sm text-gray-800 flex items-start" 
+                  style={{ display: 'list-item', visibility: 'visible', opacity: 1 }}
+                  data-feature-index={index}
+                  data-total-features={features.length}
+                >
+                  <span className="mr-2 text-gray-600 flex-shrink-0">•</span>
+                  <span className="flex-1">{feature}</span>
+                </li>
+              );
+            });
+            
+            if (features.length >= 4) {
+              console.error(`[DestinationCard] 🔴 Rendered ${renderedItems.length} list items for "${destination.name}"`);
+            }
+            
+            return renderedItems;
+          })()}
         </ul>
 
         {/* Pricing */}

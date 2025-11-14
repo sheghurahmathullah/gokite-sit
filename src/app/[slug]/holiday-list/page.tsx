@@ -102,11 +102,36 @@ const HolidayListPage = () => {
         hotels: getIconValue("hotel", 1) || getIconValue("accomodation", 1),
         transfers: getIconValue("transfer", 2) || getIconValue("car", 2),
         activities: getIconValue("activit", 4),
-        features: item?.cardJson?.inclusions?.slice(0, 3) || [
-          "Tour combo with return airport transfer",
-          "City Tour",
-          "Sightseeing",
-        ],
+        features: (() => {
+          // Get inclusions from API - ensure we're reading the correct path
+          const rawInclusions = item?.cardJson?.inclusions;
+          const inclusions = Array.isArray(rawInclusions) ? rawInclusions : [];
+
+          // Always log to verify data is being read correctly - especially for cards with 4+ inclusions
+          const cardName =
+            item?.cardJson?.packageName || item.title || "Unknown";
+
+          if (inclusions.length >= 4) {
+            console.warn(
+              `[HolidayList] ⚠️ Card "${cardName}" has ${inclusions.length} inclusions - ALL should be displayed:`,
+              inclusions
+            );
+          } else {
+            console.log(
+              `[HolidayList] Card "${cardName}" has ${inclusions.length} inclusions:`,
+              inclusions
+            );
+          }
+
+          // Return ALL inclusions - NO SLICE, NO LIMIT
+          return inclusions.length > 0
+            ? inclusions
+            : [
+                "Tour combo with return airport transfer",
+                "City Tour",
+                "Sightseeing",
+              ];
+        })(),
         currency: getCurrencySymbol(item.currency || "INR"),
         originalPrice: oldPrice,
         finalPrice: newPrice,
