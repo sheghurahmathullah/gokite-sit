@@ -64,8 +64,8 @@ const VisaRuleCard = ({ rule, onClick }: VisaRuleCardProps) => {
             style={{ display: rule.flagImageUrl ? "none" : "block" }}
           />
         </span>
-        <h3 className="font-bold text-2xl text-gray-900 line-clamp-1">
-          {rule.country}
+        <h3 className="font-bold text-2xl text-gray-900 max-w-[calc(100%-180px)] break-words">
+          {rule.title || rule.country}
         </h3>
       </div>
 
@@ -87,7 +87,16 @@ const VisaRuleCard = ({ rule, onClick }: VisaRuleCardProps) => {
 
       {/* Main Content */}
       <div className="px-6 pb-16 pt-2 flex-1 overflow-hidden">
-        <p className="text-gray-700 text-[15px] leading-relaxed line-clamp-4">
+        <p 
+          className="text-gray-700 text-[15px] leading-relaxed overflow-hidden text-ellipsis"
+          style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            maxHeight: '85px', // 3.5 lines: 15px * 1.625 (leading-relaxed) * 3.5 ≈ 85px
+            lineHeight: '1.625'
+          }}
+        >
           {rule.description}
         </p>
       </div>

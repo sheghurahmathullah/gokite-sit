@@ -14,6 +14,8 @@ interface Section {
   pageSectionId: string;
   title: string;
   contentType: string;
+  subTypeId?: string;
+  displayOrder?: string;
 }
 
 interface BannerSection {
@@ -56,6 +58,8 @@ interface SectionWithVisaData {
   pageSectionId: string;
   title: string;
   contentType: string;
+  subTypeId?: string;
+  displayOrder?: string;
   data: VisaCountry[];
 }
 
@@ -248,33 +252,44 @@ const VisaPage = () => {
           (section: Section) => section.contentType === "VISA"
         );
 
-        // Store all visa sections for empty state titles
-        setAllVisaSections(visaFiltered);
+        // Sort sections by subTypeId (treating empty as last) and then by displayOrder
+        const sortedVisaSections = [...visaFiltered].sort((a, b) => {
+          const aSubType = a.subTypeId || "";
+          const bSubType = b.subTypeId || "";
 
-        console.log("Filtered visa sections:", visaFiltered);
+          // Compare subTypeId (empty strings go to end)
+          if (aSubType === "" && bSubType !== "") return 1;
+          if (aSubType !== "" && bSubType === "") return -1;
+          if (aSubType !== bSubType) {
+            return aSubType.localeCompare(bSubType);
+          }
 
-        // Find the Visa Rules Announcement section (check for various possible titles)
-        const visaRulesSection = visaFiltered.find(
-          (section: Section) =>
-            section.title === "Visa Rules Announcement" ||
-            section.title?.toLowerCase().includes("visa rules") ||
-            section.title?.toLowerCase().includes("rules & announcements")
+          // If subTypeId is same, sort by displayOrder
+          const aOrder = parseInt(a.displayOrder || "0", 10);
+          const bOrder = parseInt(b.displayOrder || "0", 10);
+          return aOrder - bOrder;
+        });
+
+        // Store all visa sections (sorted) for rendering
+        setAllVisaSections(sortedVisaSections);
+
+        console.log("Filtered and sorted visa sections:", sortedVisaSections);
+
+        // Separate sections by subTypeId
+        // subTypeId "3" = Visa Rules section
+        const visaRulesSection = sortedVisaSections.find(
+          (section: Section) => section.subTypeId === "3"
         );
 
-        console.log("Visa Rules section:", visaRulesSection);
+        // Regular visa sections (subTypeId "1", "2", or other non-"3" values)
+        const regularVisaSections = sortedVisaSections.filter(
+          (section: Section) => section.subTypeId !== "3"
+        );
 
         // Store the visa rules section title if found
         if (visaRulesSection) {
           setVisaRulesSectionTitle(visaRulesSection.title);
         }
-
-        // Filter out regular visa sections (exclude rules section)
-        const regularVisaSections = visaFiltered.filter(
-          (section: Section) =>
-            section.title !== "Visa Rules Announcement" &&
-            !section.title?.toLowerCase().includes("visa rules") &&
-            !section.title?.toLowerCase().includes("rules & announcements")
-        );
 
         // Fetch visa cards for all regular sections in parallel
         if (regularVisaSections.length > 0) {
@@ -300,6 +315,8 @@ const VisaPage = () => {
                   pageSectionId: section.pageSectionId,
                   title: section.title,
                   contentType: section.contentType,
+                  subTypeId: section.subTypeId,
+                  displayOrder: section.displayOrder,
                   data: [],
                 };
               }
@@ -317,6 +334,8 @@ const VisaPage = () => {
                 pageSectionId: section.pageSectionId,
                 title: section.title,
                 contentType: section.contentType,
+                subTypeId: section.subTypeId,
+                displayOrder: section.displayOrder,
                 data: transformedData,
               };
             }
@@ -396,16 +415,10 @@ const VisaPage = () => {
             </div>
           </section>
         ) : allVisaSections.length > 0 ? (
-          // Show all sections from API, even if they have no data
+          // Show all sections from API, sorted by subTypeId and displayOrder
+          // Exclude visa rules section (subTypeId "3") as it's handled separately
           allVisaSections
-            .filter((section) => {
-              // Exclude visa rules section as it's handled separately
-              return (
-                section.title !== "Visa Rules Announcement" &&
-                !section.title?.toLowerCase().includes("visa rules") &&
-                !section.title?.toLowerCase().includes("rules & announcements")
-              );
-            })
+            .filter((section) => section.subTypeId !== "3")
             .map((section) => {
               // Find if this section has data
               const sectionWithData = visaSectionsWithData.find(
@@ -458,10 +471,13 @@ const VisaPage = () => {
           </section>
         )}
 
-        <VisaRulesCard
-          visaRulesData={visaRulesData}
-          sectionTitle={visaRulesSectionTitle || undefined}
-        />
+        {/* Visa Rules Card - only show if section with subTypeId "3" exists */}
+        {visaRulesSectionTitle && (
+          <VisaRulesCard
+            visaRulesData={visaRulesData}
+            sectionTitle={visaRulesSectionTitle}
+          />
+        )}
 
         <VisaCountrySearchAndGrid />
 

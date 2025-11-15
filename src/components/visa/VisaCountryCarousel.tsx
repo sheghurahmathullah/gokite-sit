@@ -60,7 +60,7 @@ const VisaCard = ({
       <div className="flex flex-col gap-1.5">
         <div
           className={
-            type === "trending"
+            hasVisaTag || type === "trending"
               ? "flex items-center justify-between mb-0.5"
               : "mb-0.5"
           }
@@ -210,11 +210,7 @@ const VisaCountryCarousel = forwardRef<
                   subtitle={
                     type === "trending" ? "Get your Visa by 24hours" : undefined
                   }
-                  hasVisaTag={
-                    type === "trending" &&
-                    (country.eVisa ||
-                      country.visaType.toLowerCase().includes("e-visa"))
-                  }
+                  hasVisaTag={country.eVisa === true}
                   onClick={() => onCardClick?.(country)}
                 />
               </div>
