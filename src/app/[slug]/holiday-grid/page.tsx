@@ -40,6 +40,12 @@ const HolidayGridPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [rawApiData, setRawApiData] = useState<any[]>([]);
 
+  // Get currency directly from API response - no conversion
+  const getCurrencySymbol = (currency: string) => {
+    // Return currency as-is from API, or empty string if not provided
+    return currency || "";
+  };
+
   // Transform holiday card data to match DestinationCard interface
   const transformHolidayData = (apiData: any[]) => {
     return apiData.map((item, index) => {
@@ -114,7 +120,7 @@ const HolidayGridPage = () => {
                 "Sightseeing",
               ];
         })(),
-        currency: item.currency || "₹",
+        currency: getCurrencySymbol(item.currency), // Use currency from API, no hardcoded fallback
         originalPrice: oldPrice,
         finalPrice: newPrice,
         priceContent: item?.cardJson?.priceContent || "Per person",

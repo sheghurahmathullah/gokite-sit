@@ -165,10 +165,10 @@ const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
         <div className="flex items-baseline gap-1 mb-0.5">
           <span className="text-xl font-bold text-black">{country.price}</span>
         </div>
-
+{/* 
         <div className="text-[11px] text-gray-500">
           {country.additionalFee || "+ ₹8,500 (Fees + Tax)"}
-        </div>
+        </div> */}
       </div>
     </div>
   );

@@ -40,18 +40,10 @@ const HolidayListPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [rawApiData, setRawApiData] = useState<any[]>([]);
 
-  // Get currency symbol based on currency code
+  // Get currency directly from API response - no conversion
   const getCurrencySymbol = (currency: string) => {
-    switch (currency?.toUpperCase()) {
-      case "AED":
-        return "AED ";
-      case "USD":
-        return "$";
-      case "INR":
-        return "₹";
-      default:
-        return "₹";
-    }
+    // Return currency as-is from API, or empty string if not provided
+    return currency || "";
   };
 
   // Transform holiday card data to match DestinationCard interface
@@ -132,7 +124,7 @@ const HolidayListPage = () => {
                 "Sightseeing",
               ];
         })(),
-        currency: getCurrencySymbol(item.currency || "INR"),
+        currency: getCurrencySymbol(item.currency), // Use currency from API, no hardcoded fallback
         originalPrice: oldPrice,
         finalPrice: newPrice,
         priceContent: item?.cardJson?.priceContent || "Per person",
@@ -373,20 +365,12 @@ const HolidayListPage = () => {
       ? Object.keys(currencyCount).reduce((a, b) =>
           currencyCount[a] > currencyCount[b] ? a : b
         )
-      : "INR";
+      : "";
 
-  // Convert to currency symbol
+  // Get currency directly from API response for filter - no conversion
   const getCurrencySymbolForFilter = (currency: string) => {
-    switch (currency?.toUpperCase()) {
-      case "AED":
-        return "AED ";
-      case "USD":
-        return "$";
-      case "INR":
-        return "₹";
-      default:
-        return "₹";
-    }
+    // Return currency as-is from API, or empty string if not provided
+    return currency || "";
   };
 
   const displayCurrency = getCurrencySymbolForFilter(mostCommonCurrency);
