@@ -202,7 +202,6 @@ const FilterSidebar = ({
       {/* Filter By Price */}
       <div className="mb-6">
         <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-3">
-          <span className="text-base font-semibold">{currency}</span>
           Filter By Price
         </label>
         <div className="mb-3">
@@ -220,15 +219,10 @@ const FilterSidebar = ({
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-muted-foreground">
             {priceRange[0] === priceRange[1] ? (
-              <>
-                Price: {currency}
-                {priceRange[0]}
-              </>
+              <>Price: {priceRange[0]}</>
             ) : (
               <>
-                Price: {currency}
-                {priceRange[0]} - {currency}
-                {priceRange[1]}
+                Price: {priceRange[0]} - {priceRange[1]}
               </>
             )}
           </span>
