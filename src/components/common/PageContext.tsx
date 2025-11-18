@@ -54,6 +54,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
   const [initialAuthCheckDone, setInitialAuthCheckDone] = useState(false);
   const isAuthenticatedRef = useRef(false); // Ref to track auth status for event handlers
   const hasFetchedRef = useRef(false); // Ref to prevent duplicate fetches
+  const pagesFetchStartedRef = useRef(false); // Track if initial fetch already started/completed
   const sessionRefreshedRef = useRef(false); // Track if we've already shown refresh notification
 
   // Sync ref with state
@@ -108,7 +109,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
       setTimeout(() => {
         console.log("[PageContext] Refetching pages after session refresh");
         hasFetchedRef.current = false;
-        fetchPages(true); // Pass true to indicate this is after a refresh
+        fetchPages({ isRefetchAfterRefresh: true, force: true }); // Pass true to indicate this is after a refresh
       }, 500); // 500ms delay to allow cookie to be set
     },
     onRefreshFailed: () => {
@@ -318,21 +319,23 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
         const pageSlug = page.slug?.toLowerCase() || "";
 
         // Map specific pages based on actual API response
-        if (
-          pageTitle.includes("landing page") &&
-          !pageTitle.includes("visa")
-        ) {
-          pageMapping.landing = page.id;
-        } else if (
+        const isLandingPage =
+          (pageTitle.includes("landing page") && !pageTitle.includes("visa")) ||
+          (pageSlug.includes("landing") && !pageSlug.includes("visa"));
+        const isVisaPage =
           pageTitle.includes("visa landing page") ||
-          pageSlug.includes("visa-landing")
-        ) {
+          pageSlug.includes("visa-landing") ||
+          pageSlug.includes("visa");
+        const isHolidayPage =
+          pageTitle.includes("holiday home page") ||
+          pageSlug.includes("holiday-home");
+
+        if (isLandingPage) {
+          pageMapping.landing = page.id;
+        } else if (isVisaPage) {
           pageMapping.visa = page.id;
           pageMapping.visaLanding = page.id;
-        } else if (
-          pageTitle.includes("holiday home page") ||
-          pageSlug.includes("holiday-home")
-        ) {
+        } else if (isHolidayPage) {
           pageMapping.holidays = page.id;
           pageMapping.holidayHome = page.id;
         } else if (
@@ -360,7 +363,20 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
     );
   };
 
-  const fetchPages = async (isRefetchAfterRefresh = false) => {
+  const fetchPages = async (
+    options: { isRefetchAfterRefresh?: boolean; force?: boolean } = {}
+  ) => {
+    const { isRefetchAfterRefresh = false, force = false } = options;
+
+    if (!force && pagesFetchStartedRef.current) {
+      console.log("[PageContext] Skipping duplicate pages fetch");
+      return;
+    }
+
+    if (!force) {
+      pagesFetchStartedRef.current = true;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -379,6 +395,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
           if (!isRefetchAfterRefresh) {
             setIsAuthenticated(false);
             setLoading(false);
+            pagesFetchStartedRef.current = false;
             // Return a special object instead of throwing to indicate auth failure
             return { unauthorized: true };
           } else {
@@ -402,6 +419,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
                 setIsAuthenticated(false);
               } finally {
                 setLoading(false);
+                pagesFetchStartedRef.current = false;
               }
             }, 1000);
             return; // Exit early, retry will handle the rest
@@ -415,7 +433,9 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
 
       setPages(data.data || []);
       updatePageMapping(data.data);
+      hasFetchedRef.current = true;
     } catch (err: any) {
+      pagesFetchStartedRef.current = false;
       // Don't log error for expected auth failures
       if (err?.message !== "UNAUTHORIZED_401") {
         console.error("[PageContext] Error fetching pages:", err);
@@ -426,6 +446,9 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
       }
     } finally {
       setLoading(false);
+      if (force || isRefetchAfterRefresh) {
+        pagesFetchStartedRef.current = false;
+      }
     }
   };
 
@@ -459,7 +482,8 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children }) => {
   const refetchPages = async () => {
     console.log("[PageContext] Manual refetch requested");
     hasFetchedRef.current = false;
-    await fetchPages();
+    pagesFetchStartedRef.current = false;
+    await fetchPages({ force: true });
     hasFetchedRef.current = true;
   };
 

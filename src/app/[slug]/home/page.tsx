@@ -74,7 +74,9 @@ const Index = () => {
   const router = useRouter();
   const [holidaySections, setHolidaySections] = useState<SectionWithData[]>([]);
   const [visaSections, setVisaSections] = useState<SectionWithData[]>([]);
-  const [bannerSection, setBannerSection] = useState<BannerSection | null>(null);
+  const [bannerSection, setBannerSection] = useState<BannerSection | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const dataFetchedRef = useRef(false); // Track if data has been fetched
@@ -83,12 +85,12 @@ const Index = () => {
   );
   const visaCarouselRefs = useRef<Map<string, VisaCarouselRef>>(new Map());
 
-  const { 
-    getPageIdWithFallback, 
+  const {
+    getPageIdWithFallback,
     getPageInfo,
-    loading: pageLoading, 
+    loading: pageLoading,
     isAuthenticated,
-    initialAuthCheckDone
+    initialAuthCheckDone,
   } = usePageContext();
 
   // Set page title dynamically and store page slug
@@ -97,7 +99,7 @@ const Index = () => {
     if (pageInfo?.title) {
       document.title = pageInfo.title;
     }
-    
+
     // Store page slug for nested routing
     if (pageInfo?.slug && typeof window !== "undefined") {
       try {
@@ -137,7 +139,9 @@ const Index = () => {
     sectionId: string
   ): Promise<HolidayCardItem[]> => {
     try {
-      console.log(`[API Call] Fetching /api/cms/sections-holiday-cards for section: ${sectionId}`);
+      console.log(
+        `[API Call] Fetching /api/cms/sections-holiday-cards for section: ${sectionId}`
+      );
       const response = await fetch("/api/cms/sections-holiday-cards", {
         method: "POST",
         headers: {
@@ -154,7 +158,9 @@ const Index = () => {
       }
 
       const data = await response.json();
-      console.log(`[API Call] Received holiday cards for section: ${sectionId}`);
+      console.log(
+        `[API Call] Received holiday cards for section: ${sectionId}`
+      );
       return Array.isArray(data?.data) ? data.data : [];
     } catch (err) {
       console.error("Error fetching holiday cards:", err);
@@ -167,7 +173,9 @@ const Index = () => {
     sectionId: string
   ): Promise<VisaCardItem[]> => {
     try {
-      console.log(`[API Call] Fetching /api/cms/sections-visa-cards for section: ${sectionId}`);
+      console.log(
+        `[API Call] Fetching /api/cms/sections-visa-cards for section: ${sectionId}`
+      );
       const response = await fetch("/api/cms/sections-visa-cards", {
         method: "POST",
         headers: {
@@ -244,11 +252,16 @@ const Index = () => {
       // Simply map values from API response
       const formFee = parseFloat(item.form_fee || "0");
       const processingFee = parseFloat(item.processing_fee || "0");
-      
+
       // Use newPrice from backend, if empty string then keep it as empty string
       const newPrice = item.newPrice?.trim() || "";
       // If newPrice exists and is not empty, use it; otherwise use empty string for price
-      const priceValue = newPrice === "" ? "" : (isNaN(parseFloat(newPrice)) ? "" : parseFloat(newPrice));
+      const priceValue =
+        newPrice === ""
+          ? ""
+          : isNaN(parseFloat(newPrice))
+          ? ""
+          : parseFloat(newPrice);
 
       return {
         id: item.visaCardId,
@@ -274,14 +287,16 @@ const Index = () => {
 
   // Load data on component mount - only once and only if authenticated
   useEffect(() => {
-    console.log(`[HomePage useEffect] Called - isAuthenticated: ${isAuthenticated}, pageLoading: ${pageLoading}, dataFetched: ${dataFetchedRef.current}`);
-    
+    console.log(
+      `[HomePage useEffect] Called - isAuthenticated: ${isAuthenticated}, pageLoading: ${pageLoading}, dataFetched: ${dataFetchedRef.current}`
+    );
+
     // Early exit if data already fetched or still loading context
     if (dataFetchedRef.current) {
       console.log("[HomePage useEffect] Skipping - data already fetched");
       return;
     }
-    
+
     if (pageLoading) {
       console.log("[HomePage useEffect] Skipping - page context still loading");
       return;
@@ -362,10 +377,11 @@ const Index = () => {
         });
 
         // Execute all holiday and visa fetches in parallel
-        const [holidaySectionsWithData, visaSectionsWithData] = await Promise.all([
-          Promise.all(holidayPromises),
-          Promise.all(visaPromises),
-        ]);
+        const [holidaySectionsWithData, visaSectionsWithData] =
+          await Promise.all([
+            Promise.all(holidayPromises),
+            Promise.all(visaPromises),
+          ]);
 
         console.log("Holiday sections with data:", holidaySectionsWithData);
         console.log("Visa sections with data:", visaSectionsWithData);
@@ -373,7 +389,7 @@ const Index = () => {
         // Update state once with all data
         setHolidaySections(holidaySectionsWithData);
         setVisaSections(visaSectionsWithData);
-        
+
         console.log("Data fetch completed successfully");
       } catch (err: unknown) {
         console.error("Error loading data:", err);
@@ -389,7 +405,7 @@ const Index = () => {
   }, [isAuthenticated, pageLoading]); // Dependencies in stable order
 
   // Determine if we should show loading
-  const shouldShowLoading = 
+  const shouldShowLoading =
     !initialAuthCheckDone || // Auth check not complete
     pageLoading || // Page context is loading
     loading; // Component is fetching data
@@ -476,9 +492,10 @@ const Index = () => {
                     size="sm"
                     className="text-foreground bg-[#f2f0f0]"
                     onClick={() => {
-                      const currentPageSlug = typeof window !== "undefined" 
-                        ? window.sessionStorage.getItem("currentPageSlug") 
-                        : "master-landing-page";
+                      const currentPageSlug =
+                        typeof window !== "undefined"
+                          ? window.sessionStorage.getItem("currentPageSlug")
+                          : "master-landing-page";
                       router.push(`/${currentPageSlug}/holiday-grid`);
                     }}
                   >
@@ -563,9 +580,10 @@ const Index = () => {
                     size="sm"
                     className="text-foreground bg-[#f2f0f0]"
                     onClick={() => {
-                      const currentPageSlug = typeof window !== "undefined" 
-                        ? window.sessionStorage.getItem("currentPageSlug") 
-                        : "master-landing-page";
+                      const currentPageSlug =
+                        typeof window !== "undefined"
+                          ? window.sessionStorage.getItem("currentPageSlug")
+                          : "master-landing-page";
                       router.push(`/${currentPageSlug}/visa`);
                     }}
                   >
