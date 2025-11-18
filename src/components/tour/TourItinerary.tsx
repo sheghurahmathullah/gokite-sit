@@ -20,7 +20,10 @@ interface TourItineraryProps {
   itineraryMainDescription?: string;
 }
 
-const TourItinerary = ({ itinerary, itineraryMainDescription }: TourItineraryProps) => {
+const TourItinerary = ({
+  itinerary,
+  itineraryMainDescription,
+}: TourItineraryProps) => {
   const [expandAll, setExpandAll] = useState(false);
   const [openItems, setOpenItems] = useState<string[]>([]);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
@@ -91,7 +94,7 @@ const TourItinerary = ({ itinerary, itineraryMainDescription }: TourItineraryPro
               <div className="relative pl-8">
                 {/* Timeline dot - centered with text */}
                 <div className="absolute left-0 top-[22px] w-4 h-4 rounded-full bg-foreground border-4 border-background z-10" />
-                
+
                 {/* Timeline line - connects bottom of current dot through gap to next dot */}
                 {!isLast && (
                   <div className="absolute left-[7px] top-[38px] bottom-[-38px] w-[2px] bg-border" />
@@ -101,11 +104,7 @@ const TourItinerary = ({ itinerary, itineraryMainDescription }: TourItineraryPro
                   <div className="flex items-center justify-between p-4 border-b border-border hover:bg-muted/20 transition-colors">
                     <div>
                       <span className="font-semibold text-foreground">
-                        {item.day}
-                        {item.time ? ` ${item.time}` : ""}
-                      </span>
-                      <span className="text-foreground/70 ml-2">
-                        - {item.title}
+                        {item.title}
                       </span>
                     </div>
                     {isOpen ? (
@@ -118,29 +117,36 @@ const TourItinerary = ({ itinerary, itineraryMainDescription }: TourItineraryPro
 
                 <CollapsibleContent>
                   <div className="py-4 pl-4 pr-4">
-                    {item.image && (
-                      <div className="mb-4 rounded-lg overflow-hidden relative bg-gray-100">
-                        {loadingImages.has(itemId) && !loadedImages.has(itemId) && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
-                          </div>
-                        )}
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className={`w-full h-64 object-cover transition-opacity duration-300 ${
-                            loadedImages.has(itemId) ? 'opacity-100' : 'opacity-0'
-                          }`}
-                          loading="eager"
-                          onLoadStart={() => handleImageStart(itemId)}
-                          onLoad={() => handleImageLoad(itemId)}
-                          onError={() => handleImageLoad(itemId)}
-                        />
+                    <div className="flex flex-col md:flex-row gap-4">
+                      {item.image && (
+                        <div className="md:w-1/3 rounded-lg overflow-hidden relative bg-gray-100 flex-shrink-0">
+                          {loadingImages.has(itemId) &&
+                            !loadedImages.has(itemId) && (
+                              <div className="absolute inset-0 flex items-center justify-center z-10">
+                                <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                              </div>
+                            )}
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className={`w-full h-48 md:h-auto md:min-h-[220px] object-cover rounded-lg transition-opacity duration-300 ${
+                              loadedImages.has(itemId)
+                                ? "opacity-100"
+                                : "opacity-0"
+                            }`}
+                            loading="eager"
+                            onLoadStart={() => handleImageStart(itemId)}
+                            onLoad={() => handleImageLoad(itemId)}
+                            onError={() => handleImageLoad(itemId)}
+                          />
+                        </div>
+                      )}
+                      <div className={`${item.image ? "md:flex-1" : "w-full"}`}>
+                        <p className="text-foreground/70 leading-relaxed whitespace-pre-line">
+                          {item.description}
+                        </p>
                       </div>
-                    )}
-                    <p className="text-foreground/70 leading-relaxed whitespace-pre-line">
-                      {item.description}
-                    </p>
+                    </div>
                   </div>
                 </CollapsibleContent>
               </div>
