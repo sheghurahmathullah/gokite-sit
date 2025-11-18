@@ -238,15 +238,18 @@ const HolidayBookingCard = () => {
         return;
       }
 
-      // Valid data found - redirect to holiday-list page (always use nested route)
+      // Valid data found - cache the API response to prevent duplicate calls
       console.log(
-        "[HolidayBookingCard] Valid holiday data found, redirecting to holiday-list"
+        "[HolidayBookingCard] Valid holiday data found, caching and redirecting to holiday-list"
       );
       // Use the current slug from URL params instead of sessionStorage
       // Also store it in sessionStorage as a fallback for other components
       if (typeof window !== "undefined") {
         try {
           window.sessionStorage.setItem("currentPageSlug", currentSlug);
+          // Cache the API response to prevent duplicate API calls on the holiday-list page
+          window.sessionStorage.setItem("cachedHolidaySearchData", JSON.stringify(data.data));
+          window.sessionStorage.setItem("cachedHolidaySearchTimestamp", Date.now().toString());
         } catch (_) {}
       }
       router.push(`/${currentSlug}/holiday-list`);

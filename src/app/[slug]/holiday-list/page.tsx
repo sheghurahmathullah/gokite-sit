@@ -265,6 +265,47 @@ const HolidayListPage = () => {
 
   // Load data when category changes or on initial load
   useEffect(() => {
+    // Check if we have cached API response data from the booking card search
+    if (typeof window !== "undefined") {
+      try {
+        const cachedData = window.sessionStorage.getItem("cachedHolidaySearchData");
+        const cachedTimestamp = window.sessionStorage.getItem("cachedHolidaySearchTimestamp");
+        
+        // Use cached data if it exists and is less than 5 minutes old
+        if (cachedData && cachedTimestamp) {
+          const age = Date.now() - parseInt(cachedTimestamp);
+          if (age < 5 * 60 * 1000) { // 5 minutes
+            console.log("[HolidayList] Using cached holiday search data");
+            const parsedData = JSON.parse(cachedData);
+            setRawApiData(parsedData);
+            const transformedDestinations = transformHolidayData(parsedData);
+            setAllDestinations(transformedDestinations);
+            setDestinations(transformedDestinations);
+            
+            // Try to set category from the first item's category
+            if (parsedData.length > 0 && parsedData[0].categoryName) {
+              window.sessionStorage.setItem(
+                "selectedHolidayCategory",
+                parsedData[0].categoryName
+              );
+            }
+            
+            // Clear the cache after using it
+            window.sessionStorage.removeItem("cachedHolidaySearchData");
+            window.sessionStorage.removeItem("cachedHolidaySearchTimestamp");
+            setLoading(false);
+            return;
+          } else {
+            // Cache expired, remove it
+            window.sessionStorage.removeItem("cachedHolidaySearchData");
+            window.sessionStorage.removeItem("cachedHolidaySearchTimestamp");
+          }
+        }
+      } catch (e) {
+        console.error("Error reading cached holiday data:", e);
+      }
+    }
+
     // Check if we have session storage data for destination-based search
     const destinationType =
       typeof window !== "undefined"

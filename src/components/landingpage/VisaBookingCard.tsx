@@ -185,12 +185,17 @@ const VisaBookingCard = () => {
         return;
       }
 
-      // Valid data found - store the visa details and redirect
-      console.log("[VisaBookingCard] Valid visa data found, redirecting to apply-visa");
+      // Valid data found - cache the API response and store the visa details
+      console.log("[VisaBookingCard] Valid visa data found, caching and redirecting to apply-visa");
       
       // Store the visa details for the apply-visa page
       if (typeof window !== "undefined") {
-        window.sessionStorage.setItem("applyVisaDetails", JSON.stringify(data.data[0]));
+        try {
+          window.sessionStorage.setItem("applyVisaDetails", JSON.stringify(data.data[0]));
+          // Cache the API response to prevent duplicate API calls on the apply-visa page
+          window.sessionStorage.setItem("cachedVisaSearchData", JSON.stringify(data.data));
+          window.sessionStorage.setItem("cachedVisaSearchTimestamp", Date.now().toString());
+        } catch (_) {}
       }
 
       // Redirect to apply-visa page (always use nested route)

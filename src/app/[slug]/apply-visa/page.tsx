@@ -38,6 +38,52 @@ const ApplyVisaPage: React.FC = () => {
   // Fetch visa details from API
   useEffect(() => {
     async function loadVisaDetails() {
+      // Check if we have cached API response data from the booking card search
+      if (typeof window !== "undefined") {
+        try {
+          const cachedData = window.sessionStorage.getItem("cachedVisaSearchData");
+          const cachedTimestamp = window.sessionStorage.getItem("cachedVisaSearchTimestamp");
+          
+          // Use cached data if it exists and is less than 5 minutes old
+          if (cachedData && cachedTimestamp) {
+            const age = Date.now() - parseInt(cachedTimestamp);
+            if (age < 5 * 60 * 1000) { // 5 minutes
+              console.log("[ApplyVisa] Using cached visa search data");
+              const parsedData = JSON.parse(cachedData);
+              
+              if (parsedData.length > 0) {
+                const details = parsedData[0];
+                setVisaDetails(details);
+                setVisaError(null);
+                setNoVisaAvailable(false);
+                
+                // Store the visa details
+                window.sessionStorage.setItem(
+                  "applyVisaDetails",
+                  JSON.stringify(details || {})
+                );
+                
+                // Clear the cache after using it
+                window.sessionStorage.removeItem("cachedVisaSearchData");
+                window.sessionStorage.removeItem("cachedVisaSearchTimestamp");
+                setLoading(false);
+                return;
+              } else {
+                // Cache expired or invalid, remove it
+                window.sessionStorage.removeItem("cachedVisaSearchData");
+                window.sessionStorage.removeItem("cachedVisaSearchTimestamp");
+              }
+            } else {
+              // Cache expired, remove it
+              window.sessionStorage.removeItem("cachedVisaSearchData");
+              window.sessionStorage.removeItem("cachedVisaSearchTimestamp");
+            }
+          }
+        } catch (e) {
+          console.error("Error reading cached visa data:", e);
+        }
+      }
+
       let countryId = "";
 
       try {
@@ -125,7 +171,7 @@ const ApplyVisaPage: React.FC = () => {
       }
     }
 
-    // Try to use cached details first
+    // Try to use cached details first (legacy cache from previous sessions)
     try {
       if (typeof window !== "undefined") {
         const cached = window.sessionStorage.getItem("applyVisaDetails");
