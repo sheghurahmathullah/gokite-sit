@@ -39,6 +39,7 @@ const HolidayGridPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rawApiData, setRawApiData] = useState<any[]>([]);
+  const [filterResetSignal, setFilterResetSignal] = useState(0);
 
   // Get currency directly from API response - no conversion
   const getCurrencySymbol = (currency: string) => {
@@ -158,6 +159,7 @@ const HolidayGridPage = () => {
       console.log("transformedDestinations", transformedDestinations);
       setAllDestinations(transformedDestinations);
       setDestinations(transformedDestinations);
+      setFilterResetSignal((prev) => prev + 1);
     } catch (err) {
       console.error("Error fetching holiday cards:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -376,6 +378,7 @@ const HolidayGridPage = () => {
                     cities={uniqueCities}
                     categories={uniqueCategories}
                     onFilterChange={handleFilterChange}
+                    resetSignal={filterResetSignal}
                   />
                 </div>
               </div>

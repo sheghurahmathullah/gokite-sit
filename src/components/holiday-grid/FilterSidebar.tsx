@@ -30,6 +30,7 @@ interface FilterSidebarProps {
   minPrice?: number;
   maxPrice?: number;
   currency?: string;
+  resetSignal?: number;
 }
 
 const FilterSidebar = ({
@@ -39,6 +40,7 @@ const FilterSidebar = ({
   minPrice = 0,
   maxPrice = 10000,
   currency = "₹",
+  resetSignal,
 }: FilterSidebarProps) => {
   const [selectedCity, setSelectedCity] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -53,6 +55,19 @@ const FilterSidebar = ({
   useEffect(() => {
     setPriceRange([minPrice, maxPrice]);
   }, [minPrice, maxPrice]);
+
+  // Reset filters when resetSignal changes
+  useEffect(() => {
+    if (resetSignal === undefined) return;
+    setSelectedCity("All");
+    setSelectedCategory("All");
+    setGuestCount(1);
+    setPriceRange([minPrice, maxPrice]);
+    setSelectedRating(0);
+    setPickupAvailable(false);
+    setPickupNeeded(false);
+    setDateFrom("");
+  }, [resetSignal, minPrice, maxPrice]);
 
   // Apply filters whenever any filter value changes
   useEffect(() => {

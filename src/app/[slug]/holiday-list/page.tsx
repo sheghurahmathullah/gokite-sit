@@ -39,6 +39,7 @@ const HolidayListPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rawApiData, setRawApiData] = useState<any[]>([]);
+  const [filterResetSignal, setFilterResetSignal] = useState(0);
 
   // Get currency directly from API response - no conversion
   const getCurrencySymbol = (currency: string) => {
@@ -161,6 +162,7 @@ const HolidayListPage = () => {
       const transformedDestinations = transformHolidayData(list);
       setAllDestinations(transformedDestinations);
       setDestinations(transformedDestinations);
+      setFilterResetSignal((prev) => prev + 1);
     } catch (err) {
       console.error("Error fetching holiday cards:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -196,6 +198,7 @@ const HolidayListPage = () => {
       const transformedDestinations = transformHolidayData(list);
       setAllDestinations(transformedDestinations);
       setDestinations(transformedDestinations);
+      setFilterResetSignal((prev) => prev + 1);
 
       // Try to set category from the first item's category
       if (
@@ -241,6 +244,7 @@ const HolidayListPage = () => {
       const transformedDestinations = transformHolidayData(list);
       setAllDestinations(transformedDestinations);
       setDestinations(transformedDestinations);
+      setFilterResetSignal((prev) => prev + 1);
 
       // Try to set category from the first item's category
       if (
@@ -294,6 +298,7 @@ const HolidayListPage = () => {
             window.sessionStorage.removeItem("cachedHolidaySearchData");
             window.sessionStorage.removeItem("cachedHolidaySearchTimestamp");
             setLoading(false);
+            setFilterResetSignal((prev) => prev + 1);
             return;
           } else {
             // Cache expired, remove it
@@ -510,6 +515,7 @@ const HolidayListPage = () => {
               minPrice={minPrice}
               maxPrice={maxPrice}
               currency={displayCurrency}
+              resetSignal={filterResetSignal}
             />
           </div>
         </div>
