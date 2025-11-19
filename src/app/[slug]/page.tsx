@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useParams, notFound } from "next/navigation";
 import { HomePageSkeleton } from "@/components/common/SkeletonLoader";
 import { usePageContext } from "@/components/common/PageContext";
@@ -37,73 +37,79 @@ interface PageData {
 export default function DynamicPage() {
   const params = useParams();
   const slug = params.slug as string;
-  const [pageData, setPageData] = useState<PageData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { initialAuthCheckDone } = usePageContext();
+  const {
+    pages,
+    loading: pagesLoading,
+    initialAuthCheckDone,
+    refetchPages,
+  } = usePageContext();
+  const refetchRequestedRef = useRef(false);
+
+  const pageData = useMemo<PageData | null>(() => {
+    if (!pages || pages.length === 0) {
+      return null;
+    }
+    return (pages.find((p: any) => p.slug === slug) as PageData) || null;
+  }, [pages, slug]);
 
   useEffect(() => {
-    // Wait for authentication check to complete before fetching page data
     if (!initialAuthCheckDone) {
-      console.log("[DynamicPage] Waiting for authentication to complete...");
       return;
     }
 
-    async function fetchPageData() {
-      try {
-        console.log("[DynamicPage] Fetching page data for slug:", slug);
-        const response = await fetch("/api/cms/pages");
-        if (!response.ok) {
-          throw new Error("Failed to fetch pages");
-        }
-        
-        const data = await response.json();
-        const page = data.data?.find((p: any) => p.slug === slug);
-        
-        if (!page) {
-          console.warn("[DynamicPage] Page not found for slug:", slug);
-          setPageData(null);
-        } else {
-          console.log("[DynamicPage] Page data loaded successfully");
-          setPageData(page);
-          
-          // Store page slug in sessionStorage for nested routing
-          if (typeof window !== 'undefined') {
-            try {
-              window.sessionStorage.setItem("currentPageSlug", slug);
-            } catch (e) {
-              console.error("Failed to store page slug:", e);
-            }
-          }
-          
-          // Update document title and meta tags
-          if (typeof window !== 'undefined') {
-            document.title = page.title || page.seoMeta?.metaTitle;
-            
-            // Update meta description
-            const metaDescription = document.querySelector('meta[name="description"]');
-            if (metaDescription) {
-              metaDescription.setAttribute('content', page.seoMeta?.metaDescription || '');
-            }
-            
-            // Update meta keywords
-            const metaKeywords = document.querySelector('meta[name="keywords"]');
-            if (metaKeywords && page.seoMeta?.metaKeywords) {
-              metaKeywords.setAttribute('content', page.seoMeta.metaKeywords.join(', '));
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching page data:", error);
-        setPageData(null);
-      } finally {
-        setLoading(false);
-      }
+    if (pagesLoading) {
+      return;
     }
 
-    fetchPageData();
-  }, [slug, initialAuthCheckDone]);
+    if (!pages || pages.length === 0) {
+      if (refetchRequestedRef.current) {
+        return;
+      }
+      refetchRequestedRef.current = true;
+      console.warn("[DynamicPage] Pages list is empty, attempting refetch");
+      refetchPages().catch((error) =>
+        console.error("[DynamicPage] Failed to refetch pages:", error)
+      );
+    } else {
+      refetchRequestedRef.current = false;
+    }
+  }, [pages, pagesLoading, refetchPages, initialAuthCheckDone]);
 
-  if (loading) {
+  useEffect(() => {
+    if (!pageData) {
+      return;
+    }
+
+    if (typeof window !== "undefined") {
+      try {
+        window.sessionStorage.setItem("currentPageSlug", slug);
+      } catch (e) {
+        console.error("Failed to store page slug:", e);
+      }
+
+      document.title = pageData.title || pageData.seoMeta?.metaTitle;
+
+      const metaDescription = document.querySelector(
+        'meta[name="description"]'
+      );
+      if (metaDescription) {
+        metaDescription.setAttribute(
+          "content",
+          pageData.seoMeta?.metaDescription || ""
+        );
+      }
+
+      const metaKeywords = document.querySelector('meta[name="keywords"]');
+      if (metaKeywords && pageData.seoMeta?.metaKeywords) {
+        metaKeywords.setAttribute(
+          "content",
+          pageData.seoMeta.metaKeywords.join(", ")
+        );
+      }
+    }
+  }, [pageData, slug]);
+
+  if (!initialAuthCheckDone || pagesLoading || (!pageData && (!pages || pages.length === 0))) {
     return <HomePageSkeleton />;
   }
 
