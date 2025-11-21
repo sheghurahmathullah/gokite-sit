@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
 import ApplyVisa from "@/components/applyvisa/ApplyVisa";
@@ -10,11 +10,15 @@ import {
   faqs,
 } from "@/data/visaApplyData";
 
+// Global request deduplication map to prevent concurrent identical API calls
+const pendingRequests = new Map<string, Promise<any>>();
+
 const ApplyVisaPage: React.FC = () => {
   const [visaDetails, setVisaDetails] = useState<any>(null);
   const [visaError, setVisaError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [noVisaAvailable, setNoVisaAvailable] = useState(false);
+  const dataFetchedRef = useRef(false);
 
   // Get authorization headers
   const getCookie = (name: string) => {
@@ -37,8 +41,14 @@ const ApplyVisaPage: React.FC = () => {
 
   // Fetch visa details from API
   useEffect(() => {
+    // Prevent duplicate data fetches
+    if (dataFetchedRef.current) {
+      console.log("[ApplyVisa] Data already fetched, skipping...");
+      return;
+    }
+
     async function loadVisaDetails() {
-      // Check if we have cached API response data from the booking card search
+      // Check if we have cached API response data from the visa card click
       if (typeof window !== "undefined") {
         try {
           const cachedData = window.sessionStorage.getItem(
@@ -72,6 +82,7 @@ const ApplyVisaPage: React.FC = () => {
                 window.sessionStorage.removeItem("cachedVisaSearchData");
                 window.sessionStorage.removeItem("cachedVisaSearchTimestamp");
                 setLoading(false);
+                dataFetchedRef.current = true;
                 return;
               } else {
                 // Cache expired or invalid, remove it
@@ -107,34 +118,56 @@ const ApplyVisaPage: React.FC = () => {
 
       setLoading(true);
 
-      // Helper function to make API call
+      // Helper function to make API call with deduplication
       const fetchVisaData = async (countryCode: string) => {
-        console.log(`Fetching visa data for country: ${countryCode}`);
-        const res = await fetch("/api/cms/visa-country-search", {
-          method: "POST",
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ countryCode: countryCode }),
-        });
+        const requestKey = `visa-search-${countryCode}`;
 
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error(`API call failed for ${countryCode}:`, {
-            status: res.status,
-            statusText: res.statusText,
-            error: errorText,
-          });
-          throw new Error(
-            `Failed to fetch visa details for ${countryCode}: ${res.status} ${res.statusText}`
+        // If request is already in progress, wait for it instead of making a new one
+        if (pendingRequests.has(requestKey)) {
+          console.log(
+            `[ApplyVisa] Request already in progress for ${countryCode}, reusing...`
           );
+          return pendingRequests.get(requestKey);
         }
 
-        const json = await res.json();
-        const items = Array.isArray(json?.data) ? json.data : [];
-        console.log(`API response for ${countryCode}:`, {
-          itemsCount: items.length,
-          data: json,
-        });
-        return items;
+        console.log(
+          `[ApplyVisa] Fetching visa data for country: ${countryCode}`
+        );
+
+        const requestPromise = (async () => {
+          try {
+            const res = await fetch("/api/cms/visa-country-search", {
+              method: "POST",
+              headers: getAuthHeaders(),
+              body: JSON.stringify({ countryCode: countryCode }),
+            });
+
+            if (!res.ok) {
+              const errorText = await res.text();
+              console.error(`API call failed for ${countryCode}:`, {
+                status: res.status,
+                statusText: res.statusText,
+                error: errorText,
+              });
+              throw new Error(
+                `Failed to fetch visa details for ${countryCode}: ${res.status} ${res.statusText}`
+              );
+            }
+
+            const json = await res.json();
+            const items = Array.isArray(json?.data) ? json.data : [];
+            console.log(`[ApplyVisa] API response for ${countryCode}:`, {
+              itemsCount: items.length,
+            });
+            return items;
+          } finally {
+            // Remove from pending requests once done
+            pendingRequests.delete(requestKey);
+          }
+        })();
+
+        pendingRequests.set(requestKey, requestPromise);
+        return requestPromise;
       };
 
       try {
@@ -154,6 +187,7 @@ const ApplyVisaPage: React.FC = () => {
           setNoVisaAvailable(true);
           setVisaDetails(null);
           setVisaError(null);
+          dataFetchedRef.current = true;
           return;
         }
 
@@ -174,6 +208,8 @@ const ApplyVisaPage: React.FC = () => {
         } catch (e) {
           console.error("Error saving to sessionStorage:", e);
         }
+
+        dataFetchedRef.current = true;
       } catch (e) {
         console.error("Error fetching visa details:", e);
         setVisaError(
@@ -182,6 +218,7 @@ const ApplyVisaPage: React.FC = () => {
           }`
         );
         setNoVisaAvailable(false);
+        dataFetchedRef.current = true;
       } finally {
         setLoading(false);
       }
@@ -195,6 +232,8 @@ const ApplyVisaPage: React.FC = () => {
           const parsed = JSON.parse(cached);
           setVisaDetails(parsed);
           setLoading(false);
+          dataFetchedRef.current = true;
+          return;
         }
       }
     } catch (e) {
