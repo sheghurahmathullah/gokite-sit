@@ -246,7 +246,7 @@ const CountrySlider = ({
       const visaResponse = await fetch("/api/cms/visa-country-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ countryCode: visa.id }),
+        body: JSON.stringify({ countryCode: visa.countryCode }),
       });
 
       console.log("[CountrySlider] API response status:", visaResponse.status);

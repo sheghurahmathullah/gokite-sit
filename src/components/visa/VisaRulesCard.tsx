@@ -287,7 +287,7 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
       const visaResponse = await fetch("/api/cms/visa-country-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ countryCode: rule.id }),
+        body: JSON.stringify({ countryCode: rule.countryCode }),
       });
 
       if (!visaResponse.ok) {
