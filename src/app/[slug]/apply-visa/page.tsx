@@ -41,28 +41,33 @@ const ApplyVisaPage: React.FC = () => {
       // Check if we have cached API response data from the booking card search
       if (typeof window !== "undefined") {
         try {
-          const cachedData = window.sessionStorage.getItem("cachedVisaSearchData");
-          const cachedTimestamp = window.sessionStorage.getItem("cachedVisaSearchTimestamp");
-          
+          const cachedData = window.sessionStorage.getItem(
+            "cachedVisaSearchData"
+          );
+          const cachedTimestamp = window.sessionStorage.getItem(
+            "cachedVisaSearchTimestamp"
+          );
+
           // Use cached data if it exists and is less than 5 minutes old
           if (cachedData && cachedTimestamp) {
             const age = Date.now() - parseInt(cachedTimestamp);
-            if (age < 5 * 60 * 1000) { // 5 minutes
+            if (age < 5 * 60 * 1000) {
+              // 5 minutes
               console.log("[ApplyVisa] Using cached visa search data");
               const parsedData = JSON.parse(cachedData);
-              
+
               if (parsedData.length > 0) {
                 const details = parsedData[0];
                 setVisaDetails(details);
                 setVisaError(null);
                 setNoVisaAvailable(false);
-                
+
                 // Store the visa details
                 window.sessionStorage.setItem(
                   "applyVisaDetails",
                   JSON.stringify(details || {})
                 );
-                
+
                 // Clear the cache after using it
                 window.sessionStorage.removeItem("cachedVisaSearchData");
                 window.sessionStorage.removeItem("cachedVisaSearchTimestamp");
@@ -116,14 +121,19 @@ const ApplyVisaPage: React.FC = () => {
           console.error(`API call failed for ${countryCode}:`, {
             status: res.status,
             statusText: res.statusText,
-            error: errorText
+            error: errorText,
           });
-          throw new Error(`Failed to fetch visa details for ${countryCode}: ${res.status} ${res.statusText}`);
+          throw new Error(
+            `Failed to fetch visa details for ${countryCode}: ${res.status} ${res.statusText}`
+          );
         }
 
         const json = await res.json();
         const items = Array.isArray(json?.data) ? json.data : [];
-        console.log(`API response for ${countryCode}:`, { itemsCount: items.length, data: json });
+        console.log(`API response for ${countryCode}:`, {
+          itemsCount: items.length,
+          data: json,
+        });
         return items;
       };
 
@@ -133,7 +143,9 @@ const ApplyVisaPage: React.FC = () => {
 
         // If no data found and we're not already using AE, retry with AE
         if (items.length === 0 && countryId !== "AE") {
-          console.log(`No data found for ${countryId}, retrying with default: AE`);
+          console.log(
+            `No data found for ${countryId}, retrying with default: AE`
+          );
           items = await fetchVisaData("AE");
         }
 
@@ -164,7 +176,11 @@ const ApplyVisaPage: React.FC = () => {
         }
       } catch (e) {
         console.error("Error fetching visa details:", e);
-        setVisaError(`Failed to load visa details: ${e instanceof Error ? e.message : 'Unknown error'}`);
+        setVisaError(
+          `Failed to load visa details: ${
+            e instanceof Error ? e.message : "Unknown error"
+          }`
+        );
         setNoVisaAvailable(false);
       } finally {
         setLoading(false);
@@ -191,7 +207,7 @@ const ApplyVisaPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <TopNav />
+      <TopNav isSticky={false} />
 
       <main className="pt-8">
         {loading ? (
@@ -261,4 +277,3 @@ const ApplyVisaPage: React.FC = () => {
 };
 
 export default ApplyVisaPage;
-

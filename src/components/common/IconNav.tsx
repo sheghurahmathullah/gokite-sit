@@ -9,7 +9,11 @@ const PAGE_SLUGS = {
   visa: "/visa-landing-page",
 };
 
-const TopNav = () => {
+interface TopNavProps {
+  isSticky?: boolean;
+}
+
+const TopNav = ({ isSticky = true }: TopNavProps) => {
   const pathname = usePathname();
 
   const iconNavItems = [
@@ -81,7 +85,7 @@ const TopNav = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full px-6 lg:px-12 py-4 flex items-center justify-between bg-background">
+    <nav className={`${isSticky ? 'sticky top-0 z-50' : ''} w-full px-6 lg:px-12 py-4 flex items-center justify-between bg-background`}>
       {/* Logo */}
       <div className="flex items-center gap-2">
         <Link href={PAGE_SLUGS.home} className="cursor-pointer">
