@@ -43,22 +43,9 @@ const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
 
   const handleCardClick = async () => {
     try {
-      // Fetch country ID from API
-      const res = await fetch("/api/cms/countries-dd-proxy", {
-        cache: "no-store",
-      });
-      const payload = await res.json();
-
-      const rows = Array.isArray(payload?.data?.data) ? payload.data.data : [];
-
-      const norm = (v: any) =>
-        typeof v === "string" ? v.trim().toLowerCase() : "";
-      const match = rows.find(
-        (r: any) => norm(r?.label) === norm(country.country)
-      );
-
-      if (!match?.id) {
-        console.log("Country id not found for:", country.country);
+      // Validate country code is available
+      if (!country.countryCode) {
+        console.log("Country code not available for:", country.country);
         const { toast } = await import("react-toastify");
         toast.error("The country is not found or no visa is available", {
           position: "top-right",
@@ -67,14 +54,13 @@ const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
         return;
       }
 
-      const countryId = String(match.id);
-      console.log("Selected visa country id:", countryId);
+      console.log("Selected visa country code:", country.countryCode);
 
       // Validate country has visa data before redirecting
       const visaResponse = await fetch("/api/cms/visa-country-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ countryCode: countryId }),
+        body: JSON.stringify({ countryCode: country.countryCode }),
       });
 
       if (!visaResponse.ok) {
@@ -97,10 +83,11 @@ const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
         return;
       }
 
-      // Store country ID and navigate
+      // Store country ID and country code, then navigate
       try {
         if (typeof window !== "undefined") {
-          window.sessionStorage.setItem("applyVisaCountryId", countryId);
+          window.sessionStorage.setItem("applyVisaCountryId", country.id);
+          window.sessionStorage.setItem("applyVisaCountryCode", country.countryCode);
         }
       } catch (_) {}
 
