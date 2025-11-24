@@ -233,15 +233,6 @@ const CountrySlider = ({
       console.log("[CountrySlider] Clicked on visa card for:", visa.country);
       console.log("[CountrySlider] Validating visa data for country:", visa.id);
       
-      // Store country ID first
-      try {
-        if (typeof window !== "undefined") {
-          window.sessionStorage.setItem("applyVisaCountryId", visa.id);
-        }
-      } catch (e) {
-        console.error("[CountrySlider] Error saving to sessionStorage:", e);
-      }
-
       // Validate country has visa data before redirecting
       const visaResponse = await fetch("/api/cms/visa-country-search", {
         method: "POST",
@@ -277,10 +268,26 @@ const CountrySlider = ({
       // Valid data found - store the visa details and redirect
       console.log("[CountrySlider] Valid visa data found, redirecting to apply-visa");
       
-      // Store the visa details for the apply-visa page
+      // Store country code and visa details for the apply-visa page
       try {
         if (typeof window !== "undefined") {
+          // Store country code (prioritize this over ID)
+          window.sessionStorage.setItem("applyVisaCountryCode", visa.countryCode);
+          // Store country ID as fallback (use countryCode if id is not reliable)
+          window.sessionStorage.setItem("applyVisaCountryId", visa.countryCode);
+          
+          // Store the visa details
           window.sessionStorage.setItem("applyVisaDetails", JSON.stringify(visaData.data[0]));
+          
+          // Also cache the search data for immediate use
+          window.sessionStorage.setItem(
+            "cachedVisaSearchData",
+            JSON.stringify(visaData.data)
+          );
+          window.sessionStorage.setItem(
+            "cachedVisaSearchTimestamp",
+            Date.now().toString()
+          );
         }
       } catch (e) {
         console.error("[CountrySlider] Error saving visa details:", e);

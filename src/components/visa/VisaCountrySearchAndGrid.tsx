@@ -83,11 +83,30 @@ const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
         return;
       }
 
-      // Store country ID and country code, then navigate
+      // Store country code and visa details, then navigate
       try {
         if (typeof window !== "undefined") {
-          window.sessionStorage.setItem("applyVisaCountryId", country.id);
+          // Store country code (prioritize this over ID)
           window.sessionStorage.setItem("applyVisaCountryCode", country.countryCode);
+          // Store country ID as fallback (use countryCode if id is not reliable)
+          window.sessionStorage.setItem("applyVisaCountryId", country.countryCode);
+          
+          // Cache the visa details from API response (like CountrySlider does)
+          if (visaData.data && visaData.data.length > 0) {
+            window.sessionStorage.setItem(
+              "applyVisaDetails",
+              JSON.stringify(visaData.data[0])
+            );
+            // Also cache the search data for immediate use
+            window.sessionStorage.setItem(
+              "cachedVisaSearchData",
+              JSON.stringify(visaData.data)
+            );
+            window.sessionStorage.setItem(
+              "cachedVisaSearchTimestamp",
+              Date.now().toString()
+            );
+          }
         }
       } catch (_) {}
 
@@ -225,6 +244,13 @@ export default function VisaCountrySearchAndGrid() {
         item?.visaCardJson?.processing_time ||
         "5";
 
+      // Extract country code with proper priority (same as visa page)
+      const countryCode =
+        item?.visaCardJson?.countryCode ||
+        item?.visaCardCountryId ||
+        item?.countryCode ||
+        "";
+
       const formatPrice = (currency: string, amount: string) => {
         if (!amount) return "";
         const numeric = Number(amount);
@@ -235,7 +261,7 @@ export default function VisaCountrySearchAndGrid() {
       return {
         id: item?.visaCardId || String(index),
         country: title,
-        countryCode: item?.visaCardCountryId || item?.countryCode || "",
+        countryCode: countryCode,
         price: formatPrice(item?.currency, item?.newPrice),
         currency: item?.currency || "₹",
         visaType: item?.visaCardJson?.subTitle || "Tourist Visa",

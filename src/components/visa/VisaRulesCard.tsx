@@ -309,14 +309,33 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
         return;
       }
 
-      // Store country ID and navigate
+      // Store country code and visa details, then navigate
       try {
         if (typeof window !== "undefined") {
-          window.sessionStorage.setItem("applyVisaCountryId", rule.id);
+          // Store country code (prioritize this over ID)
           window.sessionStorage.setItem(
             "applyVisaCountryCode",
             rule.countryCode
           );
+          // Store country ID as fallback (use countryCode if id is not reliable)
+          window.sessionStorage.setItem("applyVisaCountryId", rule.countryCode);
+          
+          // Cache the visa details from API response (like CountrySlider does)
+          if (visaData.data && visaData.data.length > 0) {
+            window.sessionStorage.setItem(
+              "applyVisaDetails",
+              JSON.stringify(visaData.data[0])
+            );
+            // Also cache the search data for immediate use
+            window.sessionStorage.setItem(
+              "cachedVisaSearchData",
+              JSON.stringify(visaData.data)
+            );
+            window.sessionStorage.setItem(
+              "cachedVisaSearchTimestamp",
+              Date.now().toString()
+            );
+          }
         }
       } catch (e) {
         console.error("Error saving to sessionStorage:", e);

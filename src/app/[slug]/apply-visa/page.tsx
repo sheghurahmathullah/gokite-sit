@@ -104,7 +104,12 @@ const ApplyVisaPage: React.FC = () => {
 
       try {
         if (typeof window !== "undefined") {
-          countryId = window.sessionStorage.getItem("applyVisaCountryId") || "";
+          // Prioritize applyVisaCountryCode over applyVisaCountryId
+          // applyVisaCountryCode is the correct ISO country code
+          countryId =
+            window.sessionStorage.getItem("applyVisaCountryCode") ||
+            window.sessionStorage.getItem("applyVisaCountryId") ||
+            "";
         }
       } catch (e) {
         console.error("Error reading from sessionStorage:", e);
