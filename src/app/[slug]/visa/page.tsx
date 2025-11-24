@@ -141,10 +141,7 @@ const VisaPage = () => {
   const transformVisaRulesData = (apiData: any[]): VisaRuleAnnouncement[] => {
     return apiData.map((item) => {
       const countryCode =
-        item.visaCardJson?.countryCode ||
-        item.visaCardCountryId ||
-        item.countryCode ||
-        "US";
+        item.visaCardJson?.countryCode || item.countryCode || "US";
 
       return {
         id: item.sectionVisaCardUniqueId || item.id,

@@ -27,9 +27,9 @@ interface VisaRulesCardProps {
   sectionTitle?: string; // Optional - section title from API, defaults to "Visa Rules & Announcements"
 }
 
-const VisaRulesCard: React.FC<VisaRulesCardProps> = ({ 
+const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
   visaRulesData: visaRulesDataProp,
-  sectionTitle: sectionTitleProp 
+  sectionTitle: sectionTitleProp,
 }) => {
   const [visaRulesData, setVisaRulesData] = useState<VisaRuleAnnouncement[]>(
     visaRulesDataProp || []
@@ -43,7 +43,7 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
   const { getPageIdWithFallback, loading: pageLoading } = usePageContext();
   const router = useRouter();
   const params = useParams();
-  const currentSlug = params.slug as string || "visa-landing-page";
+  const currentSlug = (params.slug as string) || "visa-landing-page";
   const dataFetchedRef = useRef(false);
 
   // Read cookie helper
@@ -119,10 +119,7 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
   const transformVisaRulesData = (apiData: any[]): VisaRuleAnnouncement[] => {
     return apiData.map((item) => {
       const countryCode =
-        item.visaCardJson?.countryCode ||
-        item.visaCardCountryId ||
-        item.countryCode ||
-        "US";
+        item.visaCardJson?.countryCode || item.countryCode || "US";
 
       return {
         id: item.sectionVisaCardUniqueId || item.id,
@@ -141,7 +138,9 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
   // Update visa rules and section title when props change
   useEffect(() => {
     if (visaRulesDataProp) {
-      console.log("[VisaRulesCard] Using visa rules from props, skipping API calls");
+      console.log(
+        "[VisaRulesCard] Using visa rules from props, skipping API calls"
+      );
       setVisaRulesData(visaRulesDataProp);
       setLoading(false);
     }
@@ -183,9 +182,9 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
 
         const visaRulesSection = sections.find(
           (s: any) =>
-            (s.title === "Visa Rules Announcement" || 
-             s.title?.toLowerCase().includes("visa rules") ||
-             s.title?.toLowerCase().includes("rules & announcements")) && 
+            (s.title === "Visa Rules Announcement" ||
+              s.title?.toLowerCase().includes("visa rules") ||
+              s.title?.toLowerCase().includes("rules & announcements")) &&
             s.contentType === "VISA"
         );
 
@@ -300,7 +299,7 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
       }
 
       const visaData = await visaResponse.json();
-      
+
       if (!visaData.success || !visaData.data || visaData.data.length === 0) {
         const { toast } = await import("react-toastify");
         toast.error("The country is not found or no visa is available", {
@@ -314,7 +313,10 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
       try {
         if (typeof window !== "undefined") {
           window.sessionStorage.setItem("applyVisaCountryId", rule.id);
-          window.sessionStorage.setItem("applyVisaCountryCode", rule.countryCode);
+          window.sessionStorage.setItem(
+            "applyVisaCountryCode",
+            rule.countryCode
+          );
         }
       } catch (e) {
         console.error("Error saving to sessionStorage:", e);
@@ -328,7 +330,7 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
           window.sessionStorage.setItem("currentPageSlug", currentSlug);
         } catch (_) {}
       }
-      
+
       router.push(`/${currentSlug}/apply-visa`);
     } catch (e) {
       console.error("Failed to validate visa:", e);
@@ -344,9 +346,7 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
     <section className="w-full px-6 py-1 lg:pb-12">
       <div className="max-w-[85rem] mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {sectionTitle}
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900">{sectionTitle}</h2>
           <div className="flex items-center gap-2">
             <button
               onClick={() => scroll("left")}
