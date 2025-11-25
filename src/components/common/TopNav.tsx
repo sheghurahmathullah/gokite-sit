@@ -6,7 +6,7 @@ const TopNav = () => {
     <nav className="w-full px-6 lg:px-12 py-4 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Link href="/" className="cursor-pointer">
-          <img src="/gokite.png" alt="GoKite" className="h-12" />
+          <img src="/gokite.png" alt="GoKite" className="h-20" />
         </Link>
       </div>
 

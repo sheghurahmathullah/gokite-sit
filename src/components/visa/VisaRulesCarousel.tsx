@@ -106,7 +106,7 @@ const VisaRuleCard = ({ rule, onClick }: VisaRuleCardProps) => {
         <img
           src="/gokite.png"
           alt="Logo"
-          className="h-6 w-auto object-contain"
+          className="h-12 w-auto object-contain"
         />
       </div>
     </div>

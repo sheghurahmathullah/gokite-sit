@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,12 +24,25 @@ const HolidayBookingCard = () => {
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const clearStoredSelection = useCallback(() => {
+    setSelectedCountry(null);
+    try {
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem("selectedHolidayDestination");
+        window.sessionStorage.removeItem("selectedHolidayDestinationType");
+        window.sessionStorage.removeItem("selectedHolidayCityId");
+        window.sessionStorage.removeItem("selectedHolidayCountryId");
+      }
+    } catch (_) {}
+  }, []);
+
   // Handle search input change with autocomplete
   const handleSearchInputChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = e.target.value;
     setSearchQuery(value);
+    clearStoredSelection();
 
     // Clear previous timer
     if (debounceTimer.current) {
@@ -338,6 +351,7 @@ const HolidayBookingCard = () => {
                 setSearchQuery("");
                 setSuggestions([]);
                 setShowDropdown(false);
+                clearStoredSelection();
               }}
               className={`px-4 py-2 text-sm font-bold tracking-wider rounded-md transition-all ${
                 searchType === "city"
@@ -353,6 +367,7 @@ const HolidayBookingCard = () => {
                 setSearchQuery("");
                 setSuggestions([]);
                 setShowDropdown(false);
+                clearStoredSelection();
               }}
               className={`px-4 py-2 text-sm font-bold tracking-wider rounded-md transition-all ${
                 searchType === "country"

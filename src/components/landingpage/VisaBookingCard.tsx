@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Search, Calendar } from "lucide-react";
@@ -24,6 +24,19 @@ const VisaBookingCard = () => {
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const clearVisaSelection = useCallback(() => {
+    setSelectedCountry(null);
+    try {
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem("applyVisaCountryId");
+        window.sessionStorage.removeItem("applyVisaCountryCode");
+        window.sessionStorage.removeItem("applyVisaDetails");
+        window.sessionStorage.removeItem("cachedVisaSearchData");
+        window.sessionStorage.removeItem("cachedVisaSearchTimestamp");
+      }
+    } catch (_) {}
+  }, []);
 
   // Format date for display
   const month = date.toLocaleString("en-US", { month: "long" });
@@ -71,6 +84,7 @@ const VisaBookingCard = () => {
   ) => {
     const value = e.target.value;
     setSearchQuery(value);
+    clearVisaSelection();
 
     // Clear previous timer
     if (debounceTimer.current) {

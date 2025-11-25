@@ -93,7 +93,7 @@ const TopNav = ({ isSticky = true }: TopNavProps) => {
       {/* Logo */}
       <div className="flex items-center gap-2">
         <Link href={PAGE_SLUGS.home} className="cursor-pointer">
-          <img src="/gokite.png" alt="GoKite" className="h-12" />
+          <img src="/gokite.png" alt="GoKite" className="h-20" />
         </Link>
       </div>
 

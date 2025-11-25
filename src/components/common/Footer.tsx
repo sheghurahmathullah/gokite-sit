@@ -66,7 +66,7 @@ const Footer = () => {
                 <img
                   src="/gokite.png"
                   alt="GoKite"
-                  className="h-16 cursor-pointer"
+                  className="h-20 cursor-pointer"
                 />
               </a>
             </div>
