@@ -119,7 +119,7 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
   const transformVisaRulesData = (apiData: any[]): VisaRuleAnnouncement[] => {
     return apiData.map((item) => {
       const countryCode =
-        item.visaCardJson?.countryCode || item.countryCode || "US";
+        item.visaCardCountryId || item.visaCardJson?.countryCode || item.countryCode || "US";
 
       return {
         id: item.sectionVisaCardUniqueId || item.id,
