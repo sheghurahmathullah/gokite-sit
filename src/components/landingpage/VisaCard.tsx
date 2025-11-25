@@ -66,39 +66,49 @@ const VisaCard = ({ destination }: VisaCardProps) => {
     try {
       console.log("[VisaCard] Clicked on visa card for:", destination.country);
 
-      // Fetch country ID from API
-      const res = await fetch("/api/cms/countries-dd-proxy", {
-        cache: "no-store",
-      });
-      const payload = await res.json();
+      let countryCode: string;
 
-      const rows = Array.isArray(payload?.data?.data) ? payload.data.data : [];
-
-      const norm = (v: any) =>
-        typeof v === "string" ? v.trim().toLowerCase() : "";
-      const match = rows.find(
-        (r: any) => norm(r?.label) === norm(destination.country)
-      );
-
-      if (!match?.id) {
-        console.error(
-          "[VisaCard] Country id not found for:",
-          destination.country
-        );
-        toast.error("The country is not found or no visa is available", {
-          position: "top-right",
-          autoClose: 4000,
+      // Use countryCode directly if available (from API response)
+      if (destination.countryCode) {
+        countryCode = destination.countryCode;
+        console.log("[VisaCard] Using countryCode from destination:", countryCode);
+      } else {
+        // Fallback: Fetch country ID from API by matching country name
+        console.log("[VisaCard] CountryCode not available, fetching from API");
+        const res = await fetch("/api/cms/countries-dd-proxy", {
+          cache: "no-store",
         });
-        return;
+        const payload = await res.json();
+
+        const rows = Array.isArray(payload?.data?.data) ? payload.data.data : [];
+
+        const norm = (v: any) =>
+          typeof v === "string" ? v.trim().toLowerCase() : "";
+        const match = rows.find(
+          (r: any) => norm(r?.label) === norm(destination.country)
+        );
+
+        if (!match?.id) {
+          console.error(
+            "[VisaCard] Country id not found for:",
+            destination.country
+          );
+          toast.error("The country is not found or no visa is available", {
+            position: "top-right",
+            autoClose: 4000,
+          });
+          return;
+        }
+
+        countryCode = String(match.id);
+        console.log("[VisaCard] Found countryCode from API:", countryCode);
       }
 
-      const countryId = String(match.id);
-      console.log("[VisaCard] Validating visa data for country:", countryId);
-
-      // Store country ID
+      // Store country code
       try {
         if (typeof window !== "undefined") {
-          window.sessionStorage.setItem("applyVisaCountryId", countryId);
+          window.sessionStorage.setItem("applyVisaCountryCode", countryCode);
+          window.sessionStorage.setItem("applyVisaCountryId", countryCode);
         }
       } catch (_) {}
 
@@ -106,7 +116,7 @@ const VisaCard = ({ destination }: VisaCardProps) => {
       const visaResponse = await fetch("/api/cms/visa-country-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ countryCode: countryId }),
+        body: JSON.stringify({ countryCode }),
       });
 
       console.log("[VisaCard] API response status:", visaResponse.status);

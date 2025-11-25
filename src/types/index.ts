@@ -18,6 +18,7 @@ export interface Destination {
 export interface VisaDestination {
   id: string;
   country: string;
+  countryCode?: string;
   image: string;
   processing_days?: string;
   processing_time?: string;

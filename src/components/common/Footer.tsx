@@ -64,7 +64,7 @@ const Footer = () => {
             <div className="flex items-center gap-2 mb-4">
               <a href="/master-landing-page">
                 <img
-                  src="/logo.svg"
+                  src="/gokite.png"
                   alt="GoKite"
                   className="h-16 cursor-pointer"
                 />

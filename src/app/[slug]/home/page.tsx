@@ -36,6 +36,7 @@ interface HolidayCardItem {
 interface VisaCardItem {
   visaCardId: string;
   visaCardTitle: string;
+  visaCardCountryId?: string;
   visaCardJson: {
     image?: string;
     processing_days?: string;
@@ -267,6 +268,7 @@ const Index = () => {
         id: item.visaCardId,
         image: getImageUrl(item?.visaCardJson?.image),
         country: item.visaCardTitle,
+        countryCode: item.visaCardCountryId, // Extract country code from API response
         processing_days: item.visaCardJson?.processing_days,
         processing_time: item.visaCardJson?.processing_time,
         fastTrack: item.visaCardTitle, // Simple string mapping

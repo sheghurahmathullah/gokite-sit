@@ -87,14 +87,14 @@ const VisaRuleCard = ({ rule, onClick }: VisaRuleCardProps) => {
 
       {/* Main Content */}
       <div className="px-6 pb-16 pt-2 flex-1 overflow-hidden">
-        <p 
+        <p
           className="text-gray-700 text-[15px] leading-relaxed overflow-hidden text-ellipsis"
           style={{
-            display: '-webkit-box',
+            display: "-webkit-box",
             WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            maxHeight: '85px', // 3.5 lines: 15px * 1.625 (leading-relaxed) * 3.5 ≈ 85px
-            lineHeight: '1.625'
+            WebkitBoxOrient: "vertical",
+            maxHeight: "85px", // 3.5 lines: 15px * 1.625 (leading-relaxed) * 3.5 ≈ 85px
+            lineHeight: "1.625",
           }}
         >
           {rule.description}
@@ -103,7 +103,11 @@ const VisaRuleCard = ({ rule, onClick }: VisaRuleCardProps) => {
 
       {/* Logo - Bottom Right */}
       <div className="absolute bottom-5 right-6">
-        <img src="/logo.svg" alt="Logo" className="h-6 w-auto object-contain" />
+        <img
+          src="/gokite.png"
+          alt="Logo"
+          className="h-6 w-auto object-contain"
+        />
       </div>
     </div>
   );

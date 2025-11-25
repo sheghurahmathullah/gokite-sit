@@ -85,11 +85,15 @@ const TopNav = ({ isSticky = true }: TopNavProps) => {
   };
 
   return (
-    <nav className={`${isSticky ? 'sticky top-0 z-50' : ''} w-full px-6 lg:px-12 py-4 flex items-center justify-between bg-background`}>
+    <nav
+      className={`${
+        isSticky ? "sticky top-0 z-50" : ""
+      } w-full px-6 lg:px-12 py-4 flex items-center justify-between bg-background`}
+    >
       {/* Logo */}
       <div className="flex items-center gap-2">
         <Link href={PAGE_SLUGS.home} className="cursor-pointer">
-          <img src="/logo.svg" alt="GoKite" className="h-12" />
+          <img src="/gokite.png" alt="GoKite" className="h-12" />
         </Link>
       </div>
 
