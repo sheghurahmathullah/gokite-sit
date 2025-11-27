@@ -14,6 +14,9 @@ import Footer from "@/components/common/Footer";
 import { Button } from "@/components/ui/button";
 import { usePageContext } from "@/components/common/PageContext";
 import { HomePageSkeleton } from "@/components/common/SkeletonLoader";
+import SEOHead from "@/components/seo/SEOHead";
+import { SEO_CONFIG, getCanonicalUrl } from "@/lib/seo/config";
+import { formatSEOTitle, formatSEODescription } from "@/lib/seo/utils";
 
 // Define types for API responses
 interface HolidayCardItem {
@@ -97,10 +100,6 @@ const Index = () => {
   // Set page title dynamically and store page slug
   useEffect(() => {
     const pageInfo = getPageInfo("landing");
-    if (pageInfo?.title) {
-      document.title = pageInfo.title;
-    }
-
     // Store page slug for nested routing
     if (pageInfo?.slug && typeof window !== "undefined") {
       try {
@@ -457,8 +456,66 @@ const Index = () => {
     );
   }
 
+  const pageInfo = getPageInfo("landing");
+  // Ensure descriptive title - format properly even if API returns short title
+  const seoTitle = formatSEOTitle(
+    pageInfo?.seoMeta?.metaTitle || pageInfo?.title,
+    "GoKite - Book Your Entire Trip in One Place"
+  );
+  const seoDescription = formatSEODescription(
+    pageInfo?.seoMeta?.metaDescription,
+    "Book your entire trip in one place with GoKite. Discover amazing holiday packages, visa services, flights, hotels, and activities all in one platform."
+  );
+  const seoKeywords = pageInfo?.seoMeta?.metaKeywords || [
+    "holiday packages",
+    "visa services",
+    "travel booking",
+    "GoKite",
+    "travel UAE",
+    "Dubai travel",
+  ];
+  const canonicalPath = pageInfo?.slug
+    ? `/${pageInfo.slug}`
+    : "/master-landing-page";
+
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title={seoTitle}
+        description={seoDescription}
+        keywords={seoKeywords}
+        pageName={pageInfo?.title || "Home"}
+        canonical={canonicalPath}
+        openGraph={{
+          title: seoTitle,
+          description: seoDescription,
+          image: getCanonicalUrl("/landingpage/hero.png"),
+          url: getCanonicalUrl(canonicalPath),
+          type: "website",
+        }}
+        twitter={{
+          title: seoTitle,
+          description: seoDescription,
+          image: getCanonicalUrl("/landingpage/hero.png"),
+        }}
+        hreflang={[
+          {
+            href: `${SEO_CONFIG.countryDomains["en-ae"]}${canonicalPath}`,
+            hreflang: "en-ae",
+          },
+          {
+            href: `${SEO_CONFIG.countryDomains["en-in"]}${canonicalPath}`,
+            hreflang: "en-in",
+          },
+          {
+            href: `${SEO_CONFIG.countryDomains["en-om"]}${canonicalPath}`,
+            hreflang: "en-om",
+          },
+        ]}
+        schema={{
+          breadcrumb: [{ name: "Home", url: SEO_CONFIG.baseDomain }],
+        }}
+      />
       <TopNav />
 
       <main>

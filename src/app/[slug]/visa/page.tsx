@@ -9,6 +9,9 @@ import VisaCountrySearchAndGrid from "@/components/visa/VisaCountrySearchAndGrid
 import StepsGetVisa from "@/components/visa/StepsGetVisa";
 import { usePageContext } from "@/components/common/PageContext";
 import { CarouselSkeleton } from "@/components/common/SkeletonLoader";
+import SEOHead from "@/components/seo/SEOHead";
+import { SEO_CONFIG, getCanonicalUrl } from "@/lib/seo/config";
+import { formatSEOTitle, formatSEODescription } from "@/lib/seo/utils";
 
 interface Section {
   pageSectionId: string;
@@ -90,10 +93,6 @@ const VisaPage = () => {
   // Set page title dynamically and store page slug
   useEffect(() => {
     const pageInfo = getPageInfo("visaLanding");
-    if (pageInfo?.title) {
-      document.title = pageInfo.title;
-    }
-
     // Store page slug for nested routing
     if (pageInfo?.slug && typeof window !== "undefined") {
       try {
@@ -398,8 +397,60 @@ const VisaPage = () => {
     loadData();
   }, [pageLoading, isAuthenticated]);
 
+  const pageInfo = getPageInfo("visaLanding");
+  // Ensure descriptive title - format properly even if API returns short title
+  const seoTitle = formatSEOTitle(
+    pageInfo?.seoMeta?.metaTitle || pageInfo?.title,
+    "Visa Services - GoKite | Apply for Visa Online"
+  );
+  const seoDescription = formatSEODescription(
+    pageInfo?.seoMeta?.metaDescription,
+    "Apply for visa online with GoKite. Fast and easy visa application process for multiple countries. Get your visa approved quickly with our expert visa services."
+  );
+  const seoKeywords = pageInfo?.seoMeta?.metaKeywords || ["visa services", "apply visa online", "visa application", "eVisa", "travel visa", "visa UAE"];
+  const canonicalPath = pageInfo?.slug ? `/${pageInfo.slug}` : "/visa-landing-page";
+
+  // Generate FAQ schema from visa rules if available
+  const faqSchema = visaRulesData.length > 0
+    ? visaRulesData.slice(0, 10).map((rule) => ({
+        question: rule.title || `Visa requirements for ${rule.country}`,
+        answer: rule.description,
+      }))
+    : undefined;
+
   return (
     <div className="min-h-screen bg-white">
+      <SEOHead
+        title={seoTitle}
+        description={seoDescription}
+        keywords={seoKeywords}
+        pageName={pageInfo?.title || "Visa Services"}
+        canonical={canonicalPath}
+        openGraph={{
+          title: seoTitle,
+          description: seoDescription,
+          image: getCanonicalUrl("/visa/img.png"),
+          url: getCanonicalUrl(canonicalPath),
+          type: "website",
+        }}
+        twitter={{
+          title: seoTitle,
+          description: seoDescription,
+          image: getCanonicalUrl("/visa/img.png"),
+        }}
+        hreflang={[
+          { href: `${SEO_CONFIG.countryDomains["en-ae"]}${canonicalPath}`, hreflang: "en-ae" },
+          { href: `${SEO_CONFIG.countryDomains["en-in"]}${canonicalPath}`, hreflang: "en-in" },
+          { href: `${SEO_CONFIG.countryDomains["en-om"]}${canonicalPath}`, hreflang: "en-om" },
+        ]}
+        schema={{
+          breadcrumb: [
+            { name: "Home", url: SEO_CONFIG.baseDomain },
+            { name: pageInfo?.title || "Visa Services", url: getCanonicalUrl(canonicalPath) },
+          ],
+          faq: faqSchema,
+        }}
+      />
       <TopNav />
 
       <main>

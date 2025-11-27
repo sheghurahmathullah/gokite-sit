@@ -13,6 +13,9 @@ import WhatsIncluded from "@/components/tour/WhatsIncluded";
 import TourFAQ from "@/components/tour/TourFAQ";
 import HolidayEnquiryForm from "@/components/tour/HolidayEnquiryForm";
 import { ContentPageSkeleton } from "@/components/common/SkeletonLoader";
+import SEOHead from "@/components/seo/SEOHead";
+import { SEO_CONFIG, getCanonicalUrl } from "@/lib/seo/config";
+import { usePageContext } from "@/components/common/PageContext";
 
 // Use local proxy; server will attach Authorization from cookie
 const getAuthHeaders = () => ({ "Content-Type": "application/json" });
@@ -36,6 +39,7 @@ async function fetchHolidayDetails(holidayId: string) {
 const TourDetailPageInner = () => {
   const params = useParams();
   const searchParams = useSearchParams();
+  const { getPageInfo } = usePageContext();
   const [isEnquiryFormOpen, setIsEnquiryFormOpen] = useState(false);
   const [holidayDetails, setHolidayDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -256,8 +260,95 @@ const TourDetailPageInner = () => {
       : [],
   };
 
+  // Get page slug for canonical URL
+  const pageInfo = getPageInfo("holidays");
+  const pageSlug = pageInfo?.slug || "holiday-home-page";
+  const tourSlug = params.tourSlug as string;
+  const canonicalPath = `/${pageSlug}/tour-details/${tourSlug}`;
+
+  // Prepare SEO data
+  const tourTitle = transformedTourData.title || holidayDetails?.title || "Tour Package";
+  const tourDescription = transformedTourData.description || holidayDetails?.cardJson?.description || `Discover ${tourTitle} - Book your perfect holiday package with GoKite.`;
+  const tourImage = transformedTourData.heroImages?.main || transformedTourData.heroImages?.thumbnails?.[0] || getCanonicalUrl("/images/holidays/hero-sunset.jpg");
+  
+  // Product schema data
+  const productPrice = transformedTourData.finalPrice?.toString() || transformedTourData.originalPrice?.toString() || "0";
+  const productCurrency = transformedTourData.currency || "AED";
+  const productImage = Array.isArray(transformedTourData.heroImages?.thumbnails) 
+    ? transformedTourData.heroImages.thumbnails.map((img: string) => getCanonicalUrl(img))
+    : tourImage;
+
+  // FAQ schema
+  const faqSchema = transformedTourData.faqs && transformedTourData.faqs.length > 0
+    ? transformedTourData.faqs.map((faq: any) => ({
+        question: faq.question,
+        answer: faq.answer,
+      }))
+    : undefined;
+
+  // Breadcrumb schema
+  const breadcrumbSchema = [
+    { name: "Home", url: SEO_CONFIG.baseDomain },
+    { name: pageInfo?.title || "Holiday Packages", url: getCanonicalUrl(`/${pageSlug}`) },
+    { name: tourTitle, url: getCanonicalUrl(canonicalPath) },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title={`${tourTitle} - GoKite | Holiday Package Details`}
+        description={tourDescription}
+        keywords={[
+          tourTitle,
+          "holiday package",
+          "tour package",
+          "travel package",
+          "vacation",
+          "GoKite",
+          transformedTourData.destination || "",
+        ]}
+        pageName={tourTitle}
+        canonical={canonicalPath}
+        openGraph={{
+          title: `${tourTitle} - GoKite`,
+          description: tourDescription,
+          image: tourImage,
+          url: getCanonicalUrl(canonicalPath),
+          type: "product",
+        }}
+        twitter={{
+          title: `${tourTitle} - GoKite`,
+          description: tourDescription,
+          image: tourImage,
+        }}
+        hreflang={[
+          { href: `${SEO_CONFIG.countryDomains["en-ae"]}${canonicalPath}`, hreflang: "en-ae" },
+          { href: `${SEO_CONFIG.countryDomains["en-in"]}${canonicalPath}`, hreflang: "en-in" },
+          { href: `${SEO_CONFIG.countryDomains["en-om"]}${canonicalPath}`, hreflang: "en-om" },
+        ]}
+        schema={{
+          product: {
+            name: tourTitle,
+            description: tourDescription,
+            image: productImage,
+            brand: "GoKite",
+            offers: {
+              price: productPrice,
+              priceCurrency: productCurrency,
+              availability: "InStock",
+              url: getCanonicalUrl(canonicalPath),
+            },
+            ...(transformedTourData.rating && {
+              aggregateRating: {
+                ratingValue: typeof transformedTourData.rating === "number" ? transformedTourData.rating : parseFloat(transformedTourData.rating) || 0,
+                reviewCount: 0, // Update with actual review count if available
+              },
+            }),
+          },
+          breadcrumb: breadcrumbSchema,
+          faq: faqSchema,
+        }}
+      />
       <TopNav />
 
       {/* Hero Section with Images and Info Card */}

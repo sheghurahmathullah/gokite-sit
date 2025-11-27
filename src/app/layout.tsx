@@ -8,6 +8,7 @@ import { PageProvider } from "@/components/common/PageContext";
 import { Toaster } from "@/components/ui/toaster";
 import { ToastContainer } from "react-toastify";
 import { FetchRetryInitializer } from "@/components/common/FetchRetryInitializer";
+import SEOHelmetProvider from "@/components/seo/HelmetProvider";
 
 const monda = Monda({
   weight: ["400", "700"],
@@ -36,24 +37,26 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${monda.variable} ${outfit.variable}`}>
       <body>
-        <FetchRetryInitializer />
-        <PageProvider>
-          {children}
-          <Toaster />
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-            style={{ zIndex: 9999 }}
-          />
-        </PageProvider>
+        <SEOHelmetProvider>
+          <FetchRetryInitializer />
+          <PageProvider>
+            {children}
+            <Toaster />
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+              style={{ zIndex: 9999 }}
+            />
+          </PageProvider>
+        </SEOHelmetProvider>
       </body>
     </html>
   );

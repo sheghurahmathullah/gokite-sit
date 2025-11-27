@@ -10,6 +10,9 @@ import HolidayCarousel, {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePageContext } from "@/components/common/PageContext";
 import { CarouselSkeleton } from "@/components/common/SkeletonLoader";
+import SEOHead from "@/components/seo/SEOHead";
+import { SEO_CONFIG, getCanonicalUrl } from "@/lib/seo/config";
+import { formatSEOTitle, formatSEODescription } from "@/lib/seo/utils";
 
 const HolidaysPage = () => {
   const router = useRouter();
@@ -87,10 +90,6 @@ const HolidaysPage = () => {
   // Set page title dynamically and store page slug
   useEffect(() => {
     const pageInfo = getPageInfo("holidays");
-    if (pageInfo?.title) {
-      document.title = pageInfo.title;
-    }
-    
     // Store page slug for nested routing
     if (pageInfo?.slug && typeof window !== "undefined") {
       try {
@@ -373,8 +372,51 @@ const HolidaysPage = () => {
     };
   }, [selectedCategoryId]);
 
+  const pageInfo = getPageInfo("holidays");
+  // Ensure descriptive title - format properly even if API returns short title
+  const seoTitle = formatSEOTitle(
+    pageInfo?.seoMeta?.metaTitle || pageInfo?.title,
+    "Holiday Packages - GoKite | Book Your Dream Vacation"
+  );
+  const seoDescription = formatSEODescription(
+    pageInfo?.seoMeta?.metaDescription,
+    "Discover amazing holiday packages with GoKite. Browse through beach holidays, adventure trips, city breaks, and more. Book your dream vacation today with best prices guaranteed."
+  );
+  const seoKeywords = pageInfo?.seoMeta?.metaKeywords || ["holiday packages", "vacation packages", "travel packages", "holiday deals", "beach holidays", "adventure holidays"];
+  const canonicalPath = pageInfo?.slug ? `/${pageInfo.slug}` : "/holiday-home-page";
+
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title={seoTitle}
+        description={seoDescription}
+        keywords={seoKeywords}
+        pageName={pageInfo?.title || "Holiday Packages"}
+        canonical={canonicalPath}
+        openGraph={{
+          title: seoTitle,
+          description: seoDescription,
+          image: getCanonicalUrl("/images/holidays/hero-sunset.jpg"),
+          url: getCanonicalUrl(canonicalPath),
+          type: "website",
+        }}
+        twitter={{
+          title: seoTitle,
+          description: seoDescription,
+          image: getCanonicalUrl("/images/holidays/hero-sunset.jpg"),
+        }}
+        hreflang={[
+          { href: `${SEO_CONFIG.countryDomains["en-ae"]}${canonicalPath}`, hreflang: "en-ae" },
+          { href: `${SEO_CONFIG.countryDomains["en-in"]}${canonicalPath}`, hreflang: "en-in" },
+          { href: `${SEO_CONFIG.countryDomains["en-om"]}${canonicalPath}`, hreflang: "en-om" },
+        ]}
+        schema={{
+          breadcrumb: [
+            { name: "Home", url: SEO_CONFIG.baseDomain },
+            { name: pageInfo?.title || "Holiday Packages", url: getCanonicalUrl(canonicalPath) },
+          ],
+        }}
+      />
       <TopNav />
 
       {/* Hero Section */}

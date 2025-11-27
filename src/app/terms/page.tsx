@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
 import { Skeleton } from "@/components/common/SkeletonLoader";
+import SEOHead from "@/components/seo/SEOHead";
+import { SEO_CONFIG } from "@/lib/seo/config";
 
 const TermsPage = () => {
   const [activeSection, setActiveSection] = useState("general-terms");
@@ -69,6 +71,32 @@ const TermsPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEOHead
+        title="Terms & Conditions - GoKite | Terms of Use & Policies"
+        description="Read GoKite's terms and conditions, privacy policy, cookie policy, and best price guarantee. Understand our terms of use and policies for booking travel services."
+        keywords={["terms and conditions", "terms of use", "cookie policy", "best price guarantee", "travel terms", "GoKite terms"]}
+        pageName="Terms & Conditions"
+        canonical="/terms"
+        robots="index, follow"
+        openGraph={{
+          title: "Terms & Conditions - GoKite",
+          description: "Read GoKite's terms and conditions, privacy policy, cookie policy, and best price guarantee.",
+          image: "/images/terms-og.jpg",
+          url: `${SEO_CONFIG.baseDomain}/terms`,
+          type: "website",
+        }}
+        twitter={{
+          title: "Terms & Conditions - GoKite",
+          description: "Read GoKite's terms and conditions, privacy policy, cookie policy, and best price guarantee.",
+          image: "/images/terms-og.jpg",
+        }}
+        schema={{
+          breadcrumb: [
+            { name: "Home", url: SEO_CONFIG.baseDomain },
+            { name: "Terms & Conditions", url: `${SEO_CONFIG.baseDomain}/terms` },
+          ],
+        }}
+      />
       <TopNav />
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex gap-8">

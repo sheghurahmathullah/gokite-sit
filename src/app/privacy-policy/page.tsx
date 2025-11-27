@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
 import { ContentPageSkeleton } from "@/components/common/SkeletonLoader";
+import SEOHead from "@/components/seo/SEOHead";
+import { SEO_CONFIG } from "@/lib/seo/config";
 
 const PrivacyPolicy = () => {
   const [content, setContent] = useState<string>("");
@@ -55,6 +57,32 @@ const PrivacyPolicy = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEOHead
+        title="Privacy Policy - GoKite | Your Data Protection & Privacy"
+        description="Read GoKite's privacy policy to understand how we collect, use, and protect your personal information. Learn about your privacy rights and our commitment to data protection."
+        keywords={["privacy policy", "data protection", "privacy", "data security", "personal information", "GoKite privacy"]}
+        pageName="Privacy Policy"
+        canonical="/privacy-policy"
+        robots="index, follow"
+        openGraph={{
+          title: "Privacy Policy - GoKite",
+          description: "Read GoKite's privacy policy to understand how we collect, use, and protect your personal information.",
+          image: "/images/privacy-policy-og.jpg",
+          url: `${SEO_CONFIG.baseDomain}/privacy-policy`,
+          type: "website",
+        }}
+        twitter={{
+          title: "Privacy Policy - GoKite",
+          description: "Read GoKite's privacy policy to understand how we collect, use, and protect your personal information.",
+          image: "/images/privacy-policy-og.jpg",
+        }}
+        schema={{
+          breadcrumb: [
+            { name: "Home", url: SEO_CONFIG.baseDomain },
+            { name: "Privacy Policy", url: `${SEO_CONFIG.baseDomain}/privacy-policy` },
+          ],
+        }}
+      />
       <TopNav />
 
       <main className="flex-1 px-6 lg:px-12 py-8">

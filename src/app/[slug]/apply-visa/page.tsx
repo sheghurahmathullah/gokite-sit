@@ -9,11 +9,15 @@ import {
   requirements,
   faqs,
 } from "@/data/visaApplyData";
+import SEOHead from "@/components/seo/SEOHead";
+import { SEO_CONFIG, getCanonicalUrl } from "@/lib/seo/config";
+import { usePageContext } from "@/components/common/PageContext";
 
 // Global request deduplication map to prevent concurrent identical API calls
 const pendingRequests = new Map<string, Promise<any>>();
 
 const ApplyVisaPage: React.FC = () => {
+  const { getPageInfo } = usePageContext();
   const [visaDetails, setVisaDetails] = useState<any>(null);
   const [visaError, setVisaError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -248,8 +252,66 @@ const ApplyVisaPage: React.FC = () => {
     loadVisaDetails();
   }, []);
 
+  const pageInfo = getPageInfo("visaLanding");
+  const pageSlug = pageInfo?.slug || "visa-landing-page";
+  const canonicalPath = `/${pageSlug}/apply-visa`;
+  const visaCountry = visaDetails?.detailsJson?.country || "UAE";
+  const visaTitle = `Apply for ${visaCountry} Visa Online - GoKite`;
+  const visaDescription = `Apply for ${visaCountry} visa online with GoKite. Fast and easy visa application process. Get your visa approved quickly with our expert visa services.`;
+  
+  // FAQ schema from visa details or fallback
+  const faqSchema = visaDetails?.detailsJson?.faq && visaDetails.detailsJson.faq.length > 0
+    ? visaDetails.detailsJson.faq.map((f: any) => ({
+        question: f.question,
+        answer: f.answer,
+      }))
+    : faqs.map((f) => ({
+        question: f.question,
+        answer: f.answer,
+      }));
+
   return (
     <div className="min-h-screen bg-white">
+      <SEOHead
+        title={visaTitle}
+        description={visaDescription}
+        keywords={[
+          `apply ${visaCountry} visa`,
+          "visa application",
+          "online visa",
+          "eVisa",
+          "travel visa",
+          "visa services",
+          "GoKite visa",
+        ]}
+        pageName={`Apply for ${visaCountry} Visa`}
+        canonical={canonicalPath}
+        openGraph={{
+          title: visaTitle,
+          description: visaDescription,
+          image: getCanonicalUrl("/applyvisa/banner-right.png"),
+          url: getCanonicalUrl(canonicalPath),
+          type: "website",
+        }}
+        twitter={{
+          title: visaTitle,
+          description: visaDescription,
+          image: getCanonicalUrl("/applyvisa/banner-right.png"),
+        }}
+        hreflang={[
+          { href: `${SEO_CONFIG.countryDomains["en-ae"]}${canonicalPath}`, hreflang: "en-ae" },
+          { href: `${SEO_CONFIG.countryDomains["en-in"]}${canonicalPath}`, hreflang: "en-in" },
+          { href: `${SEO_CONFIG.countryDomains["en-om"]}${canonicalPath}`, hreflang: "en-om" },
+        ]}
+        schema={{
+          breadcrumb: [
+            { name: "Home", url: SEO_CONFIG.baseDomain },
+            { name: pageInfo?.title || "Visa Services", url: getCanonicalUrl(`/${pageSlug}`) },
+            { name: `Apply for ${visaCountry} Visa`, url: getCanonicalUrl(canonicalPath) },
+          ],
+          faq: faqSchema,
+        }}
+      />
       {/* Navigation */}
       <TopNav isSticky={false} />
 

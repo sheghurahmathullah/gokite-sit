@@ -8,6 +8,9 @@ import FilterSidebar, {
 } from "@/components/holiday-grid/FilterSidebar";
 import DestinationCard from "@/components/common/DestinationCard";
 import { Skeleton } from "@/components/common/SkeletonLoader";
+import SEOHead from "@/components/seo/SEOHead";
+import { SEO_CONFIG, getCanonicalUrl } from "@/lib/seo/config";
+import { usePageContext } from "@/components/common/PageContext";
 
 // Fallback images if API does not provide an image
 const FALLBACK_IMAGES = [
@@ -34,6 +37,7 @@ const CATEGORY_ID_MAP: Record<string, number> = {
 };
 
 const HolidayListPage = () => {
+  const { getPageInfo } = usePageContext();
   const [allDestinations, setAllDestinations] = useState<any[]>([]);
   const [destinations, setDestinations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -452,8 +456,52 @@ const HolidayListPage = () => {
     [rawApiData]
   ); // Only recreate when rawApiData changes
 
+  const pageInfo = getPageInfo("holidays");
+  const pageSlug = pageInfo?.slug || "holiday-home-page";
+  const canonicalPath = `/${pageSlug}/holiday-list`;
+  const seoTitle = "Holiday Packages List - GoKite | Browse All Vacation Packages";
+  const seoDescription = "Browse all holiday packages with GoKite. Find the perfect vacation package for your next trip. Compare prices, read reviews, and book your dream holiday today.";
+
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title={seoTitle}
+        description={seoDescription}
+        keywords={[
+          "holiday packages",
+          "vacation packages",
+          "travel packages",
+          "holiday deals",
+          "all holidays",
+          "GoKite",
+        ]}
+        pageName="Holiday Packages List"
+        canonical={canonicalPath}
+        openGraph={{
+          title: seoTitle,
+          description: seoDescription,
+          image: getCanonicalUrl("/images/holidays/hero-sunset.jpg"),
+          url: getCanonicalUrl(canonicalPath),
+          type: "website",
+        }}
+        twitter={{
+          title: seoTitle,
+          description: seoDescription,
+          image: getCanonicalUrl("/images/holidays/hero-sunset.jpg"),
+        }}
+        hreflang={[
+          { href: `${SEO_CONFIG.countryDomains["en-ae"]}${canonicalPath}`, hreflang: "en-ae" },
+          { href: `${SEO_CONFIG.countryDomains["en-in"]}${canonicalPath}`, hreflang: "en-in" },
+          { href: `${SEO_CONFIG.countryDomains["en-om"]}${canonicalPath}`, hreflang: "en-om" },
+        ]}
+        schema={{
+          breadcrumb: [
+            { name: "Home", url: SEO_CONFIG.baseDomain },
+            { name: pageInfo?.title || "Holiday Packages", url: getCanonicalUrl(`/${pageSlug}`) },
+            { name: "Holiday Packages List", url: getCanonicalUrl(canonicalPath) },
+          ],
+        }}
+      />
       <TopNav />
 
       <div className="relative w-full px-2 sm:px-4 max-w-[1400px] mx-auto">

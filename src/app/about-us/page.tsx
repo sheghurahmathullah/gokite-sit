@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
 import { ContentPageSkeleton } from "@/components/common/SkeletonLoader";
+import SEOHead from "@/components/seo/SEOHead";
+import { SEO_CONFIG } from "@/lib/seo/config";
 
 const AboutUs = () => {
   const [content, setContent] = useState<string>("");
@@ -48,6 +50,31 @@ const AboutUs = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEOHead
+        title="About Us - GoKite | Your Trusted Travel Partner"
+        description="Learn about GoKite, your trusted travel partner offering holidays, flights, hotels, visas, and activities. Discover our mission to make travel accessible and enjoyable for everyone."
+        keywords={["about us", "GoKite", "travel company", "holiday packages", "visa services", "travel agency UAE", "travel agency Dubai"]}
+        pageName="About Us"
+        canonical="/about-us"
+        openGraph={{
+          title: "About Us - GoKite | Your Trusted Travel Partner",
+          description: "Learn about GoKite, your trusted travel partner offering holidays, flights, hotels, visas, and activities.",
+          image: "/images/about-us-og.jpg",
+          url: `${SEO_CONFIG.baseDomain}/about-us`,
+          type: "website",
+        }}
+        twitter={{
+          title: "About Us - GoKite",
+          description: "Learn about GoKite, your trusted travel partner offering holidays, flights, hotels, visas, and activities.",
+          image: "/images/about-us-og.jpg",
+        }}
+        schema={{
+          breadcrumb: [
+            { name: "Home", url: SEO_CONFIG.baseDomain },
+            { name: "About Us", url: `${SEO_CONFIG.baseDomain}/about-us` },
+          ],
+        }}
+      />
       <TopNav/>
 
       <main className="flex-1 px-6 lg:px-12 py-8">
