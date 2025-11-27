@@ -269,14 +269,27 @@ const TourDetailPageInner = () => {
   // Prepare SEO data
   const tourTitle = transformedTourData.title || holidayDetails?.title || "Tour Package";
   const tourDescription = transformedTourData.description || holidayDetails?.cardJson?.description || `Discover ${tourTitle} - Book your perfect holiday package with GoKite.`;
-  const tourImage = transformedTourData.heroImages?.main || transformedTourData.heroImages?.thumbnails?.[0] || getCanonicalUrl("/images/holidays/hero-sunset.jpg");
+  // Use available hero images: main, side1, or side2
+  const tourImage = transformedTourData.heroImages?.main 
+    || transformedTourData.heroImages?.side1 
+    || transformedTourData.heroImages?.side2 
+    || (transformedTourData.places && transformedTourData.places.length > 0 ? transformedTourData.places[0].image : null)
+    || getCanonicalUrl("/images/holidays/hero-sunset.jpg");
   
   // Product schema data
-  const productPrice = transformedTourData.finalPrice?.toString() || transformedTourData.originalPrice?.toString() || "0";
+  const productPrice = transformedTourData.price?.toString() || "0";
   const productCurrency = transformedTourData.currency || "AED";
-  const productImage = Array.isArray(transformedTourData.heroImages?.thumbnails) 
-    ? transformedTourData.heroImages.thumbnails.map((img: string) => getCanonicalUrl(img))
-    : tourImage;
+  // Create array of available images for product schema
+  const availableImages = [
+    transformedTourData.heroImages?.main,
+    transformedTourData.heroImages?.side1,
+    transformedTourData.heroImages?.side2,
+    ...(transformedTourData.places?.map((place: any) => place.image) || [])
+  ].filter(Boolean); // Remove null/undefined values
+  
+  const productImage = availableImages.length > 0
+    ? availableImages.map((img: string) => getCanonicalUrl(img))
+    : [tourImage];
 
   // FAQ schema
   const faqSchema = transformedTourData.faqs && transformedTourData.faqs.length > 0
@@ -305,8 +318,8 @@ const TourDetailPageInner = () => {
           "travel package",
           "vacation",
           "GoKite",
-          transformedTourData.destination || "",
-        ]}
+          transformedTourData.location || "",
+        ].filter(Boolean)} // Remove empty strings
         pageName={tourTitle}
         canonical={canonicalPath}
         openGraph={{
