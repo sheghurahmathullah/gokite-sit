@@ -256,6 +256,36 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
     setSubmitting(true);
 
     try {
+      // Prepare the data for submission with enquiryType and proper field mapping
+      const submissionData = {
+        enquiryType: "VISA",
+        customerFirstName: formData.customerFirstName,
+        customerLastName: formData.customerLastName,
+        countryOfResidence: formData.countryOfResidence,
+        nationality: formData.nationality,
+        customerPhone: formData.contactNumber,
+        customerEmail: formData.email,
+        customerType: formData.customerType,
+        companyName: formData.companyName || undefined,
+        residence: formData.cityOfResidence || formData.stateOfResidence || undefined,
+        adults: formData.numberOfAdults,
+        children: formData.numberOfChildren,
+        infants: 0, // Not in form, defaulting to 0
+        budget: undefined, // Not in form
+        destination: formData.destinationCountry || undefined,
+        enquiryDesc: formData.description || undefined,
+        packageId: undefined, // Not in form
+        packageName: undefined, // Not in form
+        fromDate: formData.tentativeTravelDate || undefined,
+        toDate: undefined, // Not in form
+        attachments: formData.fileAttachment ? [
+          {
+            documentType: "Passport", // Default, could be enhanced
+            generatedFileName: formData.fileAttachment.name,
+          }
+        ] : undefined,
+      };
+
       const res = await fetch(ENQUIRY_ENDPOINT, {
         method: "POST",
         headers: {
@@ -264,7 +294,7 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
             ? { Authorization: `Bearer ${getCookie("accesstoken")}` }
             : {}),
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
       });
 
       const data = await res.json().catch(() => ({ message: "Submitted" }));

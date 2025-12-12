@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Country } from "country-state-city";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -35,11 +35,15 @@ const CUSTOMER_TYPES = [
 interface HolidayEnquiryFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  packageId?: number | string;
+  packageName?: string;
 }
 
 const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
   open,
   onOpenChange,
+  packageId,
+  packageName,
 }) => {
   // Prepare countries sorted by name
   const countries = useMemo(() => Country.getAllCountries(), []);
@@ -69,10 +73,19 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
     destination: "",
     packageName: "",
     description: "",
-    attachment: null as File | null,
   });
 
   const [submitting, setSubmitting] = useState(false);
+
+  // Auto-populate package name when form opens with package info
+  useEffect(() => {
+    if (open && packageName) {
+      setFormData((prev) => ({
+        ...prev,
+        packageName: packageName,
+      }));
+    }
+  }, [open, packageName]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -89,11 +102,6 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
       ...prev,
       [field]: Math.max(0, increment ? prev[field] + 1 : prev[field] - 1),
     }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    setFormData((prev) => ({ ...prev, attachment: file || null }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -118,10 +126,9 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
         infants: formData.infants,
         budget: formData.totalBudget ? parseFloat(formData.totalBudget) : undefined,
         enquiryDesc: formData.description || undefined,
-        packageId: formData.packageName ? parseInt(formData.packageName) : undefined,
+        packageId: packageId ? (typeof packageId === 'string' ? parseInt(packageId) : packageId) : undefined,
         fromDate: formData.fromDate,
         toDate: formData.toDate,
-        // Note: File attachment handling may need to be added separately
       };
 
       const response = await fetch("/api/enquiry", {
@@ -168,7 +175,6 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
             destination: "",
             packageName: "",
             description: "",
-            attachment: null,
           });
         }, 1500);
       } else {
@@ -581,45 +587,25 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                 value={formData.packageName}
                 onChange={handleInputChange}
                 className="h-7 text-xs"
+                readOnly={!!packageName}
                 required
               />
             </div>
           </div>
 
           {/* Additional Information Row */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label htmlFor="description" className="text-xs font-medium mb-1 block">
-                Description (Optional)
-              </Label>
-              <Textarea
-                id="description"
-                name="description"
-                placeholder="Additional details..."
-                value={formData.description}
-                onChange={handleInputChange}
-                className="text-xs min-h-[80px] resize-none"
-              />
-            </div>
-            <div>
-              <Label htmlFor="attachment" className="text-xs font-medium mb-1 block">
-                File Attachment (Optional)
-              </Label>
-              <div className="border border-input rounded-md p-2 bg-background hover:bg-accent/50 transition-colors">
-                <Input
-                  id="attachment"
-                  name="attachment"
-                  type="file"
-                  onChange={handleFileChange}
-                  className="text-xs h-auto border-0 p-0 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
-                />
-                {formData.attachment && (
-                  <p className="text-xs text-muted-foreground mt-2 truncate">
-                    Selected: {formData.attachment.name}
-                  </p>
-                )}
-              </div>
-            </div>
+          <div>
+            <Label htmlFor="description" className="text-xs font-medium mb-1 block">
+              Description (Optional)
+            </Label>
+            <Textarea
+              id="description"
+              name="description"
+              placeholder="Additional details..."
+              value={formData.description}
+              onChange={handleInputChange}
+              className="text-xs min-h-[80px] resize-none"
+            />
           </div>
 
           {/* Submit Button */}

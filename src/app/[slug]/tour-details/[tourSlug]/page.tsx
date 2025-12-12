@@ -424,6 +424,8 @@ const TourDetailPageInner = () => {
       <HolidayEnquiryForm
         open={isEnquiryFormOpen}
         onOpenChange={setIsEnquiryFormOpen}
+        packageId={holidayDetails?.packageId || holidayDetails?.holidayId || holidayDetails?.id}
+        packageName={holidayDetails?.title || holidayDetails?.cardJson?.packageName}
       />
     </div>
   );

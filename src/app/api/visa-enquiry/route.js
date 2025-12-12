@@ -16,7 +16,7 @@ export async function POST(request) {
       );
     }
 
-    const upstreamUrl = `${process.env.NEXT_PUBLIC_API_URL}/cms/api/v1/enquiries/package`;
+    const upstreamUrl = `${process.env.NEXT_PUBLIC_API_URL}/cms/api/v1/enquiries/visa`;
     const isHttps = upstreamUrl.startsWith("https:");
     const res = await fetch(upstreamUrl, {
       method: "POST",
@@ -45,7 +45,7 @@ export async function POST(request) {
     });
 
     return NextResponse.json(
-      { error: "Failed to proxy enquiries/package", details: String(err) },
+      { error: "Failed to proxy enquiries/visa", details: String(err) },
       { status: 500 }
     );
   }
