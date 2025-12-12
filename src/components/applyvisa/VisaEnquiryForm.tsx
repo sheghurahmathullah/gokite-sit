@@ -266,7 +266,7 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
         customerPhone: formData.contactNumber,
         customerEmail: formData.email,
         customerType: formData.customerType,
-        companyName: formData.companyName || undefined,
+        companyName: undefined, // Not in visa form
         residence: formData.cityOfResidence || formData.stateOfResidence || undefined,
         adults: formData.numberOfAdults,
         children: formData.numberOfChildren,
