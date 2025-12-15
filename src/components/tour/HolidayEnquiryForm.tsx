@@ -37,6 +37,7 @@ interface HolidayEnquiryFormProps {
   onOpenChange: (open: boolean) => void;
   packageId?: number | string;
   packageName?: string;
+  destination?: string;
 }
 
 const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
@@ -44,6 +45,7 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
   onOpenChange,
   packageId,
   packageName,
+  destination,
 }) => {
   // Prepare countries sorted by name
   const countries = useMemo(() => Country.getAllCountries(), []);
@@ -77,15 +79,16 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
 
   const [submitting, setSubmitting] = useState(false);
 
-  // Auto-populate package name when form opens with package info
+  // Auto-populate package name and destination when form opens with package info
   useEffect(() => {
-    if (open && packageName) {
+    if (open) {
       setFormData((prev) => ({
         ...prev,
-        packageName: packageName,
+        ...(packageName && { packageName: packageName }),
+        ...(destination && { destination: destination }),
       }));
     }
-  }, [open, packageName]);
+  }, [open, packageName, destination]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -574,6 +577,7 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
                 value={formData.destination}
                 onChange={handleInputChange}
                 className="h-7 text-xs"
+                readOnly={!!destination}
               />
             </div>
             <div>
