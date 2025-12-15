@@ -128,6 +128,7 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
         children: formData.children,
         infants: formData.infants,
         budget: formData.totalBudget ? parseFloat(formData.totalBudget) : undefined,
+        destination: formData.destination || undefined,
         enquiryDesc: formData.description || undefined,
         packageId: packageId ? (typeof packageId === 'string' ? parseInt(packageId) : packageId) : undefined,
         fromDate: formData.fromDate,
