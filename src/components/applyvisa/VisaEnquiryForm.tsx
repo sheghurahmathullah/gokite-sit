@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { Country, State, City } from "country-state-city";
+import React, { useState, useMemo, useEffect } from "react";
+import { Country } from "country-state-city";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { toast, ToastContainer } from "react-toastify";
@@ -50,6 +50,7 @@ const CUSTOMER_TYPES = [
 export interface VisaEnquiryFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  destinationCountry?: string; // ISO country code (e.g., "AE", "US")
 }
 
 // ============================================
@@ -59,6 +60,7 @@ export interface VisaEnquiryFormProps {
 const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
   open,
   onOpenChange,
+  destinationCountry,
 }) => {
   const countries = useMemo(() => Country.getAllCountries(), []);
 
@@ -67,11 +69,7 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
     customerLastName: "",
     countryOfResidence: "",
     nationality: "",
-    stateOfResidence: "",
-    cityOfResidence: "",
     destinationCountry: "",
-    destinationState: "",
-    destinationCity: "",
     customerType: "",
     visaType: "",
     tentativeTravelDate: "",
@@ -82,11 +80,6 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
     description: "",
     fileAttachment: null as File | null,
   });
-
-  const [residenceStates, setResidenceStates] = useState<any[]>([]);
-  const [residenceCities, setResidenceCities] = useState<any[]>([]);
-  const [destinationStates, setDestinationStates] = useState<any[]>([]);
-  const [destinationCities, setDestinationCities] = useState<any[]>([]);
 
   // API Integration States
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -107,6 +100,16 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
   // Get minimum date (today)
   const today = new Date().toISOString().split("T")[0];
 
+  // Auto-populate destination country when form opens with destinationCountry prop
+  useEffect(() => {
+    if (open && destinationCountry) {
+      setFormData((prev) => ({
+        ...prev,
+        destinationCountry: destinationCountry,
+      }));
+    }
+  }, [open, destinationCountry]);
+
   // ============================================
   // EVENT HANDLERS
   // ============================================
@@ -115,62 +118,10 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
     field: "countryOfResidence" | "nationality" | "destinationCountry",
     value: string
   ) => {
-    const selectedCountry = countries.find((c) => c.isoCode === value);
-
     setFormData((prev) => ({
       ...prev,
       [field]: value,
-      ...(field === "countryOfResidence" && {
-        stateOfResidence: "",
-        cityOfResidence: "",
-      }),
-      ...(field === "destinationCountry" && {
-        destinationState: "",
-        destinationCity: "",
-      }),
     }));
-
-    if (field === "countryOfResidence") {
-      const states = selectedCountry
-        ? State.getStatesOfCountry(selectedCountry.isoCode)
-        : [];
-      setResidenceStates(states);
-      setResidenceCities([]);
-    } else if (field === "destinationCountry") {
-      const states = selectedCountry
-        ? State.getStatesOfCountry(selectedCountry.isoCode)
-        : [];
-      setDestinationStates(states);
-      setDestinationCities([]);
-    }
-  };
-
-  const handleStateChange = (
-    field: "stateOfResidence" | "destinationState",
-    value: string
-  ) => {
-    const countryField =
-      field === "stateOfResidence"
-        ? "countryOfResidence"
-        : "destinationCountry";
-    const selectedCountry = countries.find(
-      (c) => c.isoCode === formData[countryField]
-    );
-
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-      ...(field === "stateOfResidence" && { cityOfResidence: "" }),
-      ...(field === "destinationState" && { destinationCity: "" }),
-    }));
-
-    if (field === "stateOfResidence" && selectedCountry) {
-      const cities = City.getCitiesOfState(selectedCountry.isoCode, value);
-      setResidenceCities(cities);
-    } else if (field === "destinationState" && selectedCountry) {
-      const cities = City.getCitiesOfState(selectedCountry.isoCode, value);
-      setDestinationCities(cities);
-    }
   };
 
   const handleInputChange = (
@@ -256,6 +207,59 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
     setSubmitting(true);
 
     try {
+      // Upload file first if one exists
+      let uploadedFileName = null;
+      if (formData.fileAttachment) {
+        try {
+          const uploadFormData = new FormData();
+          uploadFormData.append("file", formData.fileAttachment);
+
+          const uploadRes = await fetch("/api/cms/file/upload", {
+            method: "POST",
+            headers: {
+              ...(getCookie("accesstoken")
+                ? { Authorization: `Bearer ${getCookie("accesstoken")}` }
+                : {}),
+            },
+            body: uploadFormData,
+          });
+
+          if (!uploadRes.ok) {
+            throw new Error("Failed to upload file");
+          }
+
+          const uploadData = await uploadRes.json();
+          // Extract the generated file name from the response
+          // The API might return it in different formats, so we handle multiple cases
+          uploadedFileName = uploadData?.data?.fileName || 
+                           uploadData?.fileName || 
+                           uploadData?.data?.generatedFileName ||
+                           uploadData?.generatedFileName ||
+                           uploadData?.data?.name ||
+                           uploadData?.name;
+
+          if (!uploadedFileName) {
+            console.warn("Upload response:", uploadData);
+            throw new Error("Could not get file name from upload response");
+          }
+        } catch (uploadError: any) {
+          console.error("File upload error:", uploadError);
+          toast.error(
+            uploadError.message || "Failed to upload file. Please try again.",
+            {
+              position: "top-right",
+              autoClose: 4000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+            }
+          );
+          setSubmitting(false);
+          return;
+        }
+      }
+
       // Prepare the data for submission with enquiryType and proper field mapping
       const submissionData = {
         enquiryType: "VISA",
@@ -267,7 +271,7 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
         customerEmail: formData.email,
         customerType: formData.customerType,
         companyName: undefined, // Not in visa form
-        residence: formData.cityOfResidence || formData.stateOfResidence || undefined,
+        residence: undefined, // State and city fields removed
         adults: formData.numberOfAdults,
         children: formData.numberOfChildren,
         infants: 0, // Not in form, defaulting to 0
@@ -278,10 +282,10 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
         packageName: undefined, // Not in form
         fromDate: formData.tentativeTravelDate || undefined,
         toDate: undefined, // Not in form
-        attachments: formData.fileAttachment ? [
+        attachments: uploadedFileName ? [
           {
             documentType: "Passport", // Default, could be enhanced
-            generatedFileName: formData.fileAttachment.name,
+            generatedFileName: uploadedFileName,
           }
         ] : undefined,
       };
@@ -322,11 +326,7 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
           customerLastName: "",
           countryOfResidence: "",
           nationality: "",
-          stateOfResidence: "",
-          cityOfResidence: "",
           destinationCountry: "",
-          destinationState: "",
-          destinationCity: "",
           customerType: "",
           visaType: "",
           tentativeTravelDate: "",
@@ -514,63 +514,6 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
                   )}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs">State of Residence*</Label>
-                  <Select
-                    value={formData.stateOfResidence}
-                    onValueChange={(value) =>
-                      handleStateChange("stateOfResidence", value)
-                    }
-                    disabled={!formData.countryOfResidence}
-                    required
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Select State" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {residenceStates.map((state, index) => (
-                        <SelectItem
-                          key={`residence-state-${index}`}
-                          value={state.isoCode}
-                          className="text-xs"
-                        >
-                          {state.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-xs">City of Residence*</Label>
-                  <Select
-                    value={formData.cityOfResidence}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        cityOfResidence: value,
-                      }))
-                    }
-                    disabled={!formData.stateOfResidence}
-                    required
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Select City" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {residenceCities.map((city, index) => (
-                        <SelectItem
-                          key={`residence-city-${index}`}
-                          value={city.name}
-                          className="text-xs"
-                        >
-                          {city.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
             </div>
 
             {/* 2. Travel Information */}
@@ -686,61 +629,6 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
                       {errors.visaType}
                     </p>
                   )}
-                </div>
-                <div>
-                  <Label className="text-xs">Destination State*</Label>
-                  <Select
-                    value={formData.destinationState}
-                    onValueChange={(value) =>
-                      handleStateChange("destinationState", value)
-                    }
-                    disabled={!formData.destinationCountry}
-                    required
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Select State" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {destinationStates.map((state, index) => (
-                        <SelectItem
-                          key={`destination-state-${index}`}
-                          value={state.isoCode}
-                          className="text-xs"
-                        >
-                          {state.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-xs">Destination City*</Label>
-                  <Select
-                    value={formData.destinationCity}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        destinationCity: value,
-                      }))
-                    }
-                    disabled={!formData.destinationState}
-                    required
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Select City" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {destinationCities.map((city, index) => (
-                        <SelectItem
-                          key={`destination-city-${index}`}
-                          value={city.name}
-                          className="text-xs"
-                        >
-                          {city.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
               <div>

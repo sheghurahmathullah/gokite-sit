@@ -667,6 +667,13 @@ const ApplyVisa: React.FC<ApplyVisaProps> = ({
             setIsEnquiryFormOpen(open);
             if (!open) setSelectedOption(null);
           }}
+          destinationCountry={
+            typeof window !== "undefined"
+              ? window.sessionStorage.getItem("applyVisaCountryCode") ||
+                window.sessionStorage.getItem("applyVisaCountryId") ||
+                undefined
+              : undefined
+          }
         />
       )}
     </div>
