@@ -226,413 +226,429 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
       />
 
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[98vw] w-full p-2 max-h-[98vh] overflow-hidden">
-          <DialogHeader className="p-1">
-            <DialogTitle className="text-xs mb-0 text-center font-semibold">
+        <DialogContent className="sm:max-w-[1200px] w-full p-6 max-h-[95vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl mb-2 text-center">
               Holiday Enquiry Form
             </DialogTitle>
           </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white border rounded-lg p-4 space-y-4"
-        >
-          {/* Personal Information Row */}
-          <div className="grid grid-cols-4 gap-3">
-            <div>
-              <Label htmlFor="firstName" className="text-xs font-medium">
-                First Name*
-              </Label>
-              <Input
-                id="firstName"
-                name="firstName"
-                placeholder="First name"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                className="h-7 text-xs"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="lastName" className="text-xs font-medium">
-                Last Name*
-              </Label>
-              <Input
-                id="lastName"
-                name="lastName"
-                placeholder="Last name"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                className="h-7 text-xs"
-                required
-              />
-            </div>
-            <div>
-              <Label className="text-xs font-medium">
-                Country of Residence*
-              </Label>
-              <Select
-                value={formData.countryOfResidence}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    countryOfResidence: value,
-                  }))
-                }
-                required
-              >
-                <SelectTrigger className="h-9 text-xs">
-                  <SelectValue placeholder="Choose country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((country, index) => (
-                    <SelectItem
-                      key={`tour-holiday-residence-${index}`}
-                      value={country.isoCode}
-                      className="text-xs"
-                    >
-                      {country.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-xs font-medium">Nationality*</Label>
-              <Select
-                value={formData.nationality}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, nationality: value }))
-                }
-                required
-              >
-                <SelectTrigger className="h-9 text-xs">
-                  <SelectValue placeholder="Choose nationality" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((country, index) => (
-                    <SelectItem
-                      key={`tour-holiday-nationality-${index}`}
-                      value={country.isoCode}
-                      className="text-xs"
-                    >
-                      {country.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Contact Information Row */}
-          <div className="grid grid-cols-4 gap-3">
-            <div>
-              <Label htmlFor="email" className="text-xs font-medium">
-                Email Address*
-              </Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="h-7 text-xs"
-                required
-              />
-            </div>
-            <div>
-              <Label className="text-xs font-medium">Phone Code*</Label>
-              <Select
-                value={formData.phoneCode}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, phoneCode: value }))
-                }
-                required
-              >
-                <SelectTrigger className="h-9 text-xs">
-                  <SelectValue placeholder="Code" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortedCountries.map((country, index) => (
-                    <SelectItem
-                      key={`tour-holiday-phone-${index}`}
-                      value={country.phonecode}
-                      className="text-xs"
-                    >
-                      {country.name} (+{country.phonecode})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="phoneNumber" className="text-xs font-medium">
-                Phone Number*
-              </Label>
-              <Input
-                id="phoneNumber"
-                name="phoneNumber"
-                type="tel"
-                placeholder="Phone"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                className="h-7 text-xs"
-                required
-              />
-            </div>
-            <div>
-              <Label className="text-xs font-medium">Customer Type*</Label>
-              <Select
-                value={formData.tripType}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, tripType: value }))
-                }
-                required
-              >
-                <SelectTrigger className="h-9 text-xs">
-                  <SelectValue placeholder="Choose customer type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CUSTOMER_TYPES.map((type) => (
-                    <SelectItem key={type} value={type} className="text-xs">
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Company and Residence Row */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label htmlFor="companyName" className="text-xs font-medium">
-                Company
-              </Label>
-              <Input
-                id="companyName"
-                name="companyName"
-                placeholder="Company name"
-                value={formData.companyName}
-                onChange={handleInputChange}
-                className="h-7 text-xs"
-              />
-            </div>
-            <div>
-              <Label htmlFor="residence" className="text-xs font-medium">
-                Residence
-              </Label>
-              <Input
-                id="residence"
-                name="residence"
-                placeholder="City/Residence"
-                value={formData.residence}
-                onChange={handleInputChange}
-                className="h-7 text-xs"
-              />
-            </div>
-          </div>
-
-          {/* Travel Dates Row */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label htmlFor="fromDate" className="text-xs font-medium">
-                From Date*
-              </Label>
-              <Input
-                id="fromDate"
-                name="fromDate"
-                type="date"
-                value={formData.fromDate}
-                onChange={handleInputChange}
-                className="h-7 text-xs"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="toDate" className="text-xs font-medium">
-                To Date*
-              </Label>
-              <Input
-                id="toDate"
-                name="toDate"
-                type="date"
-                value={formData.toDate}
-                onChange={handleInputChange}
-                className="h-7 text-xs"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Passenger Details Row */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <Label className="text-xs font-medium">Adults*</Label>
-              <div className="flex items-center space-x-2 mt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => handleCounterChange("adults", false)}
-                  disabled={formData.adults <= 1}
-                >
-                  -
-                </Button>
-                <span className="text-xs px-3 py-1 min-w-[40px] text-center border rounded">
-                  {formData.adults}
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => handleCounterChange("adults", true)}
-                >
-                  +
-                </Button>
+          <form onSubmit={handleSubmit} className="grid grid-cols-3 gap-4">
+            {/* 1. Personal Information */}
+            <div className="space-y-3 border p-3 rounded-lg">
+              <h3 className="text-base font-semibold mb-2">
+                Personal Information
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="firstName" className="text-xs">
+                    First Name*
+                  </Label>
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    placeholder="Enter first name"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    className="h-8 text-xs"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName" className="text-xs">
+                    Last Name*
+                  </Label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    placeholder="Enter last name"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    className="h-8 text-xs"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Country of Residence*</Label>
+                  <Select
+                    value={formData.countryOfResidence}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        countryOfResidence: value,
+                      }))
+                    }
+                    required
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Select Country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((country, index) => (
+                        <SelectItem
+                          key={`tour-holiday-residence-${index}`}
+                          value={country.isoCode}
+                          className="text-xs"
+                        >
+                          {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Nationality*</Label>
+                  <Select
+                    value={formData.nationality}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, nationality: value }))
+                    }
+                    required
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Select Nationality" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((country, index) => (
+                        <SelectItem
+                          key={`tour-holiday-nationality-${index}`}
+                          value={country.isoCode}
+                          className="text-xs"
+                        >
+                          {country.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-            <div>
-              <Label className="text-xs font-medium">Children*</Label>
-              <div className="flex items-center space-x-2 mt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => handleCounterChange("children", false)}
-                  disabled={formData.children <= 0}
+
+            {/* 2. Contact Information */}
+            <div className="space-y-3 border p-3 rounded-lg">
+              <h3 className="text-base font-semibold mb-2">
+                Contact Information
+              </h3>
+              <div>
+                <Label htmlFor="email" className="text-xs">
+                  Email Address*
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="h-8 text-xs"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Phone Code*</Label>
+                  <Select
+                    value={formData.phoneCode}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, phoneCode: value }))
+                    }
+                    required
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sortedCountries.map((country, index) => (
+                        <SelectItem
+                          key={`tour-holiday-phone-${index}`}
+                          value={country.phonecode}
+                          className="text-xs"
+                        >
+                          {country.name} (+{country.phonecode})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="phoneNumber" className="text-xs">
+                    Phone Number*
+                  </Label>
+                  <Input
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    type="tel"
+                    placeholder="Enter phone number"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    className="h-8 text-xs"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Customer Type*</Label>
+                <Select
+                  value={formData.tripType}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, tripType: value }))
+                  }
+                  required
                 >
-                  -
-                </Button>
-                <span className="text-xs px-3 py-1 min-w-[40px] text-center border rounded">
-                  {formData.children}
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => handleCounterChange("children", true)}
-                >
-                  +
-                </Button>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Select Customer Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CUSTOMER_TYPES.map((type) => (
+                      <SelectItem key={type} value={type} className="text-xs">
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="companyName" className="text-xs">
+                    Company
+                  </Label>
+                  <Input
+                    id="companyName"
+                    name="companyName"
+                    placeholder="Company name"
+                    value={formData.companyName}
+                    onChange={handleInputChange}
+                    className="h-8 text-xs"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="residence" className="text-xs">
+                    Residence
+                  </Label>
+                  <Input
+                    id="residence"
+                    name="residence"
+                    placeholder="City/Residence"
+                    value={formData.residence}
+                    onChange={handleInputChange}
+                    className="h-8 text-xs"
+                  />
+                </div>
               </div>
             </div>
-            <div>
-              <Label className="text-xs font-medium">Infants*</Label>
-              <div className="flex items-center space-x-2 mt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => handleCounterChange("infants", false)}
-                  disabled={formData.infants <= 0}
-                >
-                  -
-                </Button>
-                <span className="text-xs px-3 py-1 min-w-[40px] text-center border rounded">
-                  {formData.infants}
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => handleCounterChange("infants", true)}
-                >
-                  +
-                </Button>
+
+            {/* 3. Travel Information */}
+            <div className="space-y-3 border p-3 rounded-lg">
+              <h3 className="text-base font-semibold mb-2">
+                Travel Information
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="fromDate" className="text-xs">
+                    From Date*
+                  </Label>
+                  <Input
+                    id="fromDate"
+                    name="fromDate"
+                    type="date"
+                    value={formData.fromDate}
+                    onChange={handleInputChange}
+                    className="h-8 text-xs"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="toDate" className="text-xs">
+                    To Date*
+                  </Label>
+                  <Input
+                    id="toDate"
+                    name="toDate"
+                    type="date"
+                    value={formData.toDate}
+                    onChange={handleInputChange}
+                    className="h-8 text-xs"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="destination" className="text-xs">
+                  Destination
+                </Label>
+                <Input
+                  id="destination"
+                  name="destination"
+                  placeholder="Destination"
+                  value={formData.destination}
+                  onChange={handleInputChange}
+                  className="h-8 text-xs"
+                  readOnly={!!destination}
+                />
+              </div>
+              <div>
+                <Label htmlFor="packageName" className="text-xs">
+                  Package Name*
+                </Label>
+                <Input
+                  id="packageName"
+                  name="packageName"
+                  placeholder="Package name"
+                  value={formData.packageName}
+                  onChange={handleInputChange}
+                  className="h-8 text-xs"
+                  readOnly={!!packageName}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="totalBudget" className="text-xs">
+                  Total Budget
+                </Label>
+                <Input
+                  id="totalBudget"
+                  name="totalBudget"
+                  type="number"
+                  placeholder="Amount"
+                  value={formData.totalBudget}
+                  onChange={handleInputChange}
+                  className="h-8 text-xs"
+                />
               </div>
             </div>
-          </div>
 
-          {/* Budget and Destination Row */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <Label htmlFor="totalBudget" className="text-xs font-medium">
-                Total Budget
-              </Label>
-              <Input
-                id="totalBudget"
-                name="totalBudget"
-                type="number"
-                placeholder="Amount"
-                value={formData.totalBudget}
-                onChange={handleInputChange}
-                className="h-7 text-xs"
-              />
+            {/* 4. Passenger Details */}
+            <div className="space-y-3 border p-3 rounded-lg">
+              <h3 className="text-base font-semibold mb-2">
+                Passenger Details
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Number of Adults*</Label>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleCounterChange("adults", false)}
+                      disabled={formData.adults <= 1}
+                    >
+                      -
+                    </Button>
+                    <span className="text-xs px-2">
+                      {formData.adults}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleCounterChange("adults", true)}
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Number of Children*</Label>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleCounterChange("children", false)}
+                      disabled={formData.children <= 0}
+                    >
+                      -
+                    </Button>
+                    <span className="text-xs px-2">
+                      {formData.children}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleCounterChange("children", true)}
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Number of Infants*</Label>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleCounterChange("infants", false)}
+                      disabled={formData.infants <= 0}
+                    >
+                      -
+                    </Button>
+                    <span className="text-xs px-2">
+                      {formData.infants}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleCounterChange("infants", true)}
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="destination" className="text-xs font-medium">
-                Destination
-              </Label>
-              <Input
-                id="destination"
-                name="destination"
-                placeholder="Destination"
-                value={formData.destination}
-                onChange={handleInputChange}
-                className="h-7 text-xs"
-                readOnly={!!destination}
-              />
-            </div>
-            <div>
-              <Label htmlFor="packageName" className="text-xs font-medium">
-                Package Name*
-              </Label>
-              <Input
-                id="packageName"
-                name="packageName"
-                placeholder="Package name"
-                value={formData.packageName}
-                onChange={handleInputChange}
-                className="h-7 text-xs"
-                readOnly={!!packageName}
-                required
-              />
-            </div>
-          </div>
 
-          {/* Additional Information Row */}
-          <div>
-            <Label htmlFor="description" className="text-xs font-medium mb-1 block">
-              Description (Optional)
-            </Label>
-            <Textarea
-              id="description"
-              name="description"
-              placeholder="Additional details..."
-              value={formData.description}
-              onChange={handleInputChange}
-              className="text-xs min-h-[80px] resize-none"
-            />
-          </div>
+            {/* 5. Additional Information */}
+            <div className="space-y-3 border p-3 rounded-lg col-span-2">
+              <h3 className="text-base font-semibold mb-2">
+                Additional Information
+              </h3>
+              <div>
+                <Label htmlFor="description" className="text-xs">
+                  Description (Optional)
+                </Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="Additional details"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className="text-xs h-20"
+                />
+              </div>
+            </div>
 
-          {/* Submit Button */}
-          <DialogFooter className="flex justify-center space-x-4">
-            <DialogClose asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className="px-6 h-8 text-xs"
+            {/* Submit Button */}
+            <DialogFooter className="col-span-3 flex justify-center space-x-4 mt-2">
+              <DialogClose asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="px-6"
+                  disabled={submitting}
+                >
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button 
+                type="submit" 
+                className="px-6"
                 disabled={submitting}
               >
-                Cancel
+                {submitting ? "Submitting..." : "Submit Enquiry"}
               </Button>
-            </DialogClose>
-            <Button 
-              type="submit" 
-              className="px-6 h-8 text-xs"
-              disabled={submitting}
-            >
-              {submitting ? "Submitting..." : "Submit Enquiry"}
-            </Button>
-          </DialogFooter>
+            </DialogFooter>
         </form>
         </DialogContent>
       </Dialog>
