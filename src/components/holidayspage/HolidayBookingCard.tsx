@@ -32,9 +32,17 @@ const HolidayBookingCard = () => {
         window.sessionStorage.removeItem("selectedHolidayDestinationType");
         window.sessionStorage.removeItem("selectedHolidayCityId");
         window.sessionStorage.removeItem("selectedHolidayCountryId");
+        window.sessionStorage.removeItem("cachedHolidaySearchData");
+        window.sessionStorage.removeItem("cachedHolidaySearchTimestamp");
       }
     } catch (_) {}
   }, []);
+
+  // Clear stored selection when component mounts or when navigating back
+  useEffect(() => {
+    // Clear any stale selections when component mounts
+    clearStoredSelection();
+  }, []); // Empty dependency array - only run on mount
 
   // Handle search input change with autocomplete
   const handleSearchInputChange = async (
@@ -223,7 +231,7 @@ const HolidayBookingCard = () => {
           "[HolidayBookingCard] API call failed with status:",
           response.status
         );
-        toast.error("No holiday packages found for this destination", {
+        toast.error("No holiday destinations found", {
           position: "top-right",
           autoClose: 4000,
         });
@@ -244,7 +252,7 @@ const HolidayBookingCard = () => {
           "[HolidayBookingCard] Invalid or empty holiday data:",
           data
         );
-        toast.error("No holiday packages found for this destination", {
+        toast.error("No holiday destinations found", {
           position: "top-right",
           autoClose: 4000,
         });

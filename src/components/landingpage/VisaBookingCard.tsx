@@ -38,6 +38,12 @@ const VisaBookingCard = () => {
     } catch (_) {}
   }, []);
 
+  // Clear stored selection when component mounts or when navigating back
+  useEffect(() => {
+    // Clear any stale selections when component mounts
+    clearVisaSelection();
+  }, []); // Empty dependency array - only run on mount
+
   // Format date for display
   const month = date.toLocaleString("en-US", { month: "long" });
   const day = date.getDate();
