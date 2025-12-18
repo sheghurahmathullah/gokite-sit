@@ -231,12 +231,15 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
           const uploadData = await uploadRes.json();
           // Extract the generated file name from the response
           // The API might return it in different formats, so we handle multiple cases
-          uploadedFileName = uploadData?.data?.fileName || 
-                           uploadData?.fileName || 
-                           uploadData?.data?.generatedFileName ||
-                           uploadData?.generatedFileName ||
-                           uploadData?.data?.name ||
-                           uploadData?.name;
+          // Check if data is a string (filename directly) first
+          uploadedFileName =
+            (typeof uploadData?.data === "string" ? uploadData.data : null) ||
+            uploadData?.data?.fileName ||
+            uploadData?.fileName ||
+            uploadData?.data?.generatedFileName ||
+            uploadData?.generatedFileName ||
+            uploadData?.data?.name ||
+            uploadData?.name;
 
           if (!uploadedFileName) {
             console.warn("Upload response:", uploadData);
@@ -282,12 +285,14 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
         packageName: undefined, // Not in form
         fromDate: formData.tentativeTravelDate || undefined,
         toDate: undefined, // Not in form
-        attachments: uploadedFileName ? [
-          {
-            documentType: "Passport", // Default, could be enhanced
-            generatedFileName: uploadedFileName,
-          }
-        ] : undefined,
+        attachments: uploadedFileName
+          ? [
+              {
+                documentType: "Passport", // Default, could be enhanced
+                generatedFileName: uploadedFileName,
+              },
+            ]
+          : undefined,
       };
 
       const res = await fetch(ENQUIRY_ENDPOINT, {
