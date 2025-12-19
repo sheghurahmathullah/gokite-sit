@@ -79,11 +79,32 @@ export function getTourDetailsRoute(tourSlug: string): string {
 }
 
 /**
- * Get the appropriate apply-visa route based on current page
+ * Convert a title to a URL-friendly slug
+ * @param title - The title to convert (e.g., "United Arab Emirates Visa")
+ * @returns URL-friendly slug (e.g., "united-arab-emirates-visa")
  */
-export function getApplyVisaRoute(): string {
+export function createSlugFromTitle(title: string): string {
+  if (!title) return "";
+  
+  return title
+    .toLowerCase()
+    .trim()
+    // Replace spaces and special characters with hyphens
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    // Remove multiple consecutive hyphens
+    .replace(/-+/g, "-")
+    // Remove leading/trailing hyphens
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Get the appropriate apply-visa route based on current page
+ * @param visaSlug - Optional visa title slug to append to the route
+ */
+export function getApplyVisaRoute(visaSlug?: string): string {
   const pageSlug = getStoredPageSlug() || getCurrentPageSlug();
-  return buildNestedRoute(pageSlug, "apply-visa");
+  return buildNestedRoute(pageSlug, "apply-visa", visaSlug);
 }
 
 /**

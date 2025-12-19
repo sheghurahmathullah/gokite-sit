@@ -1,6 +1,7 @@
 import { VisaDestination } from "@/types";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "react-toastify";
+import { createSlugFromTitle } from "@/lib/routeUtils";
 
 interface VisaCardProps {
   destination: VisaDestination;
@@ -175,7 +176,10 @@ const VisaCard = ({ destination }: VisaCardProps) => {
           window.sessionStorage.setItem("currentPageSlug", currentSlug);
         } catch (_) {}
       }
-      router.push(`/${currentSlug}/apply-visa`);
+      
+      // Create slug from destination country for URL
+      const visaSlug = createSlugFromTitle(destination.country);
+      router.push(`/${currentSlug}/apply-visa/${visaSlug}`);
     } catch (e) {
       console.error("[VisaCard] Error validating visa:", e);
       toast.error("The country is not found or no visa is available", {

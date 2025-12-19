@@ -4,6 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Search, Calendar } from "lucide-react";
 import { toast } from "react-toastify";
+import { createSlugFromTitle } from "@/lib/routeUtils";
 
 interface CountrySuggestion {
   id: string;
@@ -226,7 +227,10 @@ const VisaBookingCard = () => {
           window.sessionStorage.setItem("currentPageSlug", currentSlug);
         } catch (_) {}
       }
-      router.push(`/${currentSlug}/apply-visa`);
+      
+      // Create slug from selected country label for URL
+      const visaSlug = createSlugFromTitle(searchQuery || "");
+      router.push(`/${currentSlug}/apply-visa/${visaSlug}`);
       
     } catch (error) {
       console.error("[VisaBookingCard] Error validating visa data:", error);

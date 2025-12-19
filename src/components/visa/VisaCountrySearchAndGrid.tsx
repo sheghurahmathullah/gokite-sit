@@ -3,6 +3,7 @@ import { Plane, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Autoplay from "embla-carousel-autoplay";
+import { createSlugFromTitle } from "@/lib/routeUtils";
 import {
   Carousel,
   CarouselContent,
@@ -119,7 +120,9 @@ const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
         } catch (_) {}
       }
       
-      router.push(`/${currentSlug}/apply-visa`);
+      // Create slug from country title for URL
+      const visaSlug = createSlugFromTitle(country.country);
+      router.push(`/${currentSlug}/apply-visa/${visaSlug}`);
     } catch (e) {
       console.error("Failed to validate visa:", e);
       const { toast } = await import("react-toastify");

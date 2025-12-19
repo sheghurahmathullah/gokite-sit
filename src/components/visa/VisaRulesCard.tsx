@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import * as Flags from "country-flag-icons/react/3x2";
 import { usePageContext } from "../common/PageContext";
 import { useRouter, useParams } from "next/navigation";
+import { createSlugFromTitle } from "@/lib/routeUtils";
 import VisaRulesCarousel, {
   VisaRulesCarouselRef,
   VisaRuleAnnouncement as ImportedVisaRuleAnnouncement,
@@ -350,7 +351,9 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
         } catch (_) {}
       }
 
-      router.push(`/${currentSlug}/apply-visa`);
+      // Create slug from rule country/title for URL
+      const visaSlug = createSlugFromTitle(rule.country || rule.title || "");
+      router.push(`/${currentSlug}/apply-visa/${visaSlug}`);
     } catch (e) {
       console.error("Failed to validate visa:", e);
       const { toast } = await import("react-toastify");

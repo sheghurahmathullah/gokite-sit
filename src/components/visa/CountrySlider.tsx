@@ -4,6 +4,7 @@ import * as Flags from "country-flag-icons/react/3x2";
 import { usePageContext } from "../common/PageContext";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "react-toastify";
+import { createSlugFromTitle } from "@/lib/routeUtils";
 import VisaCountryCarousel, {
   VisaCountryCarouselRef,
 } from "./VisaCountryCarousel";
@@ -301,7 +302,10 @@ const CountrySlider = ({
           window.sessionStorage.setItem("currentPageSlug", currentSlug);
         } catch (_) {}
       }
-      router.push(`/${currentSlug}/apply-visa`);
+      
+      // Create slug from visa country title for URL
+      const visaSlug = createSlugFromTitle(visa.country);
+      router.push(`/${currentSlug}/apply-visa/${visaSlug}`);
       
     } catch (e) {
       console.error("[CountrySlider] Error validating visa:", e);

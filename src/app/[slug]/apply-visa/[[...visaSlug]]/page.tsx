@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { useParams } from "next/navigation";
 import TopNav from "@/components/common/IconNav";
 import Footer from "@/components/common/Footer";
 import ApplyVisa from "@/components/applyvisa/ApplyVisa";
@@ -17,6 +18,12 @@ import { usePageContext } from "@/components/common/PageContext";
 const pendingRequests = new Map<string, Promise<any>>();
 
 const ApplyVisaPage: React.FC = () => {
+  const params = useParams();
+  // Handle optional visaSlug parameter (can be array if catch-all route)
+  const visaSlug = params.visaSlug 
+    ? (Array.isArray(params.visaSlug) ? params.visaSlug[0] : params.visaSlug)
+    : null;
+  
   const { getPageInfo } = usePageContext();
   const [visaDetails, setVisaDetails] = useState<any>(null);
   const [visaError, setVisaError] = useState<string | null>(null);
@@ -254,7 +261,10 @@ const ApplyVisaPage: React.FC = () => {
 
   const pageInfo = getPageInfo("visaLanding");
   const pageSlug = pageInfo?.slug || "visa-landing-page";
-  const canonicalPath = `/${pageSlug}/apply-visa`;
+  // Include visaSlug in canonical path if present
+  const canonicalPath = visaSlug 
+    ? `/${pageSlug}/apply-visa/${visaSlug}`
+    : `/${pageSlug}/apply-visa`;
   const visaCountry = visaDetails?.detailsJson?.country || "UAE";
   const visaTitle = `Apply for ${visaCountry} Visa Online - GoKite`;
   const visaDescription = `Apply for ${visaCountry} visa online with GoKite. Fast and easy visa application process. Get your visa approved quickly with our expert visa services.`;
@@ -383,3 +393,4 @@ const ApplyVisaPage: React.FC = () => {
 };
 
 export default ApplyVisaPage;
+

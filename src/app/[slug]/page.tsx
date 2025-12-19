@@ -10,7 +10,7 @@ import { formatSEOTitle, formatSEODescription } from "@/lib/seo/utils";
 // Import all page components
 import HomePage from "@/app/[slug]/home/page";
 import HolidaysPage from "@/app/[slug]/holidays/HolidaysPage";
-import ApplyVisaPage from "@/app/[slug]/apply-visa/page";
+import ApplyVisaPage from "@/app/[slug]/apply-visa/[[...visaSlug]]/page";
 import HolidayGridPage from "@/app/[slug]/holiday-grid/page";
 import HolidayListPage from "@/app/[slug]/holiday-list/page";
 import VisaPage from "@/app/[slug]/visa/page";
