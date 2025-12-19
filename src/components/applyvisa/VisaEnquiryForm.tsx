@@ -24,14 +24,15 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
-// Visa Types
-const VISA_TYPES = [
-  "Tourist Visa",
-  "Business Visa",
-  "Student Visa",
-  "Work Visa",
-  "Transit Visa",
-];
+// Visa Types (B2C only - Work and Transit removed)
+const VISA_TYPES = ["Tourist Visa", "Business Visa", "Student Visa"];
+
+// Map display names to API enum values
+const VISA_TYPE_MAP: Record<string, string> = {
+  "Tourist Visa": "Tourist",
+  "Business Visa": "Business",
+  "Student Visa": "Student",
+};
 
 // Customer Types
 const CUSTOMER_TYPES = [
@@ -209,8 +210,13 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
     try {
       // Upload file first if one exists
       let uploadedFileName = null;
+      let fileMimeType = null;
       if (formData.fileAttachment) {
         try {
+          // Get the actual MIME type from the file
+          fileMimeType =
+            formData.fileAttachment.type || "application/octet-stream";
+
           const uploadFormData = new FormData();
           uploadFormData.append("file", formData.fileAttachment);
 
@@ -263,6 +269,11 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
         }
       }
 
+      // Map visaType from display value to API enum value
+      const apiVisaType = formData.visaType
+        ? VISA_TYPE_MAP[formData.visaType] || formData.visaType
+        : undefined;
+
       // Prepare the data for submission with enquiryType and proper field mapping
       const submissionData = {
         enquiryType: "VISA",
@@ -273,6 +284,7 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
         customerPhone: formData.contactNumber,
         customerEmail: formData.email,
         customerType: formData.customerType,
+        visaType: apiVisaType, // Send enum value (Tourist, Business, Student)
         companyName: undefined, // Not in visa form
         residence: undefined, // State and city fields removed
         adults: formData.numberOfAdults,
@@ -290,6 +302,7 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
               {
                 documentType: "Passport", // Default, could be enhanced
                 generatedFileName: uploadedFileName,
+                mimeType: fileMimeType || "application/octet-stream", // Actual file MIME type
               },
             ]
           : undefined,
