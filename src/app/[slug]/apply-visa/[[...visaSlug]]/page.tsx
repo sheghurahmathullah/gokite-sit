@@ -52,13 +52,16 @@ const ApplyVisaPage: React.FC = () => {
 
   // Fetch visa details from API
   useEffect(() => {
-    // Prevent duplicate data fetches
-    if (dataFetchedRef.current) {
-      console.log("[ApplyVisa] Data already fetched, skipping...");
-      return;
-    }
+    // Reset data fetched flag when visaSlug changes (for shared links)
+    // This ensures we re-fetch when the URL changes
+    dataFetchedRef.current = false;
 
     async function loadVisaDetails() {
+      // Prevent duplicate data fetches within the same render cycle
+      if (dataFetchedRef.current) {
+        console.log("[ApplyVisa] Data already fetched, skipping...");
+        return;
+      }
       // Check if we have cached API response data from the visa card click
       if (typeof window !== "undefined") {
         try {
@@ -113,23 +116,102 @@ const ApplyVisaPage: React.FC = () => {
 
       let countryId = "";
 
-      try {
-        if (typeof window !== "undefined") {
-          // Prioritize applyVisaCountryCode over applyVisaCountryId
-          // applyVisaCountryCode is the correct ISO country code
-          countryId =
-            window.sessionStorage.getItem("applyVisaCountryCode") ||
-            window.sessionStorage.getItem("applyVisaCountryId") ||
-            "";
+      // First, try to get country code from URL slug if available
+      if (visaSlug) {
+        try {
+          console.log("[ApplyVisa] Extracting country from URL slug:", visaSlug);
+          
+          // Extract country name from slug (e.g., "china-visa-flag" -> "china")
+          // Remove common suffixes like "-visa", "-flag", etc.
+          const slugParts = visaSlug.toLowerCase().split("-");
+          const countryNameParts = slugParts.filter(
+            (part) => !["visa", "flag", "tourist", "business", "student"].includes(part)
+          );
+          const countryNameFromSlug = countryNameParts.join(" ");
+          
+          console.log("[ApplyVisa] Extracted country name from slug:", countryNameFromSlug);
+          
+          // Fetch countries list to find matching country code
+          const countriesResponse = await fetch("/api/cms/countries-dd", {
+            headers: getAuthHeaders(),
+          });
+          
+          if (countriesResponse.ok) {
+            const countriesData = await countriesResponse.json();
+            const countriesList = Array.isArray(countriesData?.data?.data) 
+              ? countriesData.data.data 
+              : Array.isArray(countriesData?.data) 
+              ? countriesData.data 
+              : [];
+            
+            // Normalize function for comparison
+            const normalize = (str: string) => 
+              typeof str === "string" ? str.trim().toLowerCase().replace(/\s+/g, " ") : "";
+            
+            // Try to find exact match first
+            let match = countriesList.find((country: any) => {
+              const label = normalize(country?.label || country?.visaCardTitle || "");
+              const title = normalize(country?.visaCardJson?.title || "");
+              const searchTerm = normalize(countryNameFromSlug);
+              
+              return label.includes(searchTerm) || 
+                     title.includes(searchTerm) ||
+                     searchTerm.includes(label.split(" ")[0]) ||
+                     searchTerm.includes(title.split(" ")[0]);
+            });
+            
+            // If no exact match, try partial match
+            if (!match && countryNameParts.length > 0) {
+              const firstPart = countryNameParts[0];
+              match = countriesList.find((country: any) => {
+                const label = normalize(country?.label || country?.visaCardTitle || "");
+                const title = normalize(country?.visaCardJson?.title || "");
+                return label.includes(firstPart) || title.includes(firstPart);
+              });
+            }
+            
+            if (match) {
+              // Get country code from match
+              countryId = match?.visaCardJson?.countryCode || 
+                          match?.visaCardCountryId || 
+                          match?.id || 
+                          match?.countryCode || 
+                          "";
+              
+              if (countryId) {
+                console.log("[ApplyVisa] Found country code from slug:", countryId, "for country:", match.label || match.visaCardTitle);
+              }
+            } else {
+              console.warn("[ApplyVisa] Could not find country match for slug:", visaSlug);
+            }
+          }
+        } catch (e) {
+          console.error("[ApplyVisa] Error extracting country from slug:", e);
         }
-      } catch (e) {
-        console.error("Error reading from sessionStorage:", e);
       }
 
-      // If no country selected, use default (UAE/AE)
+      // Fallback to sessionStorage if slug didn't provide country code
+      if (!countryId) {
+        try {
+          if (typeof window !== "undefined") {
+            // Prioritize applyVisaCountryCode over applyVisaCountryId
+            // applyVisaCountryCode is the correct ISO country code
+            countryId =
+              window.sessionStorage.getItem("applyVisaCountryCode") ||
+              window.sessionStorage.getItem("applyVisaCountryId") ||
+              "";
+          }
+        } catch (e) {
+          console.error("Error reading from sessionStorage:", e);
+        }
+      }
+
+      // If still no country selected, use default (UAE/AE)
       if (!countryId) {
         countryId = "AE";
-        console.log("No country code found, using default: AE");
+        console.log("[ApplyVisa] No country code found, using default: AE");
+      } else {
+        console.log("[ApplyVisa] Using country code:", countryId);
       }
 
       setLoading(true);
@@ -257,7 +339,7 @@ const ApplyVisaPage: React.FC = () => {
     }
 
     loadVisaDetails();
-  }, []);
+  }, [visaSlug]); // Re-run when visaSlug changes (e.g., when URL changes)
 
   const pageInfo = getPageInfo("visaLanding");
   const pageSlug = pageInfo?.slug || "visa-landing-page";
