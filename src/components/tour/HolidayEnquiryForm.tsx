@@ -112,13 +112,24 @@ const HolidayEnquiryForm: React.FC<HolidayEnquiryFormProps> = ({
     setSubmitting(true);
 
     try {
+      // Helper function to convert ISO code to full country name
+      const getCountryName = (isoCode: string): string => {
+        if (!isoCode) return "";
+        const country = countries.find((c) => c.isoCode === isoCode);
+        return country?.name || isoCode;
+      };
+
+      // Convert ISO codes to full country names for countryOfResidence and nationality
+      const countryOfResidenceFull = getCountryName(formData.countryOfResidence);
+      const nationalityFull = getCountryName(formData.nationality);
+
       // Prepare the data for submission
       const submissionData = {
         enquiryType: "PACKAGE",
         customerFirstName: formData.firstName,
         customerLastName: formData.lastName,
-        countryOfResidence: formData.countryOfResidence,
-        nationality: formData.nationality,
+        countryOfResidence: countryOfResidenceFull,
+        nationality: nationalityFull,
         customerPhone: `+${formData.phoneCode}${formData.phoneNumber}`,
         customerEmail: formData.email,
         customerType: formData.tripType,

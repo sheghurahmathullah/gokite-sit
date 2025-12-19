@@ -274,13 +274,26 @@ const VisaEnquiryForm: React.FC<VisaEnquiryFormProps> = ({
         ? VISA_TYPE_MAP[formData.visaType] || formData.visaType
         : undefined;
 
+      // Helper function to convert ISO code to full country name
+      const getCountryName = (isoCode: string): string => {
+        if (!isoCode) return "";
+        const country = countries.find((c) => c.isoCode === isoCode);
+        return country?.name || isoCode;
+      };
+
+      // Convert ISO codes to full country names for countryOfResidence and nationality
+      const countryOfResidenceFull = getCountryName(
+        formData.countryOfResidence
+      );
+      const nationalityFull = getCountryName(formData.nationality);
+
       // Prepare the data for submission with enquiryType and proper field mapping
       const submissionData = {
         enquiryType: "VISA",
         customerFirstName: formData.customerFirstName,
         customerLastName: formData.customerLastName,
-        countryOfResidence: formData.countryOfResidence,
-        nationality: formData.nationality,
+        countryOfResidence: countryOfResidenceFull,
+        nationality: nationalityFull,
         customerPhone: formData.contactNumber,
         customerEmail: formData.email,
         customerType: formData.customerType,
