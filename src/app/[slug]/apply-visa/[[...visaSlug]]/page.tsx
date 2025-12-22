@@ -347,9 +347,10 @@ const ApplyVisaPage: React.FC = () => {
   const canonicalPath = visaSlug 
     ? `/${pageSlug}/apply-visa/${visaSlug}`
     : `/${pageSlug}/apply-visa`;
-  const visaCountry = visaDetails?.detailsJson?.country || "UAE";
-  const visaTitle = `Apply for ${visaCountry} Visa Online - GoKite`;
-  const visaDescription = `Apply for ${visaCountry} visa online with GoKite. Fast and easy visa application process. Get your visa approved quickly with our expert visa services.`;
+  // Use detailsJson.title for the visa title, fallback to country if title not available
+  const visaTitleText = visaDetails?.detailsJson?.title || visaDetails?.detailsJson?.country || "UAE";
+  const visaTitle = `Apply for ${visaTitleText} Online - GoKite`;
+  const visaDescription = `Apply for ${visaTitleText} online with GoKite. Fast and easy visa application process. Get your visa approved quickly with our expert visa services.`;
   
   // FAQ schema from visa details or fallback
   const faqSchema = visaDetails?.detailsJson?.faq && visaDetails.detailsJson.faq.length > 0
@@ -368,7 +369,7 @@ const ApplyVisaPage: React.FC = () => {
         title={visaTitle}
         description={visaDescription}
         keywords={[
-          `apply ${visaCountry} visa`,
+          `apply ${visaTitleText} visa`,
           "visa application",
           "online visa",
           "eVisa",
@@ -376,7 +377,7 @@ const ApplyVisaPage: React.FC = () => {
           "visa services",
           "GoKite visa",
         ]}
-        pageName={`Apply for ${visaCountry} Visa`}
+        pageName={`Apply for ${visaTitleText}`}
         canonical={canonicalPath}
         openGraph={{
           title: visaTitle,
@@ -399,7 +400,7 @@ const ApplyVisaPage: React.FC = () => {
           breadcrumb: [
             { name: "Home", url: SEO_CONFIG.baseDomain },
             { name: pageInfo?.title || "Visa Services", url: getCanonicalUrl(`/${pageSlug}`) },
-            { name: `Apply for ${visaCountry} Visa`, url: getCanonicalUrl(canonicalPath) },
+            { name: `Apply for ${visaTitleText}`, url: getCanonicalUrl(canonicalPath) },
           ],
           faq: faqSchema,
         }}
@@ -437,8 +438,8 @@ const ApplyVisaPage: React.FC = () => {
         ) : (
           <ApplyVisa
             title={`Apply for ${
-              visaDetails?.detailsJson?.country || "UAE"
-            } Visa Online`}
+              visaDetails?.detailsJson?.title || visaDetails?.detailsJson?.country || "UAE"
+            } Online`}
             subtitle={
               visaDetails?.detailsJson?.visaProcess?.subHeading ||
               "Get your Visa by 7 June 2025, If applied today"

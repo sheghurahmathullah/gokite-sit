@@ -269,6 +269,9 @@ const CountrySlider = ({
       // Valid data found - store the visa details and redirect
       console.log("[CountrySlider] Valid visa data found, redirecting to apply-visa");
       
+      // Extract title from API response detailsJson
+      const visaTitle = visaData.data[0]?.detailsJson?.title || visa.country;
+      
       // Store country code and visa details for the apply-visa page
       try {
         if (typeof window !== "undefined") {
@@ -303,8 +306,8 @@ const CountrySlider = ({
         } catch (_) {}
       }
       
-      // Create slug from visa country title for URL
-      const visaSlug = createSlugFromTitle(visa.country);
+      // Create slug from API response title (detailsJson.title) for URL
+      const visaSlug = createSlugFromTitle(visaTitle);
       router.push(`/${currentSlug}/apply-visa/${visaSlug}`);
       
     } catch (e) {

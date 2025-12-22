@@ -310,6 +310,9 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
         return;
       }
 
+      // Extract title from API response detailsJson
+      const visaTitle = visaData.data[0]?.detailsJson?.title || rule.country || rule.title || "";
+
       // Store country code and visa details, then navigate
       try {
         if (typeof window !== "undefined") {
@@ -351,8 +354,8 @@ const VisaRulesCard: React.FC<VisaRulesCardProps> = ({
         } catch (_) {}
       }
 
-      // Create slug from rule country/title for URL
-      const visaSlug = createSlugFromTitle(rule.country || rule.title || "");
+      // Create slug from API response title (detailsJson.title) for URL
+      const visaSlug = createSlugFromTitle(visaTitle);
       router.push(`/${currentSlug}/apply-visa/${visaSlug}`);
     } catch (e) {
       console.error("Failed to validate visa:", e);

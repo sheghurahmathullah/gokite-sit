@@ -158,6 +158,9 @@ const VisaCard = ({ destination }: VisaCardProps) => {
         "[VisaCard] Valid visa data found, redirecting to apply-visa"
       );
 
+      // Extract title from API response detailsJson
+      const visaTitle = visaData.data[0]?.detailsJson?.title || destination.country;
+
       // Store the visa details for the apply-visa page
       try {
         if (typeof window !== "undefined") {
@@ -177,8 +180,8 @@ const VisaCard = ({ destination }: VisaCardProps) => {
         } catch (_) {}
       }
       
-      // Create slug from destination country for URL
-      const visaSlug = createSlugFromTitle(destination.country);
+      // Create slug from API response title (detailsJson.title) for URL
+      const visaSlug = createSlugFromTitle(visaTitle);
       router.push(`/${currentSlug}/apply-visa/${visaSlug}`);
     } catch (e) {
       console.error("[VisaCard] Error validating visa:", e);

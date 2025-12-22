@@ -84,6 +84,9 @@ const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
         return;
       }
 
+      // Extract title from API response detailsJson
+      const visaTitle = visaData.data[0]?.detailsJson?.title || country.country;
+
       // Store country code and visa details, then navigate
       try {
         if (typeof window !== "undefined") {
@@ -120,8 +123,8 @@ const VisaCountryCard = ({ country }: { country: VisaCountry }) => {
         } catch (_) {}
       }
       
-      // Create slug from country title for URL
-      const visaSlug = createSlugFromTitle(country.country);
+      // Create slug from API response title (detailsJson.title) for URL
+      const visaSlug = createSlugFromTitle(visaTitle);
       router.push(`/${currentSlug}/apply-visa/${visaSlug}`);
     } catch (e) {
       console.error("Failed to validate visa:", e);

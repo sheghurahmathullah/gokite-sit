@@ -206,6 +206,9 @@ const VisaBookingCard = () => {
         return;
       }
 
+      // Extract title from API response detailsJson
+      const visaTitle = data.data[0]?.detailsJson?.title || searchQuery || "";
+
       // Valid data found - cache the API response and store the visa details
       console.log("[VisaBookingCard] Valid visa data found, caching and redirecting to apply-visa");
       
@@ -228,8 +231,8 @@ const VisaBookingCard = () => {
         } catch (_) {}
       }
       
-      // Create slug from selected country label for URL
-      const visaSlug = createSlugFromTitle(searchQuery || "");
+      // Create slug from API response title (detailsJson.title) for URL
+      const visaSlug = createSlugFromTitle(visaTitle);
       router.push(`/${currentSlug}/apply-visa/${visaSlug}`);
       
     } catch (error) {
